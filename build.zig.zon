@@ -1,0 +1,16 @@
+.{
+    .name = .publr_jit,
+    .version = "0.1.0",
+    .fingerprint = 0x276e5d0471a26672,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "scripts",
+        "publr_jit.zig",
+        "README.md",
+        "THEME.md",
+    },
+}

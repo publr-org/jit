@@ -5282,10 +5282,10 @@ test "gradient: to-transparent special keyword" {
 }
 
 test "bg arbitrary values: an image, a size, a position, else a color" {
-    const image = (try parseAndResolve(tst.allocator, "bg-[url(/a.svg)]")).?;
+    const image = (try parseAndResolve(tst.allocator, "bg-[url(/_cloud/a_b.svg)]")).?;
     defer freeResolvedUtility(tst.allocator, image);
     try tst.expectEqualStrings("background-image", image.declarations[0].property);
-    try tst.expectEqualStrings("url(/a.svg)", image.declarations[0].value);
+    try tst.expectEqualStrings("url(/_cloud/a_b.svg)", image.declarations[0].value);
 
     const size = (try parseAndResolve(tst.allocator, "bg-[length:600px_auto]")).?;
     defer freeResolvedUtility(tst.allocator, size);

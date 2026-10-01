@@ -552,20 +552,27 @@ fn segmentByte(allocator: std.mem.Allocator, input: []const u8, delim: u8) ![][]
     return parts.toOwnedSlice();
 }
 
-/// Decode an arbitrary value: replace `_` with ` ` (unless escaped as `\_`).
+/// Decode an arbitrary value: replace `_` with ` ` (unless escaped as `\_`),
+/// but never inside `url(…)`, where an underscore is part of the address.
 /// Caller owns the returned slice.
 fn decodeArbitrary(allocator: std.mem.Allocator, input: []const u8) ![]u8 {
     var out = std.array_list.Managed(u8).init(allocator);
     errdefer out.deinit();
+    var in_url = false;
     var i: usize = 0;
     while (i < input.len) : (i += 1) {
         const c = input[i];
+        if (!in_url and std.mem.startsWith(u8, input[i..], "url(")) {
+            in_url = true;
+        } else if (in_url and c == ')') {
+            in_url = false;
+        }
         if (c == '\\' and i + 1 < input.len and input[i + 1] == '_') {
             try out.append('_');
             i += 1;
             continue;
         }
-        if (c == '_') {
+        if (c == '_' and !in_url) {
             try out.append(' ');
             continue;
         }

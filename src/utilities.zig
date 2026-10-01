@@ -1732,6 +1732,11 @@ fn resolveFunctional(
         if (try resolveEasing(allocator, t, f.value)) |r| return r;
     }
 
+    // ── bg-[…] that is not a color: an image, a size or a position ───────────
+    if (std.mem.eql(u8, root, "bg") and !negative) {
+        if (try resolveArbitraryBackground(allocator, f.value)) |r| return r;
+    }
+
     // ── color-property utilities (bg, text, border, ring, …) ───────────────
     // Theme-driven: each maps to a single CSS property and shares one
     // resolution path covering theme colors, special CSS keywords, arbitrary
@@ -2184,6 +2189,9 @@ fn resolveSpacingKeyword(allocator: std.mem.Allocator, n: []const u8) ResolveErr
     if (std.mem.eql(u8, n, "svw")) return try allocator.dupe(u8, "100svw");
     if (std.mem.eql(u8, n, "lvw")) return try allocator.dupe(u8, "100lvw");
     if (std.mem.eql(u8, n, "dvw")) return try allocator.dupe(u8, "100dvw");
+    if (std.mem.eql(u8, n, "svh")) return try allocator.dupe(u8, "100svh");
+    if (std.mem.eql(u8, n, "lvh")) return try allocator.dupe(u8, "100lvh");
+    if (std.mem.eql(u8, n, "dvh")) return try allocator.dupe(u8, "100dvh");
     return null;
 }
 
@@ -3380,6 +3388,58 @@ fn isArbitraryTextSize(a: candidate.ArbitraryUtilityValue) bool {
         if (std.mem.endsWith(u8, value, unit)) return true;
     }
     return false;
+}
+
+/// `bg-[…]` names a color unless its type hint or its value says otherwise:
+/// `bg-[url(/a.svg)]`, `bg-[image:var(--x)]` and gradients are the image,
+/// `bg-[length:600px_auto]` (or `size:`) the size, `bg-[position:…]` the
+/// position. Anything else is left to the color resolver.
+fn resolveArbitraryBackground(
+    allocator: std.mem.Allocator,
+    value: ?candidate.UtilityValue,
+) ResolveError!?ResolvedUtility {
+    const v = value orelse return null;
+    const a = switch (v) {
+        .arbitrary => |arbitrary| arbitrary,
+        .named => return null,
+    };
+    const property = backgroundPropertyOf(a) orelse return null;
+    const css_value = try allocator.dupe(u8, a.value);
+    errdefer allocator.free(css_value);
+
+    const decls = try allocator.alloc(Declaration, 1);
+    errdefer allocator.free(decls);
+    decls[0] = .{ .property = property, .value = css_value };
+    return .{ .declarations = decls };
+}
+
+fn backgroundPropertyOf(a: candidate.ArbitraryUtilityValue) ?[]const u8 {
+    if (a.data_type) |data_type| {
+        const hinted = [_]struct { hint: []const u8, property: []const u8 }{
+            .{ .hint = "url", .property = "background-image" },
+            .{ .hint = "image", .property = "background-image" },
+            .{ .hint = "length", .property = "background-size" },
+            .{ .hint = "size", .property = "background-size" },
+            .{ .hint = "bg-size", .property = "background-size" },
+            .{ .hint = "position", .property = "background-position" },
+            .{ .hint = "bg-position", .property = "background-position" },
+        };
+        for (hinted) |entry| {
+            if (std.mem.eql(u8, data_type, entry.hint)) return entry.property;
+        }
+        return null;
+    }
+
+    const trimmed = std.mem.trim(u8, a.value, " \t\r\n");
+    const images = [_][]const u8{
+        "url(",            "linear-gradient(",           "radial-gradient(",
+        "conic-gradient(", "repeating-linear-gradient(", "repeating-radial-gradient(",
+        "image-set(",
+    };
+    for (images) |prefix| {
+        if (std.mem.startsWith(u8, trimmed, prefix)) return "background-image";
+    }
+    return null;
 }
 
 // ── Color utilities ─────────────────────────────────────────────────────────
@@ -5219,4 +5279,39 @@ test "gradient: to-transparent special keyword" {
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-to", r.declarations[0].property);
     try tst.expectEqualStrings("transparent", r.declarations[0].value);
+}
+
+test "bg arbitrary values: an image, a size, a position, else a color" {
+    const image = (try parseAndResolve(tst.allocator, "bg-[url(/a.svg)]")).?;
+    defer freeResolvedUtility(tst.allocator, image);
+    try tst.expectEqualStrings("background-image", image.declarations[0].property);
+    try tst.expectEqualStrings("url(/a.svg)", image.declarations[0].value);
+
+    const size = (try parseAndResolve(tst.allocator, "bg-[length:600px_auto]")).?;
+    defer freeResolvedUtility(tst.allocator, size);
+    try tst.expectEqualStrings("background-size", size.declarations[0].property);
+    try tst.expectEqualStrings("600px auto", size.declarations[0].value);
+
+    const position = (try parseAndResolve(tst.allocator, "bg-[position:center_top]")).?;
+    defer freeResolvedUtility(tst.allocator, position);
+    try tst.expectEqualStrings("background-position", position.declarations[0].property);
+
+    const color = (try parseAndResolve(tst.allocator, "bg-[#f5f7f9]")).?;
+    defer freeResolvedUtility(tst.allocator, color);
+    try tst.expectEqualStrings("background-color", color.declarations[0].property);
+}
+
+test "viewport heights: min-h-dvh, h-svh, max-h-lvh" {
+    const dynamic = (try parseAndResolve(tst.allocator, "min-h-dvh")).?;
+    defer freeResolvedUtility(tst.allocator, dynamic);
+    try tst.expectEqualStrings("min-height", dynamic.declarations[0].property);
+    try tst.expectEqualStrings("100dvh", dynamic.declarations[0].value);
+
+    const small = (try parseAndResolve(tst.allocator, "h-svh")).?;
+    defer freeResolvedUtility(tst.allocator, small);
+    try tst.expectEqualStrings("100svh", small.declarations[0].value);
+
+    const large = (try parseAndResolve(tst.allocator, "max-h-lvh")).?;
+    defer freeResolvedUtility(tst.allocator, large);
+    try tst.expectEqualStrings("100lvh", large.declarations[0].value);
 }

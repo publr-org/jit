@@ -682,7 +682,7 @@ fn substituteAmpersand(
 
 /// Escape special characters in a class name for use in a CSS selector.
 /// Characters needing escapes: `:`, `/`, `[`, `]`, `(`, `)`, `.`, `,`, `#`,
-/// `%`, `!`, `@`, `$`, `^`, `*`, `+`, `=`, `~`, `|`, `<`, `>`, `?`, `'`, `"`.
+/// `%`, `!`, `@`, `$`, `&`, `^`, `*`, `+`, `=`, `~`, `|`, `<`, `>`, `?`, `'`, `"`.
 /// We escape with a leading backslash.
 pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) VariantError![]u8 {
     var out = std.array_list.Managed(u8).init(allocator);
@@ -703,6 +703,7 @@ pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) Vari
             '!',
             '@',
             '$',
+            '&',
             '^',
             '*',
             '+',
@@ -1093,4 +1094,10 @@ test "arbitrary at-rule: bare condition gets wrapped in parens" {
     defer for (r.ats) |ar| tst.allocator.free(ar.condition);
     try tst.expectEqualStrings("media", r.ats[0].name);
     try tst.expectEqualStrings("(screen)", r.ats[0].condition);
+}
+
+test "escape: arbitrary selector ampersands remain literal class characters" {
+    const out = try escapeClassSelector(tst.allocator, "[&_h3]:flex");
+    defer tst.allocator.free(out);
+    try tst.expectEqualStrings(".\\[\\&_h3\\]\\:flex", out);
 }

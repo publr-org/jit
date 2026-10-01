@@ -110,7 +110,7 @@ pub fn compile(
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
-    const sorted = sort.sortClasses(allocator, joined, "") catch |err| switch (err) {
+    const sorted = sort.sortClassesWithTheme(allocator, joined, t) catch |err| switch (err) {
         sort.SortError.OutOfMemory => return CompileError.OutOfMemory,
         sort.SortError.NotImplemented => return CompileError.UnsupportedFeature,
     };
@@ -474,4 +474,23 @@ test "unsupportedFeatureMessage covers every documented directive" {
         );
     }
     try tst.expect(unsupportedFeatureMessage("nonsense") == null);
+}
+test "arbitrary descendant variants escape ampersands in emitted class selectors" {
+    const css = try compile(tst.allocator, test_theme, &.{"[&_h3]:flex"}, .{});
+    defer tst.allocator.free(css);
+    try tst.expect(std.mem.indexOf(u8, css, ".\\[\\&_h3\\]\\:flex h3 {") != null);
+    try tst.expect(std.mem.indexOf(u8, css, "display: flex;") != null);
+}
+
+test "custom responsive breakpoints sort by width rather than their names" {
+    const custom_theme = theme.Theme{ .tokens = &.{
+        .{ .name = "breakpoint-narrow", .value = "600px" },
+        .{ .name = "breakpoint-wide", .value = "71.875rem" },
+    } };
+    const css = try compile(tst.allocator, custom_theme, &.{
+        "wide:block", "narrow:hidden", "max-narrow:block", "max-wide:hidden",
+    }, .{});
+    defer tst.allocator.free(css);
+    try tst.expect(std.mem.indexOf(u8, css, ".narrow\\:hidden").? < std.mem.indexOf(u8, css, ".wide\\:block").?);
+    try tst.expect(std.mem.indexOf(u8, css, ".max-wide\\:hidden").? < std.mem.indexOf(u8, css, ".max-narrow\\:block").?);
 }

@@ -164,6 +164,8 @@ Public exports (`@import("publr_jit.zig").api`): `Theme`, `Token`, `default_them
   (`gallery-canvas:` → `--breakpoint-gallery-canvas`).
 - `max-{key}:` — `(max-width: ...)` form, including hyphenated custom keys
   (`max-gallery-canvas:`).
+- Responsive rules sort by the resolved theme width: ascending for minimum widths,
+  descending for maximum widths, including custom names and overridden tokens.
 
 ### Functional variants
 - `data-[k=v]:`, `data-[k]:` — attribute selectors.

@@ -5763,7 +5763,7 @@ fn substituteAmpersand(
 
 /// Escape special characters in a class name for use in a CSS selector.
 /// Characters needing escapes: `:`, `/`, `[`, `]`, `(`, `)`, `.`, `,`, `#`,
-/// `%`, `!`, `@`, `$`, `^`, `*`, `+`, `=`, `~`, `|`, `<`, `>`, `?`, `'`, `"`.
+/// `%`, `!`, `@`, `$`, `&`, `^`, `*`, `+`, `=`, `~`, `|`, `<`, `>`, `?`, `'`, `"`.
 /// We escape with a leading backslash.
 pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) VariantError![]u8 {
     var out = std.array_list.Managed(u8).init(allocator);
@@ -5784,6 +5784,7 @@ pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) Vari
             '!',
             '@',
             '$',
+            '&',
             '^',
             '*',
             '+',
@@ -5864,14 +5865,13 @@ pub const sort_mod = struct {
 ///   3. Stable-sort by key.
 ///   4. Join with spaces.
 ///
-/// The theme_css argument is accepted for compat with the test runner's API
-/// but is currently parsed only enough to know if breakpoint tokens exist
-/// (used as a hint for whether a name like `md` should be a breakpoint variant).
-/// Per-fixture themes are not used for sort ordering, only for resolution
-/// presence checks (which Phase 1 doesn't need).
+/// The legacy `theme_css` argument remains accepted by `sortClasses`; compilation
+/// calls `sortClassesWithTheme` with its resolved tokens so custom breakpoints and
+/// overrides participate in cascade ordering.
 const std = @import("std");
 const candidate = amalgam.candidate_mod;
 const utilities = amalgam.utilities_mod;
+const theme = amalgam.theme_mod;
 
 pub const SortError = error{
     NotImplemented,
@@ -5883,7 +5883,15 @@ pub fn sortClasses(
     input: []const u8,
     theme_css: []const u8,
 ) SortError![]u8 {
-    _ = theme_css; // not currently used; see module doc comment
+    _ = theme_css; // Legacy sorting API; compilation uses the resolved token theme below.
+    return sortClassesWithTheme(allocator, input, .{ .tokens = &.{} });
+}
+
+pub fn sortClassesWithTheme(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+    t: theme.Theme,
+) SortError![]u8 {
 
     // Split input on whitespace.
     var classes = std.array_list.Managed([]const u8).init(allocator);
@@ -5909,7 +5917,7 @@ pub fn sortClasses(
     for (classes.items, 0..) |name, i| {
         entries[i] = .{
             .name = name,
-            .key = sortKey(allocator, name) catch |err| switch (err) {
+            .key = sortKey(allocator, name, t) catch |err| switch (err) {
                 error.OutOfMemory => return SortError.OutOfMemory,
             },
             .idx = @intCast(i),
@@ -5967,7 +5975,7 @@ pub fn sortClasses(
 /// `lg:X` media queries match. The CSS cascade gives the win to whichever
 /// rule comes LATER in source order. So we need `sm:X` emitted BEFORE
 /// `lg:X` to make `lg:X` win.
-fn sortKey(allocator: std.mem.Allocator, name: []const u8) error{OutOfMemory}!?u64 {
+fn sortKey(allocator: std.mem.Allocator, name: []const u8, t: theme.Theme) error{OutOfMemory}!?u64 {
     const cands = try candidate.parseCandidate(allocator, name);
     defer candidate.freeCandidates(allocator, cands);
 
@@ -6024,12 +6032,11 @@ fn sortKey(allocator: std.mem.Allocator, name: []const u8) error{OutOfMemory}!?u
         .arbitrary => |a| a.important,
     };
 
-    // Breakpoint priority: max across all variant slots. Higher value
-    // means a wider min-width, which means the rule must come later in CSS
-    // so it overrides narrower-breakpoint rules at wide viewports.
+    // The most specific responsive condition determines cascade priority.
+    // Larger minima and smaller maxima sort later.
     var bp_priority: u16 = 0;
     for (variants) |v| {
-        const p = breakpointPriority(v);
+        const p = breakpointPriority(v, t);
         if (p > bp_priority) bp_priority = p;
     }
 
@@ -6043,41 +6050,42 @@ fn sortKey(allocator: std.mem.Allocator, name: []const u8) error{OutOfMemory}!?u
     return key;
 }
 
-/// Heuristic priority for breakpoint variants — used so `sm:X` sorts before
-/// `lg:X` in the output, giving `lg:X` the cascade win at wide viewports.
-/// Returns 0 for non-breakpoint variants (hover, focus, dark, data-*, etc.)
-/// so they don't perturb the sort.
-///
-/// Values are min-width-in-rem × 16 to leave room for half-step custom
-/// breakpoints if needed. Default breakpoints:
-///   sm  = 40rem → 640
-///   md  = 48rem → 768
-///   lg  = 64rem → 1024
-///   xl  = 80rem → 1280
-///   2xl = 96rem → 1536
-///
-/// `max-{key}:` variants get a HIGHER priority than the equivalent `{key}:`
-/// because max-* sets a *narrower* viewport ceiling — at viewport just
-/// under the breakpoint, both `max-sm:X` and `sm:X` match, and `max-sm:X`
-/// must win (it's the more specific narrowing condition).
-fn breakpointPriority(v: candidate.Variant) u16 {
+/// Min-width queries grow more specific as their threshold increases; max-width
+/// queries grow more specific as it decreases. Resolve custom names and overrides
+/// from the same theme used to emit the media queries.
+fn breakpointPriority(v: candidate.Variant, t: theme.Theme) u16 {
     return switch (v) {
-        .static_v => |s| breakpointFor(s.root),
+        .static_v => |s| breakpointForTheme(s.root, t),
         .functional => |f| blk: {
-            // `max-{key}:` — value is the key.
-            if (std.mem.eql(u8, f.root, "max")) {
-                if (f.value) |val| {
-                    if (val == .named) {
-                        const p = breakpointFor(val.named);
-                        // max-{key} wins by a small margin over plain {key}.
-                        if (p > 0) break :blk p +| 1;
-                    }
-                }
-            }
-            break :blk 0;
+            const value = f.value orelse break :blk 0;
+            if (value != .named) break :blk 0;
+            var name_buffer: [512]u8 = undefined;
+            const full_name = std.fmt.bufPrint(&name_buffer, "{s}-{s}", .{ f.root, value.named }) catch break :blk 0;
+            const is_max = std.mem.startsWith(u8, full_name, "max-");
+            const name = if (is_max) full_name[4..] else full_name;
+            const p = breakpointForTheme(name, t);
+            if (p == 0) break :blk 0;
+            break :blk if (is_max) std.math.maxInt(u16) - p else p;
         },
         else => 0,
     };
+}
+
+fn breakpointForTheme(name: []const u8, t: theme.Theme) u16 {
+    for (t.tokens) |token| {
+        if (!std.mem.startsWith(u8, token.name, "breakpoint-")) continue;
+        if (!std.mem.eql(u8, token.name["breakpoint-".len..], name)) continue;
+        const value = std.mem.trim(u8, token.value, " ");
+        const unit_len: usize = if (std.mem.endsWith(u8, value, "rem")) 3 else 2;
+        const pixels = std.mem.endsWith(u8, value, "px");
+        if (!pixels and !std.mem.endsWith(u8, value, "em")) return 0;
+        if (value.len <= unit_len) return 0;
+        const number = std.fmt.parseFloat(f64, value[0 .. value.len - unit_len]) catch return 0;
+        const width = number * (if (pixels) @as(f64, 1) else 16);
+        if (!std.math.isFinite(width) or width <= 0) return 0;
+        return @intFromFloat(@min(width, 32767));
+    }
+    return breakpointFor(name);
 }
 
 fn breakpointFor(name: []const u8) u16 {
@@ -6629,7 +6637,7 @@ pub fn compile(
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
-    const sorted = sort.sortClasses(allocator, joined, "") catch |err| switch (err) {
+    const sorted = sort.sortClassesWithTheme(allocator, joined, t) catch |err| switch (err) {
         sort.SortError.OutOfMemory => return CompileError.OutOfMemory,
         sort.SortError.NotImplemented => return CompileError.UnsupportedFeature,
     };

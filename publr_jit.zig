@@ -5224,10 +5224,35 @@ pub fn applyVariants(
         try applyOne(allocator, t, v, &selector, &at_rules);
     }
 
+    try pseudoElementLast(allocator, &selector);
+
     return .{
         .selector = selector,
         .at_rules = try at_rules.toOwnedSlice(),
     };
+}
+
+const pseudo_elements = [_][]const u8{
+    "::before",      "::after",   "::placeholder",             "::selection",
+    "::marker",      "::backdrop", "::file-selector-button",
+};
+
+/// A pseudo-element must end its selector: `has-[…]:after:x` applies `::after` before
+/// `:has(…)`, which no browser matches, so it moves to the end (`:has(…)::after`).
+fn pseudoElementLast(allocator: std.mem.Allocator, selector: *[]u8) VariantError!void {
+    for (pseudo_elements) |pseudo| {
+        const at = std.mem.indexOf(u8, selector.*, pseudo) orelse continue;
+        if (at > 0 and selector.*[at - 1] == '\\') continue;
+        if (at + pseudo.len == selector.*.len) return;
+        const moved = try std.fmt.allocPrint(allocator, "{s}{s}{s}", .{
+            selector.*[0..at],
+            selector.*[at + pseudo.len ..],
+            pseudo,
+        });
+        allocator.free(selector.*);
+        selector.* = moved;
+        return;
+    }
 }
 
 fn applyOne(

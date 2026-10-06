@@ -76,10 +76,35 @@ pub fn applyVariants(
         try applyOne(allocator, t, v, &selector, &at_rules);
     }
 
+    try pseudoElementLast(allocator, &selector);
+
     return .{
         .selector = selector,
         .at_rules = try at_rules.toOwnedSlice(),
     };
+}
+
+const pseudo_elements = [_][]const u8{
+    "::before",      "::after",   "::placeholder",             "::selection",
+    "::marker",      "::backdrop", "::file-selector-button",
+};
+
+/// A pseudo-element must end its selector: `has-[…]:after:x` applies `::after` before
+/// `:has(…)`, which no browser matches, so it moves to the end (`:has(…)::after`).
+fn pseudoElementLast(allocator: std.mem.Allocator, selector: *[]u8) VariantError!void {
+    for (pseudo_elements) |pseudo| {
+        const at = std.mem.indexOf(u8, selector.*, pseudo) orelse continue;
+        if (at > 0 and selector.*[at - 1] == '\\') continue;
+        if (at + pseudo.len == selector.*.len) return;
+        const moved = try std.fmt.allocPrint(allocator, "{s}{s}{s}", .{
+            selector.*[0..at],
+            selector.*[at + pseudo.len ..],
+            pseudo,
+        });
+        allocator.free(selector.*);
+        selector.* = moved;
+        return;
+    }
 }
 
 fn applyOne(
@@ -1100,4 +1125,16 @@ test "escape: arbitrary selector ampersands remain literal class characters" {
     const out = try escapeClassSelector(tst.allocator, "[&_h3]:flex");
     defer tst.allocator.free(out);
     try tst.expectEqualStrings(".\\[\\&_h3\\]\\:flex", out);
+}
+
+test "pseudo-element ends the selector whatever the order of variants" {
+    const r = try parseAndApply(tst.allocator, "has-[input:checked]:after:opacity-100");
+    defer tst.allocator.free(r.sel);
+    defer tst.allocator.free(r.ats);
+    try tst.expectEqualStrings(".opacity-100:has(:is(input:checked))::after", r.sel);
+
+    const plain = try parseAndApply(tst.allocator, "after:hover:flex");
+    defer tst.allocator.free(plain.sel);
+    defer tst.allocator.free(plain.ats);
+    try tst.expectEqualStrings(".flex:hover::after", plain.sel);
 }

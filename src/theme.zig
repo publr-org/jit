@@ -73,7 +73,9 @@ pub fn extendTheme(comptime base: Theme, comptime override: Theme) Theme {
         }
 
         const final = merged[0..len].*;
-        return Theme{ .tokens = &final };
+        return Theme{
+            .tokens = &final,
+        };
     }
 }
 
@@ -120,7 +122,9 @@ pub fn extendThemeRuntime(
         if (!was_match) out.appendAssumeCapacity(ot);
     }
 
-    return Theme{ .tokens = try out.toOwnedSlice(allocator) };
+    return Theme{
+        .tokens = try out.toOwnedSlice(allocator),
+    };
 }
 
 /// Look up a token by `name`. Returns the value, or null if absent.
@@ -152,15 +156,32 @@ pub fn emitCssVariables(allocator: std.mem.Allocator, theme: Theme) ![]u8 {
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 test "extendTheme overrides matching tokens, appends new ones" {
-    const base = Theme{ .tokens = &.{
-        .{ .name = "spacing", .value = "0.25rem" },
-        .{ .name = "font-sans", .value = "ui-sans-serif" },
-        .{ .name = "color-red-500", .value = "oklch(0.637 ... old)" },
-    } };
+    const base = Theme{
+        .tokens = &.{
+            .{
+                .name = "spacing",
+                .value = "0.25rem",
+            },
+            .{
+                .name = "font-sans",
+                .value = "ui-sans-serif",
+            },
+            .{
+                .name = "color-red-500",
+                .value = "oklch(0.637 ... old)",
+            },
+        },
+    };
     const override = Theme{
         .tokens = &.{
-            .{ .name = "font-sans", .value = "Switzer, system-ui" },
-            .{ .name = "radius-4xl", .value = "2rem" }, // new
+            .{
+                .name = "font-sans",
+                .value = "Switzer, system-ui",
+            },
+            .{
+                .name = "radius-4xl",
+                .value = "2rem",
+            }, // new
         },
     };
 
@@ -181,41 +202,74 @@ test "extendTheme overrides matching tokens, appends new ones" {
 }
 
 test "extendTheme with empty override returns base unchanged" {
-    const base = Theme{ .tokens = &.{
-        .{ .name = "spacing", .value = "0.25rem" },
-    } };
-    const empty = Theme{ .tokens = &.{} };
+    const base = Theme{
+        .tokens = &.{
+            .{
+                .name = "spacing",
+                .value = "0.25rem",
+            },
+        },
+    };
+    const empty = Theme{
+        .tokens = &.{},
+    };
     const merged = comptime extendTheme(base, empty);
     try std.testing.expectEqual(@as(usize, 1), merged.tokens.len);
     try std.testing.expectEqualStrings("spacing", merged.tokens[0].name);
 }
 
 test "extendTheme with empty base returns override" {
-    const empty = Theme{ .tokens = &.{} };
-    const override = Theme{ .tokens = &.{
-        .{ .name = "font-sans", .value = "Switzer" },
-    } };
+    const empty = Theme{
+        .tokens = &.{},
+    };
+    const override = Theme{
+        .tokens = &.{
+            .{
+                .name = "font-sans",
+                .value = "Switzer",
+            },
+        },
+    };
     const merged = comptime extendTheme(empty, override);
     try std.testing.expectEqual(@as(usize, 1), merged.tokens.len);
     try std.testing.expectEqualStrings("Switzer", merged.tokens[0].value);
 }
 
 test "lookup finds existing tokens" {
-    const theme = Theme{ .tokens = &.{
-        .{ .name = "spacing", .value = "0.25rem" },
-        .{ .name = "font-sans", .value = "Switzer" },
-    } };
+    const theme = Theme{
+        .tokens = &.{
+            .{
+                .name = "spacing",
+                .value = "0.25rem",
+            },
+            .{
+                .name = "font-sans",
+                .value = "Switzer",
+            },
+        },
+    };
     try std.testing.expectEqualStrings("0.25rem", lookup(theme, "spacing").?);
     try std.testing.expectEqualStrings("Switzer", lookup(theme, "font-sans").?);
     try std.testing.expectEqual(@as(?[]const u8, null), lookup(theme, "missing"));
 }
 
 test "emitCssVariables produces deterministic :root block" {
-    const theme = Theme{ .tokens = &.{
-        .{ .name = "spacing", .value = "0.25rem" },
-        .{ .name = "color-red-500", .value = "oklch(0.637 0.237 25.331)" },
-        .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-    } };
+    const theme = Theme{
+        .tokens = &.{
+            .{
+                .name = "spacing",
+                .value = "0.25rem",
+            },
+            .{
+                .name = "color-red-500",
+                .value = "oklch(0.637 0.237 25.331)",
+            },
+            .{
+                .name = "font-sans",
+                .value = "Switzer, system-ui, sans-serif",
+            },
+        },
+    };
     const css = try emitCssVariables(std.testing.allocator, theme);
     defer std.testing.allocator.free(css);
 
@@ -229,7 +283,9 @@ test "emitCssVariables produces deterministic :root block" {
 }
 
 test "emitCssVariables on empty theme produces empty block" {
-    const empty = Theme{ .tokens = &.{} };
+    const empty = Theme{
+        .tokens = &.{},
+    };
     const css = try emitCssVariables(std.testing.allocator, empty);
     defer std.testing.allocator.free(css);
     try std.testing.expectEqualStrings(":root {\n}\n", css);

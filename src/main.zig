@@ -223,7 +223,9 @@ fn runCompile(
         return;
     }
 
-    const css = try jit.compile(allocator, merged_theme, classes.items, .{ .minify = minify });
+    const css = try jit.compile(allocator, merged_theme, classes.items, .{
+        .minify = minify,
+    });
     defer allocator.free(css);
 
     for (prepend_paths) |p| {
@@ -253,7 +255,9 @@ fn runThemeFromCss(io: std.Io, allocator: std.mem.Allocator, args: []const [:0]c
     var warn_buffer: [4096]u8 = undefined;
     var warn_iface = std.Io.Writer.fixed(&warn_buffer);
 
-    const zon = try theme_from_css.convert(allocator, css, .{ .warn = &warn_iface });
+    const zon = try theme_from_css.convert(allocator, css, .{
+        .warn = &warn_iface,
+    });
     defer allocator.free(zon);
 
     var stdout_buf: [16 * 1024]u8 = undefined;

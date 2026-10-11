@@ -6,7 +6,9 @@ test "amalgamated public API compiles classes" {
         std.testing.allocator,
         jit.default_theme,
         &.{ "flex", "p-4", "hover:bg-red-500" },
-        .{ .minify = true },
+        .{
+            .minify = true,
+        },
     );
     defer std.testing.allocator.free(css);
 

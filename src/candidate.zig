@@ -63,7 +63,9 @@ pub const VariantKind = enum { static_v, functional, compound, arbitrary };
 /// Variant tags.
 /// `static_v` instead of `static` to avoid the Zig keyword.
 pub const Variant = union(VariantKind) {
-    static_v: struct { root: []const u8 },
+    static_v: struct {
+        root: []const u8,
+    },
     functional: struct {
         root: []const u8,
         value: ?VariantValue,
@@ -176,12 +178,14 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         std.mem.indexOfScalar(u8, base, '(') == null and
         std.mem.indexOfScalar(u8, base, '/') == null)
     {
-        try results.append(.{ .static_c = .{
-            .root = base,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .static_c = .{
+                .root = base,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
     }
 
     // Modifier slash split (top-level only, outside brackets/parens).
@@ -224,14 +228,16 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
             allocator.free(value);
             return results.toOwnedSlice();
         }
-        try results.append(.{ .arbitrary = .{
-            .property = property,
-            .value = value,
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .arbitrary = .{
+                .property = property,
+                .value = value,
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -272,14 +278,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         errdefer allocator.free(owned_value);
         allocator.free(decoded);
 
-        try results.append(.{ .functional = .{
-            .root = root,
-            .value = .{ .arbitrary = .{ .data_type = data_type, .value = owned_value } },
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .functional = .{
+                .root = root,
+                .value = .{
+                    .arbitrary = .{
+                        .data_type = data_type,
+                        .value = owned_value,
+                    },
+                },
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -304,14 +317,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         errdefer allocator.free(wrapped);
         const data_type = if (data_type_slice) |dt| try allocator.dupe(u8, dt) else null;
         errdefer if (data_type) |dt| allocator.free(dt);
-        try results.append(.{ .functional = .{
-            .root = root,
-            .value = .{ .arbitrary = .{ .data_type = data_type, .value = wrapped } },
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .functional = .{
+                .root = root,
+                .value = .{
+                    .arbitrary = .{
+                        .data_type = data_type,
+                        .value = wrapped,
+                    },
+                },
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -339,14 +359,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
                 break :blk try std.fmt.allocPrint(allocator, "{s}/{s}", .{ value_part, modifier_str.? });
             };
 
-            try results.append(.{ .functional = .{
-                .root = root,
-                .value = .{ .named = .{ .value = value_part, .fraction = fraction } },
-                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-                .variants = try cloneVariants(allocator, variants_master),
-                .important = important,
-                .raw = input,
-            } });
+            try results.append(.{
+                .functional = .{
+                    .root = root,
+                    .value = .{
+                        .named = .{
+                            .value = value_part,
+                            .fraction = fraction,
+                        },
+                    },
+                    .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                    .variants = try cloneVariants(allocator, variants_master),
+                    .important = important,
+                    .raw = input,
+                },
+            });
 
             idx = std.mem.lastIndexOfScalar(u8, base_no_mod[0..idx.?], '-');
         }
@@ -397,7 +424,12 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
             allocator.free(decoded);
             selector = wrapped;
         }
-        return .{ .arbitrary = .{ .selector = selector, .relative = relative } };
+        return .{
+            .arbitrary = .{
+                .selector = selector,
+                .relative = relative,
+            },
+        };
     }
 
     // Static, functional, compound — split on `/` for modifier.
@@ -424,11 +456,13 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
             if (sub_parsed == null) return null;
             const heap_sub = try allocator.create(Variant);
             heap_sub.* = sub_parsed.?;
-            return .{ .compound = .{
-                .root = cr,
-                .modifier = parsed_modifier,
-                .variant = heap_sub,
-            } };
+            return .{
+                .compound = .{
+                    .root = cr,
+                    .modifier = parsed_modifier,
+                    .variant = heap_sub,
+                },
+            };
         }
     }
 
@@ -455,28 +489,40 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
                     allocator.free(decoded);
                     return null;
                 }
-                v_value = .{ .arbitrary = decoded };
+                v_value = .{
+                    .arbitrary = decoded,
+                };
             } else if (value_str.len >= 2 and value_str[0] == '(' and value_str[value_str.len - 1] == ')') {
                 const inner = value_str[1 .. value_str.len - 1];
                 if (inner.len < 2 or inner[0] != '-' or inner[1] != '-') return null;
                 const wrapped = try std.fmt.allocPrint(allocator, "var({s})", .{inner});
-                v_value = .{ .arbitrary = wrapped };
+                v_value = .{
+                    .arbitrary = wrapped,
+                };
             } else if (isValidNamedValue(value_str)) {
-                v_value = .{ .named = value_str };
+                v_value = .{
+                    .named = value_str,
+                };
             } else {
                 return null;
             }
-            return .{ .functional = .{
-                .root = root,
-                .value = v_value,
-                .modifier = parsed_modifier,
-            } };
+            return .{
+                .functional = .{
+                    .root = root,
+                    .value = v_value,
+                    .modifier = parsed_modifier,
+                },
+            };
         }
     }
 
     // Pure static variant (no value, no dash split).
     if (parsed_modifier != null) return null; // static variants don't take modifiers
-    return .{ .static_v = .{ .root = without_modifier } };
+    return .{
+        .static_v = .{
+            .root = without_modifier,
+        },
+    };
 }
 
 // ── Modifier parsing ────────────────────────────────────────────────────────
@@ -491,7 +537,9 @@ pub fn parseModifier(allocator: std.mem.Allocator, input: []const u8) ParseError
             allocator.free(decoded);
             return null;
         }
-        return .{ .arbitrary = decoded };
+        return .{
+            .arbitrary = decoded,
+        };
     }
     // Parens `(--var)`
     if (input[0] == '(' and input[input.len - 1] == ')') {
@@ -499,11 +547,15 @@ pub fn parseModifier(allocator: std.mem.Allocator, input: []const u8) ParseError
         if (inner.len < 2 or inner[0] != '-' or inner[1] != '-') return null;
         if (!isValidArbitrary(inner)) return null;
         const wrapped = try std.fmt.allocPrint(allocator, "var({s})", .{inner});
-        return .{ .arbitrary = wrapped };
+        return .{
+            .arbitrary = wrapped,
+        };
     }
     // Named
     if (!isValidNamedValue(input)) return null;
-    return .{ .named = input };
+    return .{
+        .named = input,
+    };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -693,45 +745,66 @@ fn isValidNamedValue(s: []const u8) bool {
 /// for the inner Variant pointer of compound variants.
 pub fn cloneVariant(allocator: std.mem.Allocator, v: Variant) ParseError!Variant {
     return switch (v) {
-        .static_v => |s| .{ .static_v = .{ .root = s.root } },
+        .static_v => |s| .{
+            .static_v = .{
+                .root = s.root,
+            },
+        },
         .functional => |f| blk: {
             var new_value: ?VariantValue = null;
             if (f.value) |val| switch (val) {
-                .named => |n| new_value = .{ .named = n },
+                .named => |n| new_value = .{
+                    .named = n,
+                },
                 .arbitrary => |a| {
                     const dup = try allocator.dupe(u8, a);
-                    new_value = .{ .arbitrary = dup };
+                    new_value = .{
+                        .arbitrary = dup,
+                    };
                 },
             };
             const new_modifier: ?Modifier = if (f.modifier) |m| try cloneModifier(allocator, m) else null;
-            break :blk .{ .functional = .{
-                .root = f.root,
-                .value = new_value,
-                .modifier = new_modifier,
-            } };
+            break :blk .{
+                .functional = .{
+                    .root = f.root,
+                    .value = new_value,
+                    .modifier = new_modifier,
+                },
+            };
         },
         .compound => |c| blk: {
             const inner = try cloneVariant(allocator, c.variant.*);
             const heap_inner = try allocator.create(Variant);
             heap_inner.* = inner;
             const new_modifier: ?Modifier = if (c.modifier) |m| try cloneModifier(allocator, m) else null;
-            break :blk .{ .compound = .{
-                .root = c.root,
-                .modifier = new_modifier,
-                .variant = heap_inner,
-            } };
+            break :blk .{
+                .compound = .{
+                    .root = c.root,
+                    .modifier = new_modifier,
+                    .variant = heap_inner,
+                },
+            };
         },
         .arbitrary => |a| blk: {
             const dup = try allocator.dupe(u8, a.selector);
-            break :blk .{ .arbitrary = .{ .selector = dup, .relative = a.relative } };
+            break :blk .{
+                .arbitrary = .{
+                    .selector = dup,
+                    .relative = a.relative,
+                },
+            };
         },
     };
 }
 
 fn cloneModifier(allocator: std.mem.Allocator, m: Modifier) ParseError!Modifier {
     return switch (m) {
-        .named => |n| .{ .named = n },
-        .arbitrary => |a| .{ .arbitrary = try allocator.dupe(u8, a) },
+        .named => |n| .{
+            .named = n,
+        },
+        .arbitrary => |a| .{
+            .arbitrary = try allocator.dupe(u8, a),
+        },
     };
 }
 

@@ -100,1012 +100,5152 @@ const StaticEntry = struct {
 
 const STATIC_UTILITIES = [_]StaticEntry{
     // ── Display ─────────────────────────────────────────────────────────────
-    .{ .name = "block", .decls = &.{.{ .property = "display", .value = "block" }} },
-    .{ .name = "inline", .decls = &.{.{ .property = "display", .value = "inline" }} },
-    .{ .name = "inline-block", .decls = &.{.{ .property = "display", .value = "inline-block" }} },
-    .{ .name = "flex", .decls = &.{.{ .property = "display", .value = "flex" }} },
-    .{ .name = "inline-flex", .decls = &.{.{ .property = "display", .value = "inline-flex" }} },
-    .{ .name = "grid", .decls = &.{.{ .property = "display", .value = "grid" }} },
-    .{ .name = "inline-grid", .decls = &.{.{ .property = "display", .value = "inline-grid" }} },
-    .{ .name = "hidden", .decls = &.{.{ .property = "display", .value = "none" }} },
-    .{ .name = "table", .decls = &.{.{ .property = "display", .value = "table" }} },
-    .{ .name = "inline-table", .decls = &.{.{ .property = "display", .value = "inline-table" }} },
-    .{ .name = "table-caption", .decls = &.{.{ .property = "display", .value = "table-caption" }} },
-    .{ .name = "table-cell", .decls = &.{.{ .property = "display", .value = "table-cell" }} },
-    .{ .name = "table-column", .decls = &.{.{ .property = "display", .value = "table-column" }} },
-    .{ .name = "table-column-group", .decls = &.{.{ .property = "display", .value = "table-column-group" }} },
-    .{ .name = "table-footer-group", .decls = &.{.{ .property = "display", .value = "table-footer-group" }} },
-    .{ .name = "table-header-group", .decls = &.{.{ .property = "display", .value = "table-header-group" }} },
-    .{ .name = "table-row-group", .decls = &.{.{ .property = "display", .value = "table-row-group" }} },
-    .{ .name = "table-row", .decls = &.{.{ .property = "display", .value = "table-row" }} },
-    .{ .name = "flow-root", .decls = &.{.{ .property = "display", .value = "flow-root" }} },
-    .{ .name = "contents", .decls = &.{.{ .property = "display", .value = "contents" }} },
-    .{ .name = "list-item", .decls = &.{.{ .property = "display", .value = "list-item" }} },
+    .{
+        .name = "block",
+        .decls = &.{.{
+            .property = "display",
+            .value = "block",
+        }},
+    },
+    .{
+        .name = "inline",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline",
+        }},
+    },
+    .{
+        .name = "inline-block",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-block",
+        }},
+    },
+    .{
+        .name = "flex",
+        .decls = &.{.{
+            .property = "display",
+            .value = "flex",
+        }},
+    },
+    .{
+        .name = "inline-flex",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-flex",
+        }},
+    },
+    .{
+        .name = "grid",
+        .decls = &.{.{
+            .property = "display",
+            .value = "grid",
+        }},
+    },
+    .{
+        .name = "inline-grid",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-grid",
+        }},
+    },
+    .{
+        .name = "hidden",
+        .decls = &.{.{
+            .property = "display",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "table",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table",
+        }},
+    },
+    .{
+        .name = "inline-table",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-table",
+        }},
+    },
+    .{
+        .name = "table-caption",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-caption",
+        }},
+    },
+    .{
+        .name = "table-cell",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-cell",
+        }},
+    },
+    .{
+        .name = "table-column",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-column",
+        }},
+    },
+    .{
+        .name = "table-column-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-column-group",
+        }},
+    },
+    .{
+        .name = "table-footer-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-footer-group",
+        }},
+    },
+    .{
+        .name = "table-header-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-header-group",
+        }},
+    },
+    .{
+        .name = "table-row-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-row-group",
+        }},
+    },
+    .{
+        .name = "table-row",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-row",
+        }},
+    },
+    .{
+        .name = "flow-root",
+        .decls = &.{.{
+            .property = "display",
+            .value = "flow-root",
+        }},
+    },
+    .{
+        .name = "contents",
+        .decls = &.{.{
+            .property = "display",
+            .value = "contents",
+        }},
+    },
+    .{
+        .name = "list-item",
+        .decls = &.{.{
+            .property = "display",
+            .value = "list-item",
+        }},
+    },
 
     // ── Field-sizing ────────────────────────────────────────────────────────
-    .{ .name = "field-sizing-content", .decls = &.{.{ .property = "field-sizing", .value = "content" }} },
-    .{ .name = "field-sizing-fixed", .decls = &.{.{ .property = "field-sizing", .value = "fixed" }} },
+    .{
+        .name = "field-sizing-content",
+        .decls = &.{.{
+            .property = "field-sizing",
+            .value = "content",
+        }},
+    },
+    .{
+        .name = "field-sizing-fixed",
+        .decls = &.{.{
+            .property = "field-sizing",
+            .value = "fixed",
+        }},
+    },
 
     // ── Visibility ──────────────────────────────────────────────────────────
-    .{ .name = "visible", .decls = &.{.{ .property = "visibility", .value = "visible" }} },
-    .{ .name = "invisible", .decls = &.{.{ .property = "visibility", .value = "hidden" }} },
-    .{ .name = "collapse", .decls = &.{.{ .property = "visibility", .value = "collapse" }} },
+    .{
+        .name = "visible",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "invisible",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "collapse",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "collapse",
+        }},
+    },
 
     // ── Box sizing ──────────────────────────────────────────────────────────
-    .{ .name = "box-border", .decls = &.{.{ .property = "box-sizing", .value = "border-box" }} },
-    .{ .name = "box-content", .decls = &.{.{ .property = "box-sizing", .value = "content-box" }} },
+    .{
+        .name = "box-border",
+        .decls = &.{.{
+            .property = "box-sizing",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "box-content",
+        .decls = &.{.{
+            .property = "box-sizing",
+            .value = "content-box",
+        }},
+    },
 
     // ── Box decoration break ────────────────────────────────────────────────
-    .{ .name = "box-decoration-slice", .decls = &.{
-        .{ .property = "-webkit-box-decoration-break", .value = "slice" },
-        .{ .property = "box-decoration-break", .value = "slice" },
-    } },
-    .{ .name = "box-decoration-clone", .decls = &.{
-        .{ .property = "-webkit-box-decoration-break", .value = "clone" },
-        .{ .property = "box-decoration-break", .value = "clone" },
-    } },
+    .{
+        .name = "box-decoration-slice",
+        .decls = &.{
+            .{
+                .property = "-webkit-box-decoration-break",
+                .value = "slice",
+            },
+            .{
+                .property = "box-decoration-break",
+                .value = "slice",
+            },
+        },
+    },
+    .{
+        .name = "box-decoration-clone",
+        .decls = &.{
+            .{
+                .property = "-webkit-box-decoration-break",
+                .value = "clone",
+            },
+            .{
+                .property = "box-decoration-break",
+                .value = "clone",
+            },
+        },
+    },
 
     // ── Isolation ───────────────────────────────────────────────────────────
-    .{ .name = "isolation-auto", .decls = &.{.{ .property = "isolation", .value = "auto" }} },
+    .{
+        .name = "isolation-auto",
+        .decls = &.{.{
+            .property = "isolation",
+            .value = "auto",
+        }},
+    },
 
     // ── Float ───────────────────────────────────────────────────────────────
-    .{ .name = "float-start", .decls = &.{.{ .property = "float", .value = "inline-start" }} },
-    .{ .name = "float-end", .decls = &.{.{ .property = "float", .value = "inline-end" }} },
-    .{ .name = "float-right", .decls = &.{.{ .property = "float", .value = "right" }} },
-    .{ .name = "float-left", .decls = &.{.{ .property = "float", .value = "left" }} },
-    .{ .name = "float-none", .decls = &.{.{ .property = "float", .value = "none" }} },
+    .{
+        .name = "float-start",
+        .decls = &.{.{
+            .property = "float",
+            .value = "inline-start",
+        }},
+    },
+    .{
+        .name = "float-end",
+        .decls = &.{.{
+            .property = "float",
+            .value = "inline-end",
+        }},
+    },
+    .{
+        .name = "float-right",
+        .decls = &.{.{
+            .property = "float",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "float-left",
+        .decls = &.{.{
+            .property = "float",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "float-none",
+        .decls = &.{.{
+            .property = "float",
+            .value = "none",
+        }},
+    },
 
     // ── Clear ───────────────────────────────────────────────────────────────
-    .{ .name = "clear-start", .decls = &.{.{ .property = "clear", .value = "inline-start" }} },
-    .{ .name = "clear-end", .decls = &.{.{ .property = "clear", .value = "inline-end" }} },
-    .{ .name = "clear-right", .decls = &.{.{ .property = "clear", .value = "right" }} },
-    .{ .name = "clear-left", .decls = &.{.{ .property = "clear", .value = "left" }} },
-    .{ .name = "clear-both", .decls = &.{.{ .property = "clear", .value = "both" }} },
-    .{ .name = "clear-none", .decls = &.{.{ .property = "clear", .value = "none" }} },
+    .{
+        .name = "clear-start",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "inline-start",
+        }},
+    },
+    .{
+        .name = "clear-end",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "inline-end",
+        }},
+    },
+    .{
+        .name = "clear-right",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "clear-left",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "clear-both",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "both",
+        }},
+    },
+    .{
+        .name = "clear-none",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "none",
+        }},
+    },
 
     // ── Position ────────────────────────────────────────────────────────────
-    .{ .name = "static", .decls = &.{.{ .property = "position", .value = "static" }} },
-    .{ .name = "relative", .decls = &.{.{ .property = "position", .value = "relative" }} },
-    .{ .name = "absolute", .decls = &.{.{ .property = "position", .value = "absolute" }} },
-    .{ .name = "fixed", .decls = &.{.{ .property = "position", .value = "fixed" }} },
-    .{ .name = "sticky", .decls = &.{.{ .property = "position", .value = "sticky" }} },
+    .{
+        .name = "static",
+        .decls = &.{.{
+            .property = "position",
+            .value = "static",
+        }},
+    },
+    .{
+        .name = "relative",
+        .decls = &.{.{
+            .property = "position",
+            .value = "relative",
+        }},
+    },
+    .{
+        .name = "absolute",
+        .decls = &.{.{
+            .property = "position",
+            .value = "absolute",
+        }},
+    },
+    .{
+        .name = "fixed",
+        .decls = &.{.{
+            .property = "position",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "sticky",
+        .decls = &.{.{
+            .property = "position",
+            .value = "sticky",
+        }},
+    },
 
     // ── Flex direction ──────────────────────────────────────────────────────
-    .{ .name = "flex-row", .decls = &.{.{ .property = "flex-direction", .value = "row" }} },
-    .{ .name = "flex-row-reverse", .decls = &.{.{ .property = "flex-direction", .value = "row-reverse" }} },
-    .{ .name = "flex-col", .decls = &.{.{ .property = "flex-direction", .value = "column" }} },
-    .{ .name = "flex-col-reverse", .decls = &.{.{ .property = "flex-direction", .value = "column-reverse" }} },
-    .{ .name = "flex-wrap", .decls = &.{.{ .property = "flex-wrap", .value = "wrap" }} },
-    .{ .name = "flex-nowrap", .decls = &.{.{ .property = "flex-wrap", .value = "nowrap" }} },
-    .{ .name = "flex-wrap-reverse", .decls = &.{.{ .property = "flex-wrap", .value = "wrap-reverse" }} },
+    .{
+        .name = "flex-row",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "row",
+        }},
+    },
+    .{
+        .name = "flex-row-reverse",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "row-reverse",
+        }},
+    },
+    .{
+        .name = "flex-col",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "flex-col-reverse",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "column-reverse",
+        }},
+    },
+    .{
+        .name = "flex-wrap",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "wrap",
+        }},
+    },
+    .{
+        .name = "flex-nowrap",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "nowrap",
+        }},
+    },
+    .{
+        .name = "flex-wrap-reverse",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "wrap-reverse",
+        }},
+    },
 
     // ── place-content / place-items / place-self ────────────────────────────
-    .{ .name = "place-content-center", .decls = &.{.{ .property = "place-content", .value = "center" }} },
-    .{ .name = "place-content-start", .decls = &.{.{ .property = "place-content", .value = "start" }} },
-    .{ .name = "place-content-end", .decls = &.{.{ .property = "place-content", .value = "end" }} },
-    .{ .name = "place-content-center-safe", .decls = &.{.{ .property = "place-content", .value = "safe center" }} },
-    .{ .name = "place-content-end-safe", .decls = &.{.{ .property = "place-content", .value = "safe end" }} },
-    .{ .name = "place-content-between", .decls = &.{.{ .property = "place-content", .value = "space-between" }} },
-    .{ .name = "place-content-around", .decls = &.{.{ .property = "place-content", .value = "space-around" }} },
-    .{ .name = "place-content-evenly", .decls = &.{.{ .property = "place-content", .value = "space-evenly" }} },
-    .{ .name = "place-content-baseline", .decls = &.{.{ .property = "place-content", .value = "baseline" }} },
-    .{ .name = "place-content-stretch", .decls = &.{.{ .property = "place-content", .value = "stretch" }} },
+    .{
+        .name = "place-content-center",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-content-start",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-content-end",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-content-center-safe",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-content-end-safe",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-content-between",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "place-content-around",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "place-content-evenly",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "place-content-baseline",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "place-content-stretch",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "place-items-center", .decls = &.{.{ .property = "place-items", .value = "center" }} },
-    .{ .name = "place-items-start", .decls = &.{.{ .property = "place-items", .value = "start" }} },
-    .{ .name = "place-items-end", .decls = &.{.{ .property = "place-items", .value = "end" }} },
-    .{ .name = "place-items-center-safe", .decls = &.{.{ .property = "place-items", .value = "safe center" }} },
-    .{ .name = "place-items-end-safe", .decls = &.{.{ .property = "place-items", .value = "safe end" }} },
-    .{ .name = "place-items-baseline", .decls = &.{.{ .property = "place-items", .value = "baseline" }} },
-    .{ .name = "place-items-stretch", .decls = &.{.{ .property = "place-items", .value = "stretch" }} },
+    .{
+        .name = "place-items-center",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-items-start",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-items-end",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-items-center-safe",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-items-end-safe",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-items-baseline",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "place-items-stretch",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "place-self-auto", .decls = &.{.{ .property = "place-self", .value = "auto" }} },
-    .{ .name = "place-self-start", .decls = &.{.{ .property = "place-self", .value = "start" }} },
-    .{ .name = "place-self-end", .decls = &.{.{ .property = "place-self", .value = "end" }} },
-    .{ .name = "place-self-center", .decls = &.{.{ .property = "place-self", .value = "center" }} },
-    .{ .name = "place-self-end-safe", .decls = &.{.{ .property = "place-self", .value = "safe end" }} },
-    .{ .name = "place-self-center-safe", .decls = &.{.{ .property = "place-self", .value = "safe center" }} },
-    .{ .name = "place-self-stretch", .decls = &.{.{ .property = "place-self", .value = "stretch" }} },
+    .{
+        .name = "place-self-auto",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "place-self-start",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-self-end",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-self-center",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-self-end-safe",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-self-center-safe",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-self-stretch",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "stretch",
+        }},
+    },
 
     // ── align-content (`content-*`) ─────────────────────────────────────────
-    .{ .name = "content-normal", .decls = &.{.{ .property = "align-content", .value = "normal" }} },
-    .{ .name = "content-center", .decls = &.{.{ .property = "align-content", .value = "center" }} },
-    .{ .name = "content-start", .decls = &.{.{ .property = "align-content", .value = "flex-start" }} },
-    .{ .name = "content-end", .decls = &.{.{ .property = "align-content", .value = "flex-end" }} },
-    .{ .name = "content-center-safe", .decls = &.{.{ .property = "align-content", .value = "safe center" }} },
-    .{ .name = "content-end-safe", .decls = &.{.{ .property = "align-content", .value = "safe flex-end" }} },
-    .{ .name = "content-between", .decls = &.{.{ .property = "align-content", .value = "space-between" }} },
-    .{ .name = "content-around", .decls = &.{.{ .property = "align-content", .value = "space-around" }} },
-    .{ .name = "content-evenly", .decls = &.{.{ .property = "align-content", .value = "space-evenly" }} },
-    .{ .name = "content-baseline", .decls = &.{.{ .property = "align-content", .value = "baseline" }} },
-    .{ .name = "content-stretch", .decls = &.{.{ .property = "align-content", .value = "stretch" }} },
+    .{
+        .name = "content-normal",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "content-center",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "content-start",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "content-end",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "content-center-safe",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "content-end-safe",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "content-between",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "content-around",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "content-evenly",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "content-baseline",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "content-stretch",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "stretch",
+        }},
+    },
 
     // ── justify-items ───────────────────────────────────────────────────────
-    .{ .name = "justify-items-normal", .decls = &.{.{ .property = "justify-items", .value = "normal" }} },
-    .{ .name = "justify-items-center", .decls = &.{.{ .property = "justify-items", .value = "center" }} },
-    .{ .name = "justify-items-start", .decls = &.{.{ .property = "justify-items", .value = "start" }} },
-    .{ .name = "justify-items-end", .decls = &.{.{ .property = "justify-items", .value = "end" }} },
-    .{ .name = "justify-items-center-safe", .decls = &.{.{ .property = "justify-items", .value = "safe center" }} },
-    .{ .name = "justify-items-end-safe", .decls = &.{.{ .property = "justify-items", .value = "safe end" }} },
-    .{ .name = "justify-items-stretch", .decls = &.{.{ .property = "justify-items", .value = "stretch" }} },
+    .{
+        .name = "justify-items-normal",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "justify-items-center",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-items-start",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "justify-items-end",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "justify-items-center-safe",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-items-end-safe",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "justify-items-stretch",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "stretch",
+        }},
+    },
 
     // ── justify-self ────────────────────────────────────────────────────────
-    .{ .name = "justify-self-auto", .decls = &.{.{ .property = "justify-self", .value = "auto" }} },
-    .{ .name = "justify-self-start", .decls = &.{.{ .property = "justify-self", .value = "start" }} },
-    .{ .name = "justify-self-end", .decls = &.{.{ .property = "justify-self", .value = "end" }} },
-    .{ .name = "justify-self-center", .decls = &.{.{ .property = "justify-self", .value = "center" }} },
-    .{ .name = "justify-self-end-safe", .decls = &.{.{ .property = "justify-self", .value = "safe end" }} },
-    .{ .name = "justify-self-center-safe", .decls = &.{.{ .property = "justify-self", .value = "safe center" }} },
-    .{ .name = "justify-self-stretch", .decls = &.{.{ .property = "justify-self", .value = "stretch" }} },
+    .{
+        .name = "justify-self-auto",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "justify-self-start",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "justify-self-end",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "justify-self-center",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-self-end-safe",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "justify-self-center-safe",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-self-stretch",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "stretch",
+        }},
+    },
 
     // ── grid-flow ───────────────────────────────────────────────────────────
-    .{ .name = "grid-flow-row", .decls = &.{.{ .property = "grid-auto-flow", .value = "row" }} },
-    .{ .name = "grid-flow-col", .decls = &.{.{ .property = "grid-auto-flow", .value = "column" }} },
-    .{ .name = "grid-flow-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "dense" }} },
-    .{ .name = "grid-flow-row-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "row dense" }} },
-    .{ .name = "grid-flow-col-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "column dense" }} },
+    .{
+        .name = "grid-flow-row",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "row",
+        }},
+    },
+    .{
+        .name = "grid-flow-col",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "grid-flow-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "dense",
+        }},
+    },
+    .{
+        .name = "grid-flow-row-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "row dense",
+        }},
+    },
+    .{
+        .name = "grid-flow-col-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "column dense",
+        }},
+    },
 
     // ── Justify / Align ─────────────────────────────────────────────────────
-    .{ .name = "justify-normal", .decls = &.{.{ .property = "justify-content", .value = "normal" }} },
-    .{ .name = "justify-start", .decls = &.{.{ .property = "justify-content", .value = "flex-start" }} },
-    .{ .name = "justify-center", .decls = &.{.{ .property = "justify-content", .value = "center" }} },
-    .{ .name = "justify-between", .decls = &.{.{ .property = "justify-content", .value = "space-between" }} },
-    .{ .name = "justify-end", .decls = &.{.{ .property = "justify-content", .value = "flex-end" }} },
-    .{ .name = "justify-around", .decls = &.{.{ .property = "justify-content", .value = "space-around" }} },
-    .{ .name = "justify-evenly", .decls = &.{.{ .property = "justify-content", .value = "space-evenly" }} },
-    .{ .name = "justify-center-safe", .decls = &.{.{ .property = "justify-content", .value = "safe center" }} },
-    .{ .name = "justify-end-safe", .decls = &.{.{ .property = "justify-content", .value = "safe flex-end" }} },
-    .{ .name = "justify-baseline", .decls = &.{.{ .property = "justify-content", .value = "baseline" }} },
-    .{ .name = "justify-stretch", .decls = &.{.{ .property = "justify-content", .value = "stretch" }} },
+    .{
+        .name = "justify-normal",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "justify-start",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "justify-center",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-between",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "justify-end",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "justify-around",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "justify-evenly",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "justify-center-safe",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-end-safe",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "justify-baseline",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "justify-stretch",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "items-start", .decls = &.{.{ .property = "align-items", .value = "flex-start" }} },
-    .{ .name = "items-center", .decls = &.{.{ .property = "align-items", .value = "center" }} },
-    .{ .name = "items-end", .decls = &.{.{ .property = "align-items", .value = "flex-end" }} },
-    .{ .name = "items-baseline", .decls = &.{.{ .property = "align-items", .value = "baseline" }} },
-    .{ .name = "items-baseline-last", .decls = &.{.{ .property = "align-items", .value = "last baseline" }} },
-    .{ .name = "items-stretch", .decls = &.{.{ .property = "align-items", .value = "stretch" }} },
-    .{ .name = "items-center-safe", .decls = &.{.{ .property = "align-items", .value = "safe center" }} },
-    .{ .name = "items-end-safe", .decls = &.{.{ .property = "align-items", .value = "safe flex-end" }} },
+    .{
+        .name = "items-start",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "items-center",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "items-end",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "items-baseline",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "items-baseline-last",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "last baseline",
+        }},
+    },
+    .{
+        .name = "items-stretch",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "stretch",
+        }},
+    },
+    .{
+        .name = "items-center-safe",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "items-end-safe",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "safe flex-end",
+        }},
+    },
 
-    .{ .name = "self-auto", .decls = &.{.{ .property = "align-self", .value = "auto" }} },
-    .{ .name = "self-start", .decls = &.{.{ .property = "align-self", .value = "flex-start" }} },
-    .{ .name = "self-end", .decls = &.{.{ .property = "align-self", .value = "flex-end" }} },
-    .{ .name = "self-center", .decls = &.{.{ .property = "align-self", .value = "center" }} },
-    .{ .name = "self-end-safe", .decls = &.{.{ .property = "align-self", .value = "safe flex-end" }} },
-    .{ .name = "self-center-safe", .decls = &.{.{ .property = "align-self", .value = "safe center" }} },
-    .{ .name = "self-stretch", .decls = &.{.{ .property = "align-self", .value = "stretch" }} },
-    .{ .name = "self-baseline", .decls = &.{.{ .property = "align-self", .value = "baseline" }} },
-    .{ .name = "self-baseline-last", .decls = &.{.{ .property = "align-self", .value = "last baseline" }} },
+    .{
+        .name = "self-auto",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "self-start",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "self-end",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "self-center",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "self-end-safe",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "self-center-safe",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "self-stretch",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "stretch",
+        }},
+    },
+    .{
+        .name = "self-baseline",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "self-baseline-last",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "last baseline",
+        }},
+    },
 
     // ── Text wrap (gap kind #14 from validation C) ──────────────────────────
-    .{ .name = "text-balance", .decls = &.{.{ .property = "text-wrap", .value = "balance" }} },
-    .{ .name = "text-pretty", .decls = &.{.{ .property = "text-wrap", .value = "pretty" }} },
-    .{ .name = "text-wrap", .decls = &.{.{ .property = "text-wrap", .value = "wrap" }} },
-    .{ .name = "text-nowrap", .decls = &.{.{ .property = "text-wrap", .value = "nowrap" }} },
+    .{
+        .name = "text-balance",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "balance",
+        }},
+    },
+    .{
+        .name = "text-pretty",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "pretty",
+        }},
+    },
+    .{
+        .name = "text-wrap",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "wrap",
+        }},
+    },
+    .{
+        .name = "text-nowrap",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "nowrap",
+        }},
+    },
 
     // ── Text overflow ───────────────────────────────────────────────────────
-    .{ .name = "text-clip", .decls = &.{.{ .property = "text-overflow", .value = "clip" }} },
-    .{ .name = "text-ellipsis", .decls = &.{.{ .property = "text-overflow", .value = "ellipsis" }} },
+    .{
+        .name = "text-clip",
+        .decls = &.{.{
+            .property = "text-overflow",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "text-ellipsis",
+        .decls = &.{.{
+            .property = "text-overflow",
+            .value = "ellipsis",
+        }},
+    },
 
     // ── Truncate (3-property shortcut) ──────────────────────────────────────
-    .{ .name = "truncate", .decls = &.{
-        .{ .property = "overflow", .value = "hidden" },
-        .{ .property = "text-overflow", .value = "ellipsis" },
-        .{ .property = "white-space", .value = "nowrap" },
-    } },
+    .{
+        .name = "truncate",
+        .decls = &.{
+            .{
+                .property = "overflow",
+                .value = "hidden",
+            },
+            .{
+                .property = "text-overflow",
+                .value = "ellipsis",
+            },
+            .{
+                .property = "white-space",
+                .value = "nowrap",
+            },
+        },
+    },
 
     // ── Text alignment ──────────────────────────────────────────────────────
-    .{ .name = "text-left", .decls = &.{.{ .property = "text-align", .value = "left" }} },
-    .{ .name = "text-center", .decls = &.{.{ .property = "text-align", .value = "center" }} },
-    .{ .name = "text-right", .decls = &.{.{ .property = "text-align", .value = "right" }} },
-    .{ .name = "text-justify", .decls = &.{.{ .property = "text-align", .value = "justify" }} },
-    .{ .name = "text-start", .decls = &.{.{ .property = "text-align", .value = "start" }} },
-    .{ .name = "text-end", .decls = &.{.{ .property = "text-align", .value = "end" }} },
+    .{
+        .name = "text-left",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "text-center",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "text-right",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "text-justify",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "justify",
+        }},
+    },
+    .{
+        .name = "text-start",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "text-end",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "end",
+        }},
+    },
 
     // ── Vertical-align (`align-*`) ──────────────────────────────────────────
-    .{ .name = "align-baseline", .decls = &.{.{ .property = "vertical-align", .value = "baseline" }} },
-    .{ .name = "align-top", .decls = &.{.{ .property = "vertical-align", .value = "top" }} },
-    .{ .name = "align-middle", .decls = &.{.{ .property = "vertical-align", .value = "middle" }} },
-    .{ .name = "align-bottom", .decls = &.{.{ .property = "vertical-align", .value = "bottom" }} },
-    .{ .name = "align-text-top", .decls = &.{.{ .property = "vertical-align", .value = "text-top" }} },
-    .{ .name = "align-text-bottom", .decls = &.{.{ .property = "vertical-align", .value = "text-bottom" }} },
-    .{ .name = "align-sub", .decls = &.{.{ .property = "vertical-align", .value = "sub" }} },
-    .{ .name = "align-super", .decls = &.{.{ .property = "vertical-align", .value = "super" }} },
+    .{
+        .name = "align-baseline",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "align-top",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "align-middle",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "middle",
+        }},
+    },
+    .{
+        .name = "align-bottom",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "align-text-top",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "text-top",
+        }},
+    },
+    .{
+        .name = "align-text-bottom",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "text-bottom",
+        }},
+    },
+    .{
+        .name = "align-sub",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "sub",
+        }},
+    },
+    .{
+        .name = "align-super",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "super",
+        }},
+    },
 
     // ── Decoration style + thickness statics ────────────────────────────────
-    .{ .name = "decoration-solid", .decls = &.{.{ .property = "text-decoration-style", .value = "solid" }} },
-    .{ .name = "decoration-double", .decls = &.{.{ .property = "text-decoration-style", .value = "double" }} },
-    .{ .name = "decoration-dotted", .decls = &.{.{ .property = "text-decoration-style", .value = "dotted" }} },
-    .{ .name = "decoration-dashed", .decls = &.{.{ .property = "text-decoration-style", .value = "dashed" }} },
-    .{ .name = "decoration-wavy", .decls = &.{.{ .property = "text-decoration-style", .value = "wavy" }} },
-    .{ .name = "decoration-auto", .decls = &.{.{ .property = "text-decoration-thickness", .value = "auto" }} },
-    .{ .name = "decoration-from-font", .decls = &.{.{ .property = "text-decoration-thickness", .value = "from-font" }} },
+    .{
+        .name = "decoration-solid",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "solid",
+        }},
+    },
+    .{
+        .name = "decoration-double",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "double",
+        }},
+    },
+    .{
+        .name = "decoration-dotted",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "dotted",
+        }},
+    },
+    .{
+        .name = "decoration-dashed",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "dashed",
+        }},
+    },
+    .{
+        .name = "decoration-wavy",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "wavy",
+        }},
+    },
+    .{
+        .name = "decoration-auto",
+        .decls = &.{.{
+            .property = "text-decoration-thickness",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "decoration-from-font",
+        .decls = &.{.{
+            .property = "text-decoration-thickness",
+            .value = "from-font",
+        }},
+    },
 
     // ── Hyphens ─────────────────────────────────────────────────────────────
-    .{ .name = "hyphens-none", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "none" },
-        .{ .property = "hyphens", .value = "none" },
-    } },
-    .{ .name = "hyphens-manual", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "manual" },
-        .{ .property = "hyphens", .value = "manual" },
-    } },
-    .{ .name = "hyphens-auto", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "auto" },
-        .{ .property = "hyphens", .value = "auto" },
-    } },
+    .{
+        .name = "hyphens-none",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "none",
+            },
+            .{
+                .property = "hyphens",
+                .value = "none",
+            },
+        },
+    },
+    .{
+        .name = "hyphens-manual",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "manual",
+            },
+            .{
+                .property = "hyphens",
+                .value = "manual",
+            },
+        },
+    },
+    .{
+        .name = "hyphens-auto",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "auto",
+            },
+            .{
+                .property = "hyphens",
+                .value = "auto",
+            },
+        },
+    },
 
     // ── White-space ─────────────────────────────────────────────────────────
-    .{ .name = "whitespace-normal", .decls = &.{.{ .property = "white-space", .value = "normal" }} },
-    .{ .name = "whitespace-nowrap", .decls = &.{.{ .property = "white-space", .value = "nowrap" }} },
-    .{ .name = "whitespace-pre", .decls = &.{.{ .property = "white-space", .value = "pre" }} },
-    .{ .name = "whitespace-pre-line", .decls = &.{.{ .property = "white-space", .value = "pre-line" }} },
-    .{ .name = "whitespace-pre-wrap", .decls = &.{.{ .property = "white-space", .value = "pre-wrap" }} },
-    .{ .name = "whitespace-break-spaces", .decls = &.{.{ .property = "white-space", .value = "break-spaces" }} },
+    .{
+        .name = "whitespace-normal",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "whitespace-nowrap",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "nowrap",
+        }},
+    },
+    .{
+        .name = "whitespace-pre",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre",
+        }},
+    },
+    .{
+        .name = "whitespace-pre-line",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre-line",
+        }},
+    },
+    .{
+        .name = "whitespace-pre-wrap",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre-wrap",
+        }},
+    },
+    .{
+        .name = "whitespace-break-spaces",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "break-spaces",
+        }},
+    },
 
     // ── Word break / overflow wrap ──────────────────────────────────────────
-    .{ .name = "break-normal", .decls = &.{
-        .{ .property = "overflow-wrap", .value = "normal" },
-        .{ .property = "word-break", .value = "normal" },
-    } },
-    .{ .name = "break-all", .decls = &.{.{ .property = "word-break", .value = "break-all" }} },
-    .{ .name = "break-keep", .decls = &.{.{ .property = "word-break", .value = "keep-all" }} },
-    .{ .name = "wrap-anywhere", .decls = &.{.{ .property = "overflow-wrap", .value = "anywhere" }} },
-    .{ .name = "wrap-break-word", .decls = &.{.{ .property = "overflow-wrap", .value = "break-word" }} },
-    .{ .name = "wrap-normal", .decls = &.{.{ .property = "overflow-wrap", .value = "normal" }} },
+    .{
+        .name = "break-normal",
+        .decls = &.{
+            .{
+                .property = "overflow-wrap",
+                .value = "normal",
+            },
+            .{
+                .property = "word-break",
+                .value = "normal",
+            },
+        },
+    },
+    .{
+        .name = "break-all",
+        .decls = &.{.{
+            .property = "word-break",
+            .value = "break-all",
+        }},
+    },
+    .{
+        .name = "break-keep",
+        .decls = &.{.{
+            .property = "word-break",
+            .value = "keep-all",
+        }},
+    },
+    .{
+        .name = "wrap-anywhere",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "anywhere",
+        }},
+    },
+    .{
+        .name = "wrap-break-word",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "break-word",
+        }},
+    },
+    .{
+        .name = "wrap-normal",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "normal",
+        }},
+    },
 
     // ── List-style-position ─────────────────────────────────────────────────
-    .{ .name = "list-inside", .decls = &.{.{ .property = "list-style-position", .value = "inside" }} },
-    .{ .name = "list-outside", .decls = &.{.{ .property = "list-style-position", .value = "outside" }} },
-    .{ .name = "list-none", .decls = &.{.{ .property = "list-style-type", .value = "none" }} },
-    .{ .name = "list-disc", .decls = &.{.{ .property = "list-style-type", .value = "disc" }} },
-    .{ .name = "list-decimal", .decls = &.{.{ .property = "list-style-type", .value = "decimal" }} },
-    .{ .name = "list-image-none", .decls = &.{.{ .property = "list-style-image", .value = "none" }} },
+    .{
+        .name = "list-inside",
+        .decls = &.{.{
+            .property = "list-style-position",
+            .value = "inside",
+        }},
+    },
+    .{
+        .name = "list-outside",
+        .decls = &.{.{
+            .property = "list-style-position",
+            .value = "outside",
+        }},
+    },
+    .{
+        .name = "list-none",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "list-disc",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "disc",
+        }},
+    },
+    .{
+        .name = "list-decimal",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "decimal",
+        }},
+    },
+    .{
+        .name = "list-image-none",
+        .decls = &.{.{
+            .property = "list-style-image",
+            .value = "none",
+        }},
+    },
 
     // ── Font-variant-numeric ────────────────────────────────────────────────
     // The class contract composes via `--tw-numeric-*` vars; we emit each utility
     // directly (last-write-wins). For most use cases this is identical.
-    .{ .name = "normal-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "normal" }} },
-    .{ .name = "ordinal", .decls = &.{.{ .property = "font-variant-numeric", .value = "ordinal" }} },
-    .{ .name = "slashed-zero", .decls = &.{.{ .property = "font-variant-numeric", .value = "slashed-zero" }} },
-    .{ .name = "lining-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "lining-nums" }} },
-    .{ .name = "oldstyle-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "oldstyle-nums" }} },
-    .{ .name = "proportional-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "proportional-nums" }} },
-    .{ .name = "tabular-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "tabular-nums" }} },
-    .{ .name = "diagonal-fractions", .decls = &.{.{ .property = "font-variant-numeric", .value = "diagonal-fractions" }} },
-    .{ .name = "stacked-fractions", .decls = &.{.{ .property = "font-variant-numeric", .value = "stacked-fractions" }} },
+    .{
+        .name = "normal-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "ordinal",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "ordinal",
+        }},
+    },
+    .{
+        .name = "slashed-zero",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "slashed-zero",
+        }},
+    },
+    .{
+        .name = "lining-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "lining-nums",
+        }},
+    },
+    .{
+        .name = "oldstyle-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "oldstyle-nums",
+        }},
+    },
+    .{
+        .name = "proportional-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "proportional-nums",
+        }},
+    },
+    .{
+        .name = "tabular-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "tabular-nums",
+        }},
+    },
+    .{
+        .name = "diagonal-fractions",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "diagonal-fractions",
+        }},
+    },
+    .{
+        .name = "stacked-fractions",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "stacked-fractions",
+        }},
+    },
 
     // ── Filter / backdrop-filter resets ─────────────────────────────────────
-    .{ .name = "filter-none", .decls = &.{.{ .property = "filter", .value = "none" }} },
-    .{ .name = "backdrop-filter-none", .decls = &.{.{ .property = "backdrop-filter", .value = "none" }} },
+    .{
+        .name = "filter-none",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "backdrop-filter-none",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "none",
+        }},
+    },
 
     // ── Filter bare-form defaults (100%) ───────────────────────────────────
-    .{ .name = "grayscale", .decls = &.{.{ .property = "filter", .value = "grayscale(100%)" }} },
-    .{ .name = "invert", .decls = &.{.{ .property = "filter", .value = "invert(100%)" }} },
-    .{ .name = "sepia", .decls = &.{.{ .property = "filter", .value = "sepia(100%)" }} },
-    .{ .name = "backdrop-grayscale", .decls = &.{.{ .property = "backdrop-filter", .value = "grayscale(100%)" }} },
-    .{ .name = "backdrop-invert", .decls = &.{.{ .property = "backdrop-filter", .value = "invert(100%)" }} },
-    .{ .name = "backdrop-sepia", .decls = &.{.{ .property = "backdrop-filter", .value = "sepia(100%)" }} },
-    .{ .name = "blur", .decls = &.{.{ .property = "filter", .value = "blur(8px)" }} },
-    .{ .name = "backdrop-blur", .decls = &.{.{ .property = "backdrop-filter", .value = "blur(8px)" }} },
+    .{
+        .name = "grayscale",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "grayscale(100%)",
+        }},
+    },
+    .{
+        .name = "invert",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "invert(100%)",
+        }},
+    },
+    .{
+        .name = "sepia",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "sepia(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-grayscale",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "grayscale(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-invert",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "invert(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-sepia",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "sepia(100%)",
+        }},
+    },
+    .{
+        .name = "blur",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "blur(8px)",
+        }},
+    },
+    .{
+        .name = "backdrop-blur",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "blur(8px)",
+        }},
+    },
 
     // ── Content (pseudo-element content property) ───────────────────────────
-    .{ .name = "content-none", .decls = &.{
-        .{ .property = "--tw-content", .value = "none" },
-        .{ .property = "content", .value = "none" },
-    } },
+    .{
+        .name = "content-none",
+        .decls = &.{
+            .{
+                .property = "--tw-content",
+                .value = "none",
+            },
+            .{
+                .property = "content",
+                .value = "none",
+            },
+        },
+    },
 
     // ── Grid auto cols / auto rows statics ─────────────────────────────────
-    .{ .name = "auto-cols-auto", .decls = &.{.{ .property = "grid-auto-columns", .value = "auto" }} },
-    .{ .name = "auto-cols-min", .decls = &.{.{ .property = "grid-auto-columns", .value = "min-content" }} },
-    .{ .name = "auto-cols-max", .decls = &.{.{ .property = "grid-auto-columns", .value = "max-content" }} },
-    .{ .name = "auto-cols-fr", .decls = &.{.{ .property = "grid-auto-columns", .value = "minmax(0, 1fr)" }} },
-    .{ .name = "auto-rows-auto", .decls = &.{.{ .property = "grid-auto-rows", .value = "auto" }} },
-    .{ .name = "auto-rows-min", .decls = &.{.{ .property = "grid-auto-rows", .value = "min-content" }} },
-    .{ .name = "auto-rows-max", .decls = &.{.{ .property = "grid-auto-rows", .value = "max-content" }} },
-    .{ .name = "auto-rows-fr", .decls = &.{.{ .property = "grid-auto-rows", .value = "minmax(0, 1fr)" }} },
+    .{
+        .name = "auto-cols-auto",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "auto-cols-min",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "min-content",
+        }},
+    },
+    .{
+        .name = "auto-cols-max",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "max-content",
+        }},
+    },
+    .{
+        .name = "auto-cols-fr",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "minmax(0, 1fr)",
+        }},
+    },
+    .{
+        .name = "auto-rows-auto",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "auto-rows-min",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "min-content",
+        }},
+    },
+    .{
+        .name = "auto-rows-max",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "max-content",
+        }},
+    },
+    .{
+        .name = "auto-rows-fr",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "minmax(0, 1fr)",
+        }},
+    },
 
     // ── Underline-offset auto ──────────────────────────────────────────────
-    .{ .name = "underline-offset-auto", .decls = &.{.{ .property = "text-underline-offset", .value = "auto" }} },
+    .{
+        .name = "underline-offset-auto",
+        .decls = &.{.{
+            .property = "text-underline-offset",
+            .value = "auto",
+        }},
+    },
 
     // ── Line-clamp none ────────────────────────────────────────────────────
-    .{ .name = "line-clamp-none", .decls = &.{
-        .{ .property = "overflow", .value = "visible" },
-        .{ .property = "display", .value = "block" },
-        .{ .property = "-webkit-box-orient", .value = "horizontal" },
-        .{ .property = "-webkit-line-clamp", .value = "unset" },
-    } },
+    .{
+        .name = "line-clamp-none",
+        .decls = &.{
+            .{
+                .property = "overflow",
+                .value = "visible",
+            },
+            .{
+                .property = "display",
+                .value = "block",
+            },
+            .{
+                .property = "-webkit-box-orient",
+                .value = "horizontal",
+            },
+            .{
+                .property = "-webkit-line-clamp",
+                .value = "unset",
+            },
+        },
+    },
 
     // ── Text decoration ─────────────────────────────────────────────────────
-    .{ .name = "underline", .decls = &.{.{ .property = "text-decoration-line", .value = "underline" }} },
-    .{ .name = "overline", .decls = &.{.{ .property = "text-decoration-line", .value = "overline" }} },
-    .{ .name = "line-through", .decls = &.{.{ .property = "text-decoration-line", .value = "line-through" }} },
-    .{ .name = "no-underline", .decls = &.{.{ .property = "text-decoration-line", .value = "none" }} },
+    .{
+        .name = "underline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "underline",
+        }},
+    },
+    .{
+        .name = "overline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "overline",
+        }},
+    },
+    .{
+        .name = "line-through",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "line-through",
+        }},
+    },
+    .{
+        .name = "no-underline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "none",
+        }},
+    },
 
     // ── Text transform ──────────────────────────────────────────────────────
-    .{ .name = "uppercase", .decls = &.{.{ .property = "text-transform", .value = "uppercase" }} },
-    .{ .name = "lowercase", .decls = &.{.{ .property = "text-transform", .value = "lowercase" }} },
-    .{ .name = "capitalize", .decls = &.{.{ .property = "text-transform", .value = "capitalize" }} },
-    .{ .name = "normal-case", .decls = &.{.{ .property = "text-transform", .value = "none" }} },
+    .{
+        .name = "uppercase",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "uppercase",
+        }},
+    },
+    .{
+        .name = "lowercase",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "lowercase",
+        }},
+    },
+    .{
+        .name = "capitalize",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "capitalize",
+        }},
+    },
+    .{
+        .name = "normal-case",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "none",
+        }},
+    },
 
     // ── Font style ──────────────────────────────────────────────────────────
-    .{ .name = "italic", .decls = &.{.{ .property = "font-style", .value = "italic" }} },
-    .{ .name = "not-italic", .decls = &.{.{ .property = "font-style", .value = "normal" }} },
+    .{
+        .name = "italic",
+        .decls = &.{.{
+            .property = "font-style",
+            .value = "italic",
+        }},
+    },
+    .{
+        .name = "not-italic",
+        .decls = &.{.{
+            .property = "font-style",
+            .value = "normal",
+        }},
+    },
 
     // ── Font weight (full supported scale) ─────────────────────────────────
-    .{ .name = "font-thin", .decls = &.{.{ .property = "font-weight", .value = "100" }} },
-    .{ .name = "font-extralight", .decls = &.{.{ .property = "font-weight", .value = "200" }} },
-    .{ .name = "font-light", .decls = &.{.{ .property = "font-weight", .value = "300" }} },
-    .{ .name = "font-normal", .decls = &.{.{ .property = "font-weight", .value = "400" }} },
-    .{ .name = "font-medium", .decls = &.{.{ .property = "font-weight", .value = "500" }} },
-    .{ .name = "font-semibold", .decls = &.{.{ .property = "font-weight", .value = "600" }} },
-    .{ .name = "font-bold", .decls = &.{.{ .property = "font-weight", .value = "700" }} },
-    .{ .name = "font-extrabold", .decls = &.{.{ .property = "font-weight", .value = "800" }} },
-    .{ .name = "font-black", .decls = &.{.{ .property = "font-weight", .value = "900" }} },
+    .{
+        .name = "font-thin",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "100",
+        }},
+    },
+    .{
+        .name = "font-extralight",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "200",
+        }},
+    },
+    .{
+        .name = "font-light",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "300",
+        }},
+    },
+    .{
+        .name = "font-normal",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "400",
+        }},
+    },
+    .{
+        .name = "font-medium",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "500",
+        }},
+    },
+    .{
+        .name = "font-semibold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "600",
+        }},
+    },
+    .{
+        .name = "font-bold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "700",
+        }},
+    },
+    .{
+        .name = "font-extrabold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "800",
+        }},
+    },
+    .{
+        .name = "font-black",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "900",
+        }},
+    },
 
     // ── Flex shorthand ──────────────────────────────────────────────────────
-    .{ .name = "flex-auto", .decls = &.{.{ .property = "flex", .value = "auto" }} },
-    .{ .name = "flex-initial", .decls = &.{.{ .property = "flex", .value = "0 auto" }} },
-    .{ .name = "flex-none", .decls = &.{.{ .property = "flex", .value = "none" }} },
-    .{ .name = "flex-1", .decls = &.{.{ .property = "flex", .value = "1 1 0%" }} },
+    .{
+        .name = "flex-auto",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "flex-initial",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "0 auto",
+        }},
+    },
+    .{
+        .name = "flex-none",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "flex-1",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "1 1 0%",
+        }},
+    },
 
     // ── Flex shrink / grow ─────────────────────────────────────────────────
-    .{ .name = "shrink", .decls = &.{.{ .property = "flex-shrink", .value = "1" }} },
-    .{ .name = "shrink-0", .decls = &.{.{ .property = "flex-shrink", .value = "0" }} },
-    .{ .name = "grow", .decls = &.{.{ .property = "flex-grow", .value = "1" }} },
-    .{ .name = "grow-0", .decls = &.{.{ .property = "flex-grow", .value = "0" }} },
+    .{
+        .name = "shrink",
+        .decls = &.{.{
+            .property = "flex-shrink",
+            .value = "1",
+        }},
+    },
+    .{
+        .name = "shrink-0",
+        .decls = &.{.{
+            .property = "flex-shrink",
+            .value = "0",
+        }},
+    },
+    .{
+        .name = "grow",
+        .decls = &.{.{
+            .property = "flex-grow",
+            .value = "1",
+        }},
+    },
+    .{
+        .name = "grow-0",
+        .decls = &.{.{
+            .property = "flex-grow",
+            .value = "0",
+        }},
+    },
 
     // ── Flex basis statics ─────────────────────────────────────────────────
-    .{ .name = "basis-auto", .decls = &.{.{ .property = "flex-basis", .value = "auto" }} },
-    .{ .name = "basis-full", .decls = &.{.{ .property = "flex-basis", .value = "100%" }} },
+    .{
+        .name = "basis-auto",
+        .decls = &.{.{
+            .property = "flex-basis",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "basis-full",
+        .decls = &.{.{
+            .property = "flex-basis",
+            .value = "100%",
+        }},
+    },
 
     // ── Screen-reader only (3-decl shortcut, multi-property) ────────────────
-    .{ .name = "sr-only", .decls = &.{
-        .{ .property = "position", .value = "absolute" },
-        .{ .property = "width", .value = "1px" },
-        .{ .property = "height", .value = "1px" },
-        .{ .property = "padding", .value = "0" },
-        .{ .property = "margin", .value = "-1px" },
-        .{ .property = "overflow", .value = "hidden" },
-        .{ .property = "clip", .value = "rect(0, 0, 0, 0)" },
-        .{ .property = "white-space", .value = "nowrap" },
-        .{ .property = "border-width", .value = "0" },
-    } },
-    .{ .name = "not-sr-only", .decls = &.{
-        .{ .property = "position", .value = "static" },
-        .{ .property = "width", .value = "auto" },
-        .{ .property = "height", .value = "auto" },
-        .{ .property = "padding", .value = "0" },
-        .{ .property = "margin", .value = "0" },
-        .{ .property = "overflow", .value = "visible" },
-        .{ .property = "clip", .value = "auto" },
-        .{ .property = "white-space", .value = "normal" },
-    } },
+    .{
+        .name = "sr-only",
+        .decls = &.{
+            .{
+                .property = "position",
+                .value = "absolute",
+            },
+            .{
+                .property = "width",
+                .value = "1px",
+            },
+            .{
+                .property = "height",
+                .value = "1px",
+            },
+            .{
+                .property = "padding",
+                .value = "0",
+            },
+            .{
+                .property = "margin",
+                .value = "-1px",
+            },
+            .{
+                .property = "overflow",
+                .value = "hidden",
+            },
+            .{
+                .property = "clip",
+                .value = "rect(0, 0, 0, 0)",
+            },
+            .{
+                .property = "white-space",
+                .value = "nowrap",
+            },
+            .{
+                .property = "border-width",
+                .value = "0",
+            },
+        },
+    },
+    .{
+        .name = "not-sr-only",
+        .decls = &.{
+            .{
+                .property = "position",
+                .value = "static",
+            },
+            .{
+                .property = "width",
+                .value = "auto",
+            },
+            .{
+                .property = "height",
+                .value = "auto",
+            },
+            .{
+                .property = "padding",
+                .value = "0",
+            },
+            .{
+                .property = "margin",
+                .value = "0",
+            },
+            .{
+                .property = "overflow",
+                .value = "visible",
+            },
+            .{
+                .property = "clip",
+                .value = "auto",
+            },
+            .{
+                .property = "white-space",
+                .value = "normal",
+            },
+        },
+    },
 
     // ── Ring width: bare `ring` defaults to 3px ────────────────────────────
-    .{ .name = "ring", .decls = &.{
-        .{ .property = "--tw-ring-shadow", .value = "var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentColor)" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)" },
-    } },
+    .{
+        .name = "ring",
+        .decls = &.{
+            .{
+                .property = "--tw-ring-shadow",
+                .value = "var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentColor)",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)",
+            },
+        },
+    },
 
     // ── Font smoothing ──────────────────────────────────────────────────────
-    .{ .name = "antialiased", .decls = &.{
-        .{ .property = "-webkit-font-smoothing", .value = "antialiased" },
-        .{ .property = "-moz-osx-font-smoothing", .value = "grayscale" },
-    } },
-    .{ .name = "subpixel-antialiased", .decls = &.{
-        .{ .property = "-webkit-font-smoothing", .value = "auto" },
-        .{ .property = "-moz-osx-font-smoothing", .value = "auto" },
-    } },
+    .{
+        .name = "antialiased",
+        .decls = &.{
+            .{
+                .property = "-webkit-font-smoothing",
+                .value = "antialiased",
+            },
+            .{
+                .property = "-moz-osx-font-smoothing",
+                .value = "grayscale",
+            },
+        },
+    },
+    .{
+        .name = "subpixel-antialiased",
+        .decls = &.{
+            .{
+                .property = "-webkit-font-smoothing",
+                .value = "auto",
+            },
+            .{
+                .property = "-moz-osx-font-smoothing",
+                .value = "auto",
+            },
+        },
+    },
 
     // ── Overflow (full set) ─────────────────────────────────────────────────
-    .{ .name = "overflow-auto", .decls = &.{.{ .property = "overflow", .value = "auto" }} },
-    .{ .name = "overflow-hidden", .decls = &.{.{ .property = "overflow", .value = "hidden" }} },
-    .{ .name = "overflow-clip", .decls = &.{.{ .property = "overflow", .value = "clip" }} },
-    .{ .name = "overflow-visible", .decls = &.{.{ .property = "overflow", .value = "visible" }} },
-    .{ .name = "overflow-scroll", .decls = &.{.{ .property = "overflow", .value = "scroll" }} },
-    .{ .name = "overflow-x-auto", .decls = &.{.{ .property = "overflow-x", .value = "auto" }} },
-    .{ .name = "overflow-x-hidden", .decls = &.{.{ .property = "overflow-x", .value = "hidden" }} },
-    .{ .name = "overflow-x-clip", .decls = &.{.{ .property = "overflow-x", .value = "clip" }} },
-    .{ .name = "overflow-x-visible", .decls = &.{.{ .property = "overflow-x", .value = "visible" }} },
-    .{ .name = "overflow-x-scroll", .decls = &.{.{ .property = "overflow-x", .value = "scroll" }} },
-    .{ .name = "overflow-y-auto", .decls = &.{.{ .property = "overflow-y", .value = "auto" }} },
-    .{ .name = "overflow-y-hidden", .decls = &.{.{ .property = "overflow-y", .value = "hidden" }} },
-    .{ .name = "overflow-y-clip", .decls = &.{.{ .property = "overflow-y", .value = "clip" }} },
-    .{ .name = "overflow-y-visible", .decls = &.{.{ .property = "overflow-y", .value = "visible" }} },
-    .{ .name = "overflow-y-scroll", .decls = &.{.{ .property = "overflow-y", .value = "scroll" }} },
+    .{
+        .name = "overflow-auto",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-hidden",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-clip",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-visible",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-scroll",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "scroll",
+        }},
+    },
+    .{
+        .name = "overflow-x-auto",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-x-hidden",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-x-clip",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-x-visible",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-x-scroll",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "scroll",
+        }},
+    },
+    .{
+        .name = "overflow-y-auto",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-y-hidden",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-y-clip",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-y-visible",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-y-scroll",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "scroll",
+        }},
+    },
 
     // ── Marker classes (no output; used by other variants like peer-*) ──────
-    .{ .name = "peer", .decls = &.{} },
-    .{ .name = "group", .decls = &.{} },
+    .{
+        .name = "peer",
+        .decls = &.{},
+    },
+    .{
+        .name = "group",
+        .decls = &.{},
+    },
 
     // ── Mask family (statics) ───────────────────────────────────────────────
-    .{ .name = "mask-none", .decls = &.{.{ .property = "mask-image", .value = "none" }} },
-    .{ .name = "mask-add", .decls = &.{.{ .property = "mask-composite", .value = "add" }} },
-    .{ .name = "mask-subtract", .decls = &.{.{ .property = "mask-composite", .value = "subtract" }} },
-    .{ .name = "mask-intersect", .decls = &.{.{ .property = "mask-composite", .value = "intersect" }} },
-    .{ .name = "mask-exclude", .decls = &.{.{ .property = "mask-composite", .value = "exclude" }} },
-    .{ .name = "mask-alpha", .decls = &.{.{ .property = "mask-mode", .value = "alpha" }} },
-    .{ .name = "mask-luminance", .decls = &.{.{ .property = "mask-mode", .value = "luminance" }} },
-    .{ .name = "mask-match", .decls = &.{.{ .property = "mask-mode", .value = "match-source" }} },
-    .{ .name = "mask-type-alpha", .decls = &.{.{ .property = "mask-type", .value = "alpha" }} },
-    .{ .name = "mask-type-luminance", .decls = &.{.{ .property = "mask-type", .value = "luminance" }} },
-    .{ .name = "mask-auto", .decls = &.{.{ .property = "mask-size", .value = "auto" }} },
-    .{ .name = "mask-cover", .decls = &.{.{ .property = "mask-size", .value = "cover" }} },
-    .{ .name = "mask-contain", .decls = &.{.{ .property = "mask-size", .value = "contain" }} },
-    .{ .name = "mask-top", .decls = &.{.{ .property = "mask-position", .value = "top" }} },
-    .{ .name = "mask-top-left", .decls = &.{.{ .property = "mask-position", .value = "left top" }} },
-    .{ .name = "mask-top-right", .decls = &.{.{ .property = "mask-position", .value = "right top" }} },
-    .{ .name = "mask-bottom", .decls = &.{.{ .property = "mask-position", .value = "bottom" }} },
-    .{ .name = "mask-bottom-left", .decls = &.{.{ .property = "mask-position", .value = "left bottom" }} },
-    .{ .name = "mask-bottom-right", .decls = &.{.{ .property = "mask-position", .value = "right bottom" }} },
-    .{ .name = "mask-left", .decls = &.{.{ .property = "mask-position", .value = "left" }} },
-    .{ .name = "mask-right", .decls = &.{.{ .property = "mask-position", .value = "right" }} },
-    .{ .name = "mask-center", .decls = &.{.{ .property = "mask-position", .value = "center" }} },
-    .{ .name = "mask-repeat", .decls = &.{.{ .property = "mask-repeat", .value = "repeat" }} },
-    .{ .name = "mask-no-repeat", .decls = &.{.{ .property = "mask-repeat", .value = "no-repeat" }} },
-    .{ .name = "mask-repeat-x", .decls = &.{.{ .property = "mask-repeat", .value = "repeat-x" }} },
-    .{ .name = "mask-repeat-y", .decls = &.{.{ .property = "mask-repeat", .value = "repeat-y" }} },
-    .{ .name = "mask-repeat-round", .decls = &.{.{ .property = "mask-repeat", .value = "round" }} },
-    .{ .name = "mask-repeat-space", .decls = &.{.{ .property = "mask-repeat", .value = "space" }} },
-    .{ .name = "mask-clip-border", .decls = &.{.{ .property = "mask-clip", .value = "border-box" }} },
-    .{ .name = "mask-clip-padding", .decls = &.{.{ .property = "mask-clip", .value = "padding-box" }} },
-    .{ .name = "mask-clip-content", .decls = &.{.{ .property = "mask-clip", .value = "content-box" }} },
-    .{ .name = "mask-clip-fill", .decls = &.{.{ .property = "mask-clip", .value = "fill-box" }} },
-    .{ .name = "mask-clip-stroke", .decls = &.{.{ .property = "mask-clip", .value = "stroke-box" }} },
-    .{ .name = "mask-clip-view", .decls = &.{.{ .property = "mask-clip", .value = "view-box" }} },
-    .{ .name = "mask-no-clip", .decls = &.{.{ .property = "mask-clip", .value = "no-clip" }} },
-    .{ .name = "mask-origin-border", .decls = &.{.{ .property = "mask-origin", .value = "border-box" }} },
-    .{ .name = "mask-origin-padding", .decls = &.{.{ .property = "mask-origin", .value = "padding-box" }} },
-    .{ .name = "mask-origin-content", .decls = &.{.{ .property = "mask-origin", .value = "content-box" }} },
-    .{ .name = "mask-origin-fill", .decls = &.{.{ .property = "mask-origin", .value = "fill-box" }} },
-    .{ .name = "mask-origin-stroke", .decls = &.{.{ .property = "mask-origin", .value = "stroke-box" }} },
-    .{ .name = "mask-origin-view", .decls = &.{.{ .property = "mask-origin", .value = "view-box" }} },
-    .{ .name = "mask-circle", .decls = &.{.{ .property = "--tw-mask-radial-shape", .value = "circle" }} },
-    .{ .name = "mask-ellipse", .decls = &.{.{ .property = "--tw-mask-radial-shape", .value = "ellipse" }} },
-    .{ .name = "mask-radial-closest-side", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "closest-side" }} },
-    .{ .name = "mask-radial-farthest-side", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "farthest-side" }} },
-    .{ .name = "mask-radial-closest-corner", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "closest-corner" }} },
-    .{ .name = "mask-radial-farthest-corner", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "farthest-corner" }} },
-    .{ .name = "mask-radial-at-top", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top" }} },
-    .{ .name = "mask-radial-at-top-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top left" }} },
-    .{ .name = "mask-radial-at-top-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top right" }} },
-    .{ .name = "mask-radial-at-bottom", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom" }} },
-    .{ .name = "mask-radial-at-bottom-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom left" }} },
-    .{ .name = "mask-radial-at-bottom-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom right" }} },
-    .{ .name = "mask-radial-at-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "left" }} },
-    .{ .name = "mask-radial-at-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "right" }} },
-    .{ .name = "mask-radial-at-center", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "center" }} },
+    .{
+        .name = "mask-none",
+        .decls = &.{.{
+            .property = "mask-image",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "mask-add",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "add",
+        }},
+    },
+    .{
+        .name = "mask-subtract",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "subtract",
+        }},
+    },
+    .{
+        .name = "mask-intersect",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "intersect",
+        }},
+    },
+    .{
+        .name = "mask-exclude",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "exclude",
+        }},
+    },
+    .{
+        .name = "mask-alpha",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "alpha",
+        }},
+    },
+    .{
+        .name = "mask-luminance",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "luminance",
+        }},
+    },
+    .{
+        .name = "mask-match",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "match-source",
+        }},
+    },
+    .{
+        .name = "mask-type-alpha",
+        .decls = &.{.{
+            .property = "mask-type",
+            .value = "alpha",
+        }},
+    },
+    .{
+        .name = "mask-type-luminance",
+        .decls = &.{.{
+            .property = "mask-type",
+            .value = "luminance",
+        }},
+    },
+    .{
+        .name = "mask-auto",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "mask-cover",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "mask-contain",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "mask-top",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "mask-top-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left top",
+        }},
+    },
+    .{
+        .name = "mask-top-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right top",
+        }},
+    },
+    .{
+        .name = "mask-bottom",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "mask-bottom-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left bottom",
+        }},
+    },
+    .{
+        .name = "mask-bottom-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right bottom",
+        }},
+    },
+    .{
+        .name = "mask-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "mask-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "mask-center",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "mask-repeat",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat",
+        }},
+    },
+    .{
+        .name = "mask-no-repeat",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "no-repeat",
+        }},
+    },
+    .{
+        .name = "mask-repeat-x",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat-x",
+        }},
+    },
+    .{
+        .name = "mask-repeat-y",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat-y",
+        }},
+    },
+    .{
+        .name = "mask-repeat-round",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "round",
+        }},
+    },
+    .{
+        .name = "mask-repeat-space",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "space",
+        }},
+    },
+    .{
+        .name = "mask-clip-border",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-padding",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-content",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-fill",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-stroke",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-view",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "view-box",
+        }},
+    },
+    .{
+        .name = "mask-no-clip",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "no-clip",
+        }},
+    },
+    .{
+        .name = "mask-origin-border",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-padding",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-content",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-fill",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-stroke",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-view",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "view-box",
+        }},
+    },
+    .{
+        .name = "mask-circle",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-shape",
+            .value = "circle",
+        }},
+    },
+    .{
+        .name = "mask-ellipse",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-shape",
+            .value = "ellipse",
+        }},
+    },
+    .{
+        .name = "mask-radial-closest-side",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "closest-side",
+        }},
+    },
+    .{
+        .name = "mask-radial-farthest-side",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "farthest-side",
+        }},
+    },
+    .{
+        .name = "mask-radial-closest-corner",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "closest-corner",
+        }},
+    },
+    .{
+        .name = "mask-radial-farthest-corner",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "farthest-corner",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-center",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "center",
+        }},
+    },
 
     // ── Space-reverse markers — flag classes referenced by `space-x-N` etc.
     //    in the v4-with-CSS-variables emission. We don't emit the variable
     //    chain (simpler `> :not(:last-child)` form is used), but the markers
     //    still need to be recognised so they don't fall through as unknown.
-    .{ .name = "space-x-reverse", .decls = &.{} },
-    .{ .name = "space-y-reverse", .decls = &.{} },
+    .{
+        .name = "space-x-reverse",
+        .decls = &.{},
+    },
+    .{
+        .name = "space-y-reverse",
+        .decls = &.{},
+    },
 
     // ── Background size ─────────────────────────────────────────────────────
-    .{ .name = "bg-auto", .decls = &.{.{ .property = "background-size", .value = "auto" }} },
-    .{ .name = "bg-cover", .decls = &.{.{ .property = "background-size", .value = "cover" }} },
-    .{ .name = "bg-contain", .decls = &.{.{ .property = "background-size", .value = "contain" }} },
+    .{
+        .name = "bg-auto",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "bg-cover",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "bg-contain",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "contain",
+        }},
+    },
 
     // ── Background attachment ───────────────────────────────────────────────
-    .{ .name = "bg-fixed", .decls = &.{.{ .property = "background-attachment", .value = "fixed" }} },
-    .{ .name = "bg-local", .decls = &.{.{ .property = "background-attachment", .value = "local" }} },
-    .{ .name = "bg-scroll", .decls = &.{.{ .property = "background-attachment", .value = "scroll" }} },
+    .{
+        .name = "bg-fixed",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "bg-local",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "local",
+        }},
+    },
+    .{
+        .name = "bg-scroll",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "scroll",
+        }},
+    },
 
     // ── Background position ─────────────────────────────────────────────────
-    .{ .name = "bg-top", .decls = &.{.{ .property = "background-position", .value = "top" }} },
-    .{ .name = "bg-top-left", .decls = &.{.{ .property = "background-position", .value = "left top" }} },
-    .{ .name = "bg-top-right", .decls = &.{.{ .property = "background-position", .value = "right top" }} },
-    .{ .name = "bg-bottom", .decls = &.{.{ .property = "background-position", .value = "bottom" }} },
-    .{ .name = "bg-bottom-left", .decls = &.{.{ .property = "background-position", .value = "left bottom" }} },
-    .{ .name = "bg-bottom-right", .decls = &.{.{ .property = "background-position", .value = "right bottom" }} },
-    .{ .name = "bg-left", .decls = &.{.{ .property = "background-position", .value = "left" }} },
-    .{ .name = "bg-right", .decls = &.{.{ .property = "background-position", .value = "right" }} },
-    .{ .name = "bg-center", .decls = &.{.{ .property = "background-position", .value = "center" }} },
+    .{
+        .name = "bg-top",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "bg-top-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left top",
+        }},
+    },
+    .{
+        .name = "bg-top-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right top",
+        }},
+    },
+    .{
+        .name = "bg-bottom",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "bg-bottom-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left bottom",
+        }},
+    },
+    .{
+        .name = "bg-bottom-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right bottom",
+        }},
+    },
+    .{
+        .name = "bg-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "bg-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "bg-center",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "center",
+        }},
+    },
 
     // ── Background repeat ───────────────────────────────────────────────────
-    .{ .name = "bg-repeat", .decls = &.{.{ .property = "background-repeat", .value = "repeat" }} },
-    .{ .name = "bg-no-repeat", .decls = &.{.{ .property = "background-repeat", .value = "no-repeat" }} },
-    .{ .name = "bg-repeat-x", .decls = &.{.{ .property = "background-repeat", .value = "repeat-x" }} },
-    .{ .name = "bg-repeat-y", .decls = &.{.{ .property = "background-repeat", .value = "repeat-y" }} },
-    .{ .name = "bg-repeat-round", .decls = &.{.{ .property = "background-repeat", .value = "round" }} },
-    .{ .name = "bg-repeat-space", .decls = &.{.{ .property = "background-repeat", .value = "space" }} },
+    .{
+        .name = "bg-repeat",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat",
+        }},
+    },
+    .{
+        .name = "bg-no-repeat",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "no-repeat",
+        }},
+    },
+    .{
+        .name = "bg-repeat-x",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat-x",
+        }},
+    },
+    .{
+        .name = "bg-repeat-y",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat-y",
+        }},
+    },
+    .{
+        .name = "bg-repeat-round",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "round",
+        }},
+    },
+    .{
+        .name = "bg-repeat-space",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "space",
+        }},
+    },
 
     // ── Background image: none ──────────────────────────────────────────────
-    .{ .name = "bg-none", .decls = &.{.{ .property = "background-image", .value = "none" }} },
+    .{
+        .name = "bg-none",
+        .decls = &.{.{
+            .property = "background-image",
+            .value = "none",
+        }},
+    },
 
     // ── Background clip ─────────────────────────────────────────────────────
-    .{ .name = "bg-clip-text", .decls = &.{.{ .property = "background-clip", .value = "text" }} },
-    .{ .name = "bg-clip-border", .decls = &.{.{ .property = "background-clip", .value = "border-box" }} },
-    .{ .name = "bg-clip-padding", .decls = &.{.{ .property = "background-clip", .value = "padding-box" }} },
-    .{ .name = "bg-clip-content", .decls = &.{.{ .property = "background-clip", .value = "content-box" }} },
+    .{
+        .name = "bg-clip-text",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "bg-clip-border",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "bg-clip-padding",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "bg-clip-content",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "content-box",
+        }},
+    },
 
     // ── Background origin ───────────────────────────────────────────────────
-    .{ .name = "bg-origin-border", .decls = &.{.{ .property = "background-origin", .value = "border-box" }} },
-    .{ .name = "bg-origin-padding", .decls = &.{.{ .property = "background-origin", .value = "padding-box" }} },
-    .{ .name = "bg-origin-content", .decls = &.{.{ .property = "background-origin", .value = "content-box" }} },
+    .{
+        .name = "bg-origin-border",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "bg-origin-padding",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "bg-origin-content",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "content-box",
+        }},
+    },
 
     // ── Background blend mode ───────────────────────────────────────────────
-    .{ .name = "bg-blend-normal", .decls = &.{.{ .property = "background-blend-mode", .value = "normal" }} },
-    .{ .name = "bg-blend-multiply", .decls = &.{.{ .property = "background-blend-mode", .value = "multiply" }} },
-    .{ .name = "bg-blend-screen", .decls = &.{.{ .property = "background-blend-mode", .value = "screen" }} },
-    .{ .name = "bg-blend-overlay", .decls = &.{.{ .property = "background-blend-mode", .value = "overlay" }} },
-    .{ .name = "bg-blend-darken", .decls = &.{.{ .property = "background-blend-mode", .value = "darken" }} },
-    .{ .name = "bg-blend-lighten", .decls = &.{.{ .property = "background-blend-mode", .value = "lighten" }} },
-    .{ .name = "bg-blend-color-dodge", .decls = &.{.{ .property = "background-blend-mode", .value = "color-dodge" }} },
-    .{ .name = "bg-blend-color-burn", .decls = &.{.{ .property = "background-blend-mode", .value = "color-burn" }} },
-    .{ .name = "bg-blend-hard-light", .decls = &.{.{ .property = "background-blend-mode", .value = "hard-light" }} },
-    .{ .name = "bg-blend-soft-light", .decls = &.{.{ .property = "background-blend-mode", .value = "soft-light" }} },
-    .{ .name = "bg-blend-difference", .decls = &.{.{ .property = "background-blend-mode", .value = "difference" }} },
-    .{ .name = "bg-blend-exclusion", .decls = &.{.{ .property = "background-blend-mode", .value = "exclusion" }} },
-    .{ .name = "bg-blend-hue", .decls = &.{.{ .property = "background-blend-mode", .value = "hue" }} },
-    .{ .name = "bg-blend-saturation", .decls = &.{.{ .property = "background-blend-mode", .value = "saturation" }} },
-    .{ .name = "bg-blend-color", .decls = &.{.{ .property = "background-blend-mode", .value = "color" }} },
-    .{ .name = "bg-blend-luminosity", .decls = &.{.{ .property = "background-blend-mode", .value = "luminosity" }} },
+    .{
+        .name = "bg-blend-normal",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "bg-blend-multiply",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "multiply",
+        }},
+    },
+    .{
+        .name = "bg-blend-screen",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "screen",
+        }},
+    },
+    .{
+        .name = "bg-blend-overlay",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "overlay",
+        }},
+    },
+    .{
+        .name = "bg-blend-darken",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "darken",
+        }},
+    },
+    .{
+        .name = "bg-blend-lighten",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "lighten",
+        }},
+    },
+    .{
+        .name = "bg-blend-color-dodge",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color-dodge",
+        }},
+    },
+    .{
+        .name = "bg-blend-color-burn",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color-burn",
+        }},
+    },
+    .{
+        .name = "bg-blend-hard-light",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "hard-light",
+        }},
+    },
+    .{
+        .name = "bg-blend-soft-light",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "soft-light",
+        }},
+    },
+    .{
+        .name = "bg-blend-difference",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "difference",
+        }},
+    },
+    .{
+        .name = "bg-blend-exclusion",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "exclusion",
+        }},
+    },
+    .{
+        .name = "bg-blend-hue",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "hue",
+        }},
+    },
+    .{
+        .name = "bg-blend-saturation",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "saturation",
+        }},
+    },
+    .{
+        .name = "bg-blend-color",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color",
+        }},
+    },
+    .{
+        .name = "bg-blend-luminosity",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "luminosity",
+        }},
+    },
 
     // ── Mix blend mode ──────────────────────────────────────────────────────
-    .{ .name = "mix-blend-normal", .decls = &.{.{ .property = "mix-blend-mode", .value = "normal" }} },
-    .{ .name = "mix-blend-multiply", .decls = &.{.{ .property = "mix-blend-mode", .value = "multiply" }} },
-    .{ .name = "mix-blend-screen", .decls = &.{.{ .property = "mix-blend-mode", .value = "screen" }} },
-    .{ .name = "mix-blend-overlay", .decls = &.{.{ .property = "mix-blend-mode", .value = "overlay" }} },
-    .{ .name = "mix-blend-darken", .decls = &.{.{ .property = "mix-blend-mode", .value = "darken" }} },
-    .{ .name = "mix-blend-lighten", .decls = &.{.{ .property = "mix-blend-mode", .value = "lighten" }} },
-    .{ .name = "mix-blend-color-dodge", .decls = &.{.{ .property = "mix-blend-mode", .value = "color-dodge" }} },
-    .{ .name = "mix-blend-color-burn", .decls = &.{.{ .property = "mix-blend-mode", .value = "color-burn" }} },
-    .{ .name = "mix-blend-hard-light", .decls = &.{.{ .property = "mix-blend-mode", .value = "hard-light" }} },
-    .{ .name = "mix-blend-soft-light", .decls = &.{.{ .property = "mix-blend-mode", .value = "soft-light" }} },
-    .{ .name = "mix-blend-difference", .decls = &.{.{ .property = "mix-blend-mode", .value = "difference" }} },
-    .{ .name = "mix-blend-exclusion", .decls = &.{.{ .property = "mix-blend-mode", .value = "exclusion" }} },
-    .{ .name = "mix-blend-hue", .decls = &.{.{ .property = "mix-blend-mode", .value = "hue" }} },
-    .{ .name = "mix-blend-saturation", .decls = &.{.{ .property = "mix-blend-mode", .value = "saturation" }} },
-    .{ .name = "mix-blend-color", .decls = &.{.{ .property = "mix-blend-mode", .value = "color" }} },
-    .{ .name = "mix-blend-luminosity", .decls = &.{.{ .property = "mix-blend-mode", .value = "luminosity" }} },
-    .{ .name = "mix-blend-plus-darker", .decls = &.{.{ .property = "mix-blend-mode", .value = "plus-darker" }} },
-    .{ .name = "mix-blend-plus-lighter", .decls = &.{.{ .property = "mix-blend-mode", .value = "plus-lighter" }} },
+    .{
+        .name = "mix-blend-normal",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "mix-blend-multiply",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "multiply",
+        }},
+    },
+    .{
+        .name = "mix-blend-screen",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "screen",
+        }},
+    },
+    .{
+        .name = "mix-blend-overlay",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "overlay",
+        }},
+    },
+    .{
+        .name = "mix-blend-darken",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "darken",
+        }},
+    },
+    .{
+        .name = "mix-blend-lighten",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "lighten",
+        }},
+    },
+    .{
+        .name = "mix-blend-color-dodge",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color-dodge",
+        }},
+    },
+    .{
+        .name = "mix-blend-color-burn",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color-burn",
+        }},
+    },
+    .{
+        .name = "mix-blend-hard-light",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "hard-light",
+        }},
+    },
+    .{
+        .name = "mix-blend-soft-light",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "soft-light",
+        }},
+    },
+    .{
+        .name = "mix-blend-difference",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "difference",
+        }},
+    },
+    .{
+        .name = "mix-blend-exclusion",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "exclusion",
+        }},
+    },
+    .{
+        .name = "mix-blend-hue",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "hue",
+        }},
+    },
+    .{
+        .name = "mix-blend-saturation",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "saturation",
+        }},
+    },
+    .{
+        .name = "mix-blend-color",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color",
+        }},
+    },
+    .{
+        .name = "mix-blend-luminosity",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "luminosity",
+        }},
+    },
+    .{
+        .name = "mix-blend-plus-darker",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "plus-darker",
+        }},
+    },
+    .{
+        .name = "mix-blend-plus-lighter",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "plus-lighter",
+        }},
+    },
 
     // ── Gradient via-none ───────────────────────────────────────────────────
-    .{ .name = "via-none", .decls = &.{.{ .property = "--tw-gradient-via-stops", .value = "initial" }} },
+    .{
+        .name = "via-none",
+        .decls = &.{.{
+            .property = "--tw-gradient-via-stops",
+            .value = "initial",
+        }},
+    },
 
     // ── Gradient base shapes (no value / no angle) ──────────────────────────
-    .{ .name = "bg-radial", .decls = &.{
-        .{ .property = "--tw-gradient-position", .value = "in oklab" },
-        .{ .property = "background-image", .value = "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))" },
-    } },
-    .{ .name = "bg-conic", .decls = &.{
-        .{ .property = "--tw-gradient-position", .value = "in oklab" },
-        .{ .property = "background-image", .value = "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))" },
-    } },
+    .{
+        .name = "bg-radial",
+        .decls = &.{
+            .{
+                .property = "--tw-gradient-position",
+                .value = "in oklab",
+            },
+            .{
+                .property = "background-image",
+                .value = "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))",
+            },
+        },
+    },
+    .{
+        .name = "bg-conic",
+        .decls = &.{
+            .{
+                .property = "--tw-gradient-position",
+                .value = "in oklab",
+            },
+            .{
+                .property = "background-image",
+                .value = "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))",
+            },
+        },
+    },
 
     // ── Border width — bare forms (functional `border-N` handled separately) ─
-    .{ .name = "border", .decls = &.{
-        .{ .property = "border-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-width", .value = "1px" },
-    } },
-    .{ .name = "border-t", .decls = &.{
-        .{ .property = "border-top-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-top-width", .value = "1px" },
-    } },
-    .{ .name = "border-r", .decls = &.{
-        .{ .property = "border-right-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-right-width", .value = "1px" },
-    } },
-    .{ .name = "border-b", .decls = &.{
-        .{ .property = "border-bottom-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-bottom-width", .value = "1px" },
-    } },
-    .{ .name = "border-l", .decls = &.{
-        .{ .property = "border-left-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-left-width", .value = "1px" },
-    } },
-    .{ .name = "border-x", .decls = &.{
-        .{ .property = "border-inline-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-width", .value = "1px" },
-    } },
-    .{ .name = "border-y", .decls = &.{
-        .{ .property = "border-block-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-block-width", .value = "1px" },
-    } },
-    .{ .name = "border-s", .decls = &.{
-        .{ .property = "border-inline-start-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-start-width", .value = "1px" },
-    } },
-    .{ .name = "border-e", .decls = &.{
-        .{ .property = "border-inline-end-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-end-width", .value = "1px" },
-    } },
+    .{
+        .name = "border",
+        .decls = &.{
+            .{
+                .property = "border-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-t",
+        .decls = &.{
+            .{
+                .property = "border-top-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-top-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-r",
+        .decls = &.{
+            .{
+                .property = "border-right-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-right-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-b",
+        .decls = &.{
+            .{
+                .property = "border-bottom-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-bottom-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-l",
+        .decls = &.{
+            .{
+                .property = "border-left-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-left-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-x",
+        .decls = &.{
+            .{
+                .property = "border-inline-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-y",
+        .decls = &.{
+            .{
+                .property = "border-block-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-block-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-s",
+        .decls = &.{
+            .{
+                .property = "border-inline-start-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-start-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-e",
+        .decls = &.{
+            .{
+                .property = "border-inline-end-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-end-width",
+                .value = "1px",
+            },
+        },
+    },
 
     // ── Border style ────────────────────────────────────────────────────────
-    .{ .name = "border-solid", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "solid" },
-        .{ .property = "border-style", .value = "solid" },
-    } },
-    .{ .name = "border-dashed", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "dashed" },
-        .{ .property = "border-style", .value = "dashed" },
-    } },
-    .{ .name = "border-dotted", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "dotted" },
-        .{ .property = "border-style", .value = "dotted" },
-    } },
-    .{ .name = "border-double", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "double" },
-        .{ .property = "border-style", .value = "double" },
-    } },
-    .{ .name = "border-hidden", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "hidden" },
-        .{ .property = "border-style", .value = "hidden" },
-    } },
-    .{ .name = "border-none", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "none" },
-        .{ .property = "border-style", .value = "none" },
-    } },
+    .{
+        .name = "border-solid",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "solid",
+            },
+            .{
+                .property = "border-style",
+                .value = "solid",
+            },
+        },
+    },
+    .{
+        .name = "border-dashed",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "dashed",
+            },
+            .{
+                .property = "border-style",
+                .value = "dashed",
+            },
+        },
+    },
+    .{
+        .name = "border-dotted",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "dotted",
+            },
+            .{
+                .property = "border-style",
+                .value = "dotted",
+            },
+        },
+    },
+    .{
+        .name = "border-double",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "double",
+            },
+            .{
+                .property = "border-style",
+                .value = "double",
+            },
+        },
+    },
+    .{
+        .name = "border-hidden",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "hidden",
+            },
+            .{
+                .property = "border-style",
+                .value = "hidden",
+            },
+        },
+    },
+    .{
+        .name = "border-none",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "none",
+            },
+            .{
+                .property = "border-style",
+                .value = "none",
+            },
+        },
+    },
 
     // ── Border radius — bare + extremes (theme-driven scale handled below) ──
-    .{ .name = "rounded", .decls = &.{.{ .property = "border-radius", .value = "var(--radius)" }} },
-    .{ .name = "rounded-none", .decls = &.{.{ .property = "border-radius", .value = "0" }} },
-    .{ .name = "rounded-full", .decls = &.{.{ .property = "border-radius", .value = "calc(infinity * 1px)" }} },
+    .{
+        .name = "rounded",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "var(--radius)",
+        }},
+    },
+    .{
+        .name = "rounded-none",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "0",
+        }},
+    },
+    .{
+        .name = "rounded-full",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "calc(infinity * 1px)",
+        }},
+    },
 
     // ── Misc ────────────────────────────────────────────────────────────────
     // ── Cursor (full supported set) ─────────────────────────────────────────
-    .{ .name = "cursor-auto", .decls = &.{.{ .property = "cursor", .value = "auto" }} },
-    .{ .name = "cursor-default", .decls = &.{.{ .property = "cursor", .value = "default" }} },
-    .{ .name = "cursor-pointer", .decls = &.{.{ .property = "cursor", .value = "pointer" }} },
-    .{ .name = "cursor-wait", .decls = &.{.{ .property = "cursor", .value = "wait" }} },
-    .{ .name = "cursor-text", .decls = &.{.{ .property = "cursor", .value = "text" }} },
-    .{ .name = "cursor-move", .decls = &.{.{ .property = "cursor", .value = "move" }} },
-    .{ .name = "cursor-help", .decls = &.{.{ .property = "cursor", .value = "help" }} },
-    .{ .name = "cursor-not-allowed", .decls = &.{.{ .property = "cursor", .value = "not-allowed" }} },
-    .{ .name = "cursor-none", .decls = &.{.{ .property = "cursor", .value = "none" }} },
-    .{ .name = "cursor-context-menu", .decls = &.{.{ .property = "cursor", .value = "context-menu" }} },
-    .{ .name = "cursor-progress", .decls = &.{.{ .property = "cursor", .value = "progress" }} },
-    .{ .name = "cursor-cell", .decls = &.{.{ .property = "cursor", .value = "cell" }} },
-    .{ .name = "cursor-crosshair", .decls = &.{.{ .property = "cursor", .value = "crosshair" }} },
-    .{ .name = "cursor-vertical-text", .decls = &.{.{ .property = "cursor", .value = "vertical-text" }} },
-    .{ .name = "cursor-alias", .decls = &.{.{ .property = "cursor", .value = "alias" }} },
-    .{ .name = "cursor-copy", .decls = &.{.{ .property = "cursor", .value = "copy" }} },
-    .{ .name = "cursor-no-drop", .decls = &.{.{ .property = "cursor", .value = "no-drop" }} },
-    .{ .name = "cursor-grab", .decls = &.{.{ .property = "cursor", .value = "grab" }} },
-    .{ .name = "cursor-grabbing", .decls = &.{.{ .property = "cursor", .value = "grabbing" }} },
-    .{ .name = "cursor-all-scroll", .decls = &.{.{ .property = "cursor", .value = "all-scroll" }} },
-    .{ .name = "cursor-col-resize", .decls = &.{.{ .property = "cursor", .value = "col-resize" }} },
-    .{ .name = "cursor-row-resize", .decls = &.{.{ .property = "cursor", .value = "row-resize" }} },
-    .{ .name = "cursor-n-resize", .decls = &.{.{ .property = "cursor", .value = "n-resize" }} },
-    .{ .name = "cursor-e-resize", .decls = &.{.{ .property = "cursor", .value = "e-resize" }} },
-    .{ .name = "cursor-s-resize", .decls = &.{.{ .property = "cursor", .value = "s-resize" }} },
-    .{ .name = "cursor-w-resize", .decls = &.{.{ .property = "cursor", .value = "w-resize" }} },
-    .{ .name = "cursor-ne-resize", .decls = &.{.{ .property = "cursor", .value = "ne-resize" }} },
-    .{ .name = "cursor-nw-resize", .decls = &.{.{ .property = "cursor", .value = "nw-resize" }} },
-    .{ .name = "cursor-se-resize", .decls = &.{.{ .property = "cursor", .value = "se-resize" }} },
-    .{ .name = "cursor-sw-resize", .decls = &.{.{ .property = "cursor", .value = "sw-resize" }} },
-    .{ .name = "cursor-ew-resize", .decls = &.{.{ .property = "cursor", .value = "ew-resize" }} },
-    .{ .name = "cursor-ns-resize", .decls = &.{.{ .property = "cursor", .value = "ns-resize" }} },
-    .{ .name = "cursor-nesw-resize", .decls = &.{.{ .property = "cursor", .value = "nesw-resize" }} },
-    .{ .name = "cursor-nwse-resize", .decls = &.{.{ .property = "cursor", .value = "nwse-resize" }} },
-    .{ .name = "cursor-zoom-in", .decls = &.{.{ .property = "cursor", .value = "zoom-in" }} },
-    .{ .name = "cursor-zoom-out", .decls = &.{.{ .property = "cursor", .value = "zoom-out" }} },
+    .{
+        .name = "cursor-auto",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "cursor-default",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "default",
+        }},
+    },
+    .{
+        .name = "cursor-pointer",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "pointer",
+        }},
+    },
+    .{
+        .name = "cursor-wait",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "wait",
+        }},
+    },
+    .{
+        .name = "cursor-text",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "cursor-move",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "move",
+        }},
+    },
+    .{
+        .name = "cursor-help",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "help",
+        }},
+    },
+    .{
+        .name = "cursor-not-allowed",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "not-allowed",
+        }},
+    },
+    .{
+        .name = "cursor-none",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "cursor-context-menu",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "context-menu",
+        }},
+    },
+    .{
+        .name = "cursor-progress",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "progress",
+        }},
+    },
+    .{
+        .name = "cursor-cell",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "cell",
+        }},
+    },
+    .{
+        .name = "cursor-crosshair",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "crosshair",
+        }},
+    },
+    .{
+        .name = "cursor-vertical-text",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "vertical-text",
+        }},
+    },
+    .{
+        .name = "cursor-alias",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "alias",
+        }},
+    },
+    .{
+        .name = "cursor-copy",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "copy",
+        }},
+    },
+    .{
+        .name = "cursor-no-drop",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "no-drop",
+        }},
+    },
+    .{
+        .name = "cursor-grab",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "grab",
+        }},
+    },
+    .{
+        .name = "cursor-grabbing",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "grabbing",
+        }},
+    },
+    .{
+        .name = "cursor-all-scroll",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "all-scroll",
+        }},
+    },
+    .{
+        .name = "cursor-col-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "col-resize",
+        }},
+    },
+    .{
+        .name = "cursor-row-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "row-resize",
+        }},
+    },
+    .{
+        .name = "cursor-n-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "n-resize",
+        }},
+    },
+    .{
+        .name = "cursor-e-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "e-resize",
+        }},
+    },
+    .{
+        .name = "cursor-s-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "s-resize",
+        }},
+    },
+    .{
+        .name = "cursor-w-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "w-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ne-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ne-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-se-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "se-resize",
+        }},
+    },
+    .{
+        .name = "cursor-sw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "sw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ew-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ew-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ns-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ns-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nesw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nesw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nwse-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nwse-resize",
+        }},
+    },
+    .{
+        .name = "cursor-zoom-in",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "zoom-in",
+        }},
+    },
+    .{
+        .name = "cursor-zoom-out",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "zoom-out",
+        }},
+    },
 
     // ── User-select ─────────────────────────────────────────────────────────
-    .{ .name = "select-none", .decls = &.{.{ .property = "user-select", .value = "none" }} },
-    .{ .name = "select-text", .decls = &.{.{ .property = "user-select", .value = "text" }} },
-    .{ .name = "select-all", .decls = &.{.{ .property = "user-select", .value = "all" }} },
-    .{ .name = "select-auto", .decls = &.{.{ .property = "user-select", .value = "auto" }} },
+    .{
+        .name = "select-none",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "select-text",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "select-all",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "select-auto",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "auto",
+        }},
+    },
 
     // ── Object-fit ──────────────────────────────────────────────────────────
-    .{ .name = "object-contain", .decls = &.{.{ .property = "object-fit", .value = "contain" }} },
-    .{ .name = "object-cover", .decls = &.{.{ .property = "object-fit", .value = "cover" }} },
-    .{ .name = "object-fill", .decls = &.{.{ .property = "object-fit", .value = "fill" }} },
-    .{ .name = "object-none", .decls = &.{.{ .property = "object-fit", .value = "none" }} },
-    .{ .name = "object-scale-down", .decls = &.{.{ .property = "object-fit", .value = "scale-down" }} },
+    .{
+        .name = "object-contain",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "object-cover",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "object-fill",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "fill",
+        }},
+    },
+    .{
+        .name = "object-none",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "object-scale-down",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "scale-down",
+        }},
+    },
 
     // ── Object-position ─────────────────────────────────────────────────────
-    .{ .name = "object-top", .decls = &.{.{ .property = "object-position", .value = "top" }} },
-    .{ .name = "object-right", .decls = &.{.{ .property = "object-position", .value = "right" }} },
-    .{ .name = "object-bottom", .decls = &.{.{ .property = "object-position", .value = "bottom" }} },
-    .{ .name = "object-left", .decls = &.{.{ .property = "object-position", .value = "left" }} },
-    .{ .name = "object-center", .decls = &.{.{ .property = "object-position", .value = "center" }} },
-    .{ .name = "object-top-right", .decls = &.{.{ .property = "object-position", .value = "top right" }} },
-    .{ .name = "object-top-left", .decls = &.{.{ .property = "object-position", .value = "top left" }} },
-    .{ .name = "object-bottom-right", .decls = &.{.{ .property = "object-position", .value = "bottom right" }} },
-    .{ .name = "object-bottom-left", .decls = &.{.{ .property = "object-position", .value = "bottom left" }} },
+    .{
+        .name = "object-top",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "object-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "object-bottom",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "object-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "object-center",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "object-top-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top right",
+        }},
+    },
+    .{
+        .name = "object-top-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top left",
+        }},
+    },
+    .{
+        .name = "object-bottom-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom right",
+        }},
+    },
+    .{
+        .name = "object-bottom-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom left",
+        }},
+    },
 
     // ── Pointer-events ──────────────────────────────────────────────────────
-    .{ .name = "pointer-events-auto", .decls = &.{.{ .property = "pointer-events", .value = "auto" }} },
-    .{ .name = "pointer-events-none", .decls = &.{.{ .property = "pointer-events", .value = "none" }} },
+    .{
+        .name = "pointer-events-auto",
+        .decls = &.{.{
+            .property = "pointer-events",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "pointer-events-none",
+        .decls = &.{.{
+            .property = "pointer-events",
+            .value = "none",
+        }},
+    },
 
     // ── Resize ──────────────────────────────────────────────────────────────
-    .{ .name = "resize", .decls = &.{.{ .property = "resize", .value = "both" }} },
-    .{ .name = "resize-x", .decls = &.{.{ .property = "resize", .value = "horizontal" }} },
-    .{ .name = "resize-y", .decls = &.{.{ .property = "resize", .value = "vertical" }} },
-    .{ .name = "resize-none", .decls = &.{.{ .property = "resize", .value = "none" }} },
+    .{
+        .name = "resize",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "both",
+        }},
+    },
+    .{
+        .name = "resize-x",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "horizontal",
+        }},
+    },
+    .{
+        .name = "resize-y",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "vertical",
+        }},
+    },
+    .{
+        .name = "resize-none",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "none",
+        }},
+    },
 
     // ── Touch action ────────────────────────────────────────────────────────
-    .{ .name = "touch-auto", .decls = &.{.{ .property = "touch-action", .value = "auto" }} },
-    .{ .name = "touch-none", .decls = &.{.{ .property = "touch-action", .value = "none" }} },
-    .{ .name = "touch-manipulation", .decls = &.{.{ .property = "touch-action", .value = "manipulation" }} },
-    .{ .name = "touch-pan-x", .decls = &.{.{ .property = "touch-action", .value = "pan-x" }} },
-    .{ .name = "touch-pan-left", .decls = &.{.{ .property = "touch-action", .value = "pan-left" }} },
-    .{ .name = "touch-pan-right", .decls = &.{.{ .property = "touch-action", .value = "pan-right" }} },
-    .{ .name = "touch-pan-y", .decls = &.{.{ .property = "touch-action", .value = "pan-y" }} },
-    .{ .name = "touch-pan-up", .decls = &.{.{ .property = "touch-action", .value = "pan-up" }} },
-    .{ .name = "touch-pan-down", .decls = &.{.{ .property = "touch-action", .value = "pan-down" }} },
-    .{ .name = "touch-pinch-zoom", .decls = &.{.{ .property = "touch-action", .value = "pinch-zoom" }} },
+    .{
+        .name = "touch-auto",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "touch-none",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "touch-manipulation",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "manipulation",
+        }},
+    },
+    .{
+        .name = "touch-pan-x",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-x",
+        }},
+    },
+    .{
+        .name = "touch-pan-left",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-left",
+        }},
+    },
+    .{
+        .name = "touch-pan-right",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-right",
+        }},
+    },
+    .{
+        .name = "touch-pan-y",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-y",
+        }},
+    },
+    .{
+        .name = "touch-pan-up",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-up",
+        }},
+    },
+    .{
+        .name = "touch-pan-down",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-down",
+        }},
+    },
+    .{
+        .name = "touch-pinch-zoom",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pinch-zoom",
+        }},
+    },
 
     // ── Scroll behavior + scroll-snap-* ─────────────────────────────────────
-    .{ .name = "scroll-auto", .decls = &.{.{ .property = "scroll-behavior", .value = "auto" }} },
-    .{ .name = "scroll-smooth", .decls = &.{.{ .property = "scroll-behavior", .value = "smooth" }} },
-    .{ .name = "snap-none", .decls = &.{.{ .property = "scroll-snap-type", .value = "none" }} },
-    .{ .name = "snap-x", .decls = &.{.{ .property = "scroll-snap-type", .value = "x var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-y", .decls = &.{.{ .property = "scroll-snap-type", .value = "y var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-both", .decls = &.{.{ .property = "scroll-snap-type", .value = "both var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-mandatory", .decls = &.{.{ .property = "--tw-scroll-snap-strictness", .value = "mandatory" }} },
-    .{ .name = "snap-proximity", .decls = &.{.{ .property = "--tw-scroll-snap-strictness", .value = "proximity" }} },
-    .{ .name = "snap-align-none", .decls = &.{.{ .property = "scroll-snap-align", .value = "none" }} },
-    .{ .name = "snap-start", .decls = &.{.{ .property = "scroll-snap-align", .value = "start" }} },
-    .{ .name = "snap-end", .decls = &.{.{ .property = "scroll-snap-align", .value = "end" }} },
-    .{ .name = "snap-center", .decls = &.{.{ .property = "scroll-snap-align", .value = "center" }} },
-    .{ .name = "snap-normal", .decls = &.{.{ .property = "scroll-snap-stop", .value = "normal" }} },
-    .{ .name = "snap-always", .decls = &.{.{ .property = "scroll-snap-stop", .value = "always" }} },
+    .{
+        .name = "scroll-auto",
+        .decls = &.{.{
+            .property = "scroll-behavior",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "scroll-smooth",
+        .decls = &.{.{
+            .property = "scroll-behavior",
+            .value = "smooth",
+        }},
+    },
+    .{
+        .name = "snap-none",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "snap-x",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "x var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-y",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "y var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-both",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "both var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-mandatory",
+        .decls = &.{.{
+            .property = "--tw-scroll-snap-strictness",
+            .value = "mandatory",
+        }},
+    },
+    .{
+        .name = "snap-proximity",
+        .decls = &.{.{
+            .property = "--tw-scroll-snap-strictness",
+            .value = "proximity",
+        }},
+    },
+    .{
+        .name = "snap-align-none",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "snap-start",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "snap-end",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "snap-center",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "snap-normal",
+        .decls = &.{.{
+            .property = "scroll-snap-stop",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "snap-always",
+        .decls = &.{.{
+            .property = "scroll-snap-stop",
+            .value = "always",
+        }},
+    },
 
     // ── Will-change ─────────────────────────────────────────────────────────
-    .{ .name = "will-change-auto", .decls = &.{.{ .property = "will-change", .value = "auto" }} },
-    .{ .name = "will-change-scroll", .decls = &.{.{ .property = "will-change", .value = "scroll-position" }} },
-    .{ .name = "will-change-contents", .decls = &.{.{ .property = "will-change", .value = "contents" }} },
-    .{ .name = "will-change-transform", .decls = &.{.{ .property = "will-change", .value = "transform" }} },
+    .{
+        .name = "will-change-auto",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "will-change-scroll",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "scroll-position",
+        }},
+    },
+    .{
+        .name = "will-change-contents",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "contents",
+        }},
+    },
+    .{
+        .name = "will-change-transform",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "transform",
+        }},
+    },
 
     // ── Forced colors / contain ─────────────────────────────────────────────
-    .{ .name = "forced-color-adjust-none", .decls = &.{.{ .property = "forced-color-adjust", .value = "none" }} },
-    .{ .name = "forced-color-adjust-auto", .decls = &.{.{ .property = "forced-color-adjust", .value = "auto" }} },
-    .{ .name = "contain-none", .decls = &.{.{ .property = "contain", .value = "none" }} },
-    .{ .name = "contain-content", .decls = &.{.{ .property = "contain", .value = "content" }} },
-    .{ .name = "contain-strict", .decls = &.{.{ .property = "contain", .value = "strict" }} },
-    .{ .name = "contain-size", .decls = &.{.{ .property = "contain", .value = "size" }} },
-    .{ .name = "contain-inline-size", .decls = &.{.{ .property = "contain", .value = "inline-size" }} },
-    .{ .name = "contain-layout", .decls = &.{.{ .property = "contain", .value = "layout" }} },
-    .{ .name = "contain-paint", .decls = &.{.{ .property = "contain", .value = "paint" }} },
-    .{ .name = "contain-style", .decls = &.{.{ .property = "contain", .value = "style" }} },
+    .{
+        .name = "forced-color-adjust-none",
+        .decls = &.{.{
+            .property = "forced-color-adjust",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "forced-color-adjust-auto",
+        .decls = &.{.{
+            .property = "forced-color-adjust",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "contain-none",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "contain-content",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "content",
+        }},
+    },
+    .{
+        .name = "contain-strict",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "strict",
+        }},
+    },
+    .{
+        .name = "contain-size",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "size",
+        }},
+    },
+    .{
+        .name = "contain-inline-size",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "inline-size",
+        }},
+    },
+    .{
+        .name = "contain-layout",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "layout",
+        }},
+    },
+    .{
+        .name = "contain-paint",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "paint",
+        }},
+    },
+    .{
+        .name = "contain-style",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "style",
+        }},
+    },
 
     // ── Overscroll ──────────────────────────────────────────────────────────
-    .{ .name = "overscroll-auto", .decls = &.{.{ .property = "overscroll-behavior", .value = "auto" }} },
-    .{ .name = "overscroll-contain", .decls = &.{.{ .property = "overscroll-behavior", .value = "contain" }} },
-    .{ .name = "overscroll-none", .decls = &.{.{ .property = "overscroll-behavior", .value = "none" }} },
-    .{ .name = "overscroll-x-auto", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "auto" }} },
-    .{ .name = "overscroll-x-contain", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "contain" }} },
-    .{ .name = "overscroll-x-none", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "none" }} },
-    .{ .name = "overscroll-y-auto", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "auto" }} },
-    .{ .name = "overscroll-y-contain", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "contain" }} },
-    .{ .name = "overscroll-y-none", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "none" }} },
+    .{
+        .name = "overscroll-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "overscroll-x-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-x-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-x-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "overscroll-y-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-y-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-y-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "none",
+        }},
+    },
 
     // ── Break before/inside/after ───────────────────────────────────────────
-    .{ .name = "break-before-auto", .decls = &.{.{ .property = "break-before", .value = "auto" }} },
-    .{ .name = "break-before-avoid", .decls = &.{.{ .property = "break-before", .value = "avoid" }} },
-    .{ .name = "break-before-all", .decls = &.{.{ .property = "break-before", .value = "all" }} },
-    .{ .name = "break-before-avoid-page", .decls = &.{.{ .property = "break-before", .value = "avoid-page" }} },
-    .{ .name = "break-before-page", .decls = &.{.{ .property = "break-before", .value = "page" }} },
-    .{ .name = "break-before-left", .decls = &.{.{ .property = "break-before", .value = "left" }} },
-    .{ .name = "break-before-right", .decls = &.{.{ .property = "break-before", .value = "right" }} },
-    .{ .name = "break-before-column", .decls = &.{.{ .property = "break-before", .value = "column" }} },
-    .{ .name = "break-inside-auto", .decls = &.{.{ .property = "break-inside", .value = "auto" }} },
-    .{ .name = "break-inside-avoid", .decls = &.{.{ .property = "break-inside", .value = "avoid" }} },
-    .{ .name = "break-inside-avoid-page", .decls = &.{.{ .property = "break-inside", .value = "avoid-page" }} },
-    .{ .name = "break-inside-avoid-column", .decls = &.{.{ .property = "break-inside", .value = "avoid-column" }} },
-    .{ .name = "break-after-auto", .decls = &.{.{ .property = "break-after", .value = "auto" }} },
-    .{ .name = "break-after-avoid", .decls = &.{.{ .property = "break-after", .value = "avoid" }} },
-    .{ .name = "break-after-all", .decls = &.{.{ .property = "break-after", .value = "all" }} },
-    .{ .name = "break-after-avoid-page", .decls = &.{.{ .property = "break-after", .value = "avoid-page" }} },
-    .{ .name = "break-after-page", .decls = &.{.{ .property = "break-after", .value = "page" }} },
-    .{ .name = "break-after-left", .decls = &.{.{ .property = "break-after", .value = "left" }} },
-    .{ .name = "break-after-right", .decls = &.{.{ .property = "break-after", .value = "right" }} },
-    .{ .name = "break-after-column", .decls = &.{.{ .property = "break-after", .value = "column" }} },
+    .{
+        .name = "break-before-auto",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-before-avoid",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-before-all",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "break-before-avoid-page",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-before-page",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "page",
+        }},
+    },
+    .{
+        .name = "break-before-left",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "break-before-right",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "break-before-column",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "break-inside-auto",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid-page",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid-column",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid-column",
+        }},
+    },
+    .{
+        .name = "break-after-auto",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-after-avoid",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-after-all",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "break-after-avoid-page",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-after-page",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "page",
+        }},
+    },
+    .{
+        .name = "break-after-left",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "break-after-right",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "break-after-column",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "column",
+        }},
+    },
 
     // ── Transition (bare + property variants + none) ────────────────────────
-    .{ .name = "transition", .decls = &.{
-        .{ .property = "transition-property", .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-all", .decls = &.{
-        .{ .property = "transition-property", .value = "all" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-colors", .decls = &.{
-        .{ .property = "transition-property", .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-opacity", .decls = &.{
-        .{ .property = "transition-property", .value = "opacity" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-shadow", .decls = &.{
-        .{ .property = "transition-property", .value = "box-shadow" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-transform", .decls = &.{
-        .{ .property = "transition-property", .value = "transform, translate, scale, rotate" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-none", .decls = &.{.{ .property = "transition-property", .value = "none" }} },
-    .{ .name = "transition-discrete", .decls = &.{.{ .property = "transition-behavior", .value = "allow-discrete" }} },
-    .{ .name = "transition-normal", .decls = &.{.{ .property = "transition-behavior", .value = "normal" }} },
-    .{ .name = "duration-initial", .decls = &.{.{ .property = "transition-duration", .value = "initial" }} },
+    .{
+        .name = "transition",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-all",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "all",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-colors",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-opacity",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "opacity",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-shadow",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "box-shadow",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-transform",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "transform, translate, scale, rotate",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-none",
+        .decls = &.{.{
+            .property = "transition-property",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "transition-discrete",
+        .decls = &.{.{
+            .property = "transition-behavior",
+            .value = "allow-discrete",
+        }},
+    },
+    .{
+        .name = "transition-normal",
+        .decls = &.{.{
+            .property = "transition-behavior",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "duration-initial",
+        .decls = &.{.{
+            .property = "transition-duration",
+            .value = "initial",
+        }},
+    },
 
     // ── Easing presets ──────────────────────────────────────────────────────
-    .{ .name = "ease-linear", .decls = &.{.{ .property = "transition-timing-function", .value = "linear" }} },
-    .{ .name = "ease-in", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-in, cubic-bezier(0.4, 0, 1, 1))" }} },
-    .{ .name = "ease-out", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-out, cubic-bezier(0, 0, 0.2, 1))" }} },
-    .{ .name = "ease-in-out", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))" }} },
-    .{ .name = "ease-initial", .decls = &.{.{ .property = "transition-timing-function", .value = "initial" }} },
+    .{
+        .name = "ease-linear",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "linear",
+        }},
+    },
+    .{
+        .name = "ease-in",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-in, cubic-bezier(0.4, 0, 1, 1))",
+        }},
+    },
+    .{
+        .name = "ease-out",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-out, cubic-bezier(0, 0, 0.2, 1))",
+        }},
+    },
+    .{
+        .name = "ease-in-out",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))",
+        }},
+    },
+    .{
+        .name = "ease-initial",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "initial",
+        }},
+    },
 
     // ── Shadow base statics ─────────────────────────────────────────────────
     // Bare `shadow` defaults to the theme's `--shadow-DEFAULT` (or `--shadow`).
     // The functional `shadow-{key}` and `shadow-{color}` paths handle the rest.
-    .{ .name = "shadow", .decls = &.{
-        .{ .property = "--tw-shadow", .value = "var(--shadow, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1))" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)" },
-    } },
-    .{ .name = "shadow-none", .decls = &.{
-        .{ .property = "--tw-shadow", .value = "0 0 #0000" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)" },
-    } },
-    .{ .name = "shadow-initial", .decls = &.{.{ .property = "--tw-shadow-color", .value = "initial" }} },
-    .{ .name = "shadow-inherit", .decls = &.{.{ .property = "--tw-shadow", .value = "inherit" }} },
-    .{ .name = "inset-shadow-initial", .decls = &.{.{ .property = "--tw-inset-shadow-color", .value = "initial" }} },
-    .{ .name = "drop-shadow-none", .decls = &.{.{ .property = "filter", .value = "drop-shadow(0 0 #0000)" }} },
-    .{ .name = "text-shadow-initial", .decls = &.{.{ .property = "--tw-text-shadow-color", .value = "initial" }} },
+    .{
+        .name = "shadow",
+        .decls = &.{
+            .{
+                .property = "--tw-shadow",
+                .value = "var(--shadow, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1))",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
+            },
+        },
+    },
+    .{
+        .name = "shadow-none",
+        .decls = &.{
+            .{
+                .property = "--tw-shadow",
+                .value = "0 0 #0000",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
+            },
+        },
+    },
+    .{
+        .name = "shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-shadow-color",
+            .value = "initial",
+        }},
+    },
+    .{
+        .name = "shadow-inherit",
+        .decls = &.{.{
+            .property = "--tw-shadow",
+            .value = "inherit",
+        }},
+    },
+    .{
+        .name = "inset-shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-inset-shadow-color",
+            .value = "initial",
+        }},
+    },
+    .{
+        .name = "drop-shadow-none",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "drop-shadow(0 0 #0000)",
+        }},
+    },
+    .{
+        .name = "text-shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-text-shadow-color",
+            .value = "initial",
+        }},
+    },
 
     // ── Outline base statics ────────────────────────────────────────────────
-    .{ .name = "outline", .decls = &.{
-        .{ .property = "outline-style", .value = "solid" },
-        .{ .property = "outline-width", .value = "1px" },
-    } },
-    .{ .name = "outline-none", .decls = &.{
-        .{ .property = "outline-style", .value = "none" },
-    } },
-    .{ .name = "outline-hidden", .decls = &.{
-        .{ .property = "outline", .value = "2px solid transparent" },
-        .{ .property = "outline-offset", .value = "2px" },
-    } },
-    .{ .name = "outline-dashed", .decls = &.{.{ .property = "outline-style", .value = "dashed" }} },
-    .{ .name = "outline-dotted", .decls = &.{.{ .property = "outline-style", .value = "dotted" }} },
-    .{ .name = "outline-double", .decls = &.{.{ .property = "outline-style", .value = "double" }} },
-    .{ .name = "isolate", .decls = &.{.{ .property = "isolation", .value = "isolate" }} },
-    .{ .name = "ring-inset", .decls = &.{.{ .property = "--tw-ring-inset", .value = "inset" }} },
+    .{
+        .name = "outline",
+        .decls = &.{
+            .{
+                .property = "outline-style",
+                .value = "solid",
+            },
+            .{
+                .property = "outline-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "outline-none",
+        .decls = &.{
+            .{
+                .property = "outline-style",
+                .value = "none",
+            },
+        },
+    },
+    .{
+        .name = "outline-hidden",
+        .decls = &.{
+            .{
+                .property = "outline",
+                .value = "2px solid transparent",
+            },
+            .{
+                .property = "outline-offset",
+                .value = "2px",
+            },
+        },
+    },
+    .{
+        .name = "outline-dashed",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "dashed",
+        }},
+    },
+    .{
+        .name = "outline-dotted",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "dotted",
+        }},
+    },
+    .{
+        .name = "outline-double",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "double",
+        }},
+    },
+    .{
+        .name = "isolate",
+        .decls = &.{.{
+            .property = "isolation",
+            .value = "isolate",
+        }},
+    },
+    .{
+        .name = "ring-inset",
+        .decls = &.{.{
+            .property = "--tw-ring-inset",
+            .value = "inset",
+        }},
+    },
 
     // ── Sizing shortcuts ────────────────────────────────────────────────────
-    .{ .name = "size-full", .decls = &.{
-        .{ .property = "width", .value = "100%" },
-        .{ .property = "height", .value = "100%" },
-    } },
-    .{ .name = "w-full", .decls = &.{.{ .property = "width", .value = "100%" }} },
-    .{ .name = "h-full", .decls = &.{.{ .property = "height", .value = "100%" }} },
+    .{
+        .name = "size-full",
+        .decls = &.{
+            .{
+                .property = "width",
+                .value = "100%",
+            },
+            .{
+                .property = "height",
+                .value = "100%",
+            },
+        },
+    },
+    .{
+        .name = "w-full",
+        .decls = &.{.{
+            .property = "width",
+            .value = "100%",
+        }},
+    },
+    .{
+        .name = "h-full",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100%",
+        }},
+    },
 
     // ── Width/height: viewport-units variants (property-dependent values) ──
-    .{ .name = "w-screen", .decls = &.{.{ .property = "width", .value = "100vw" }} },
-    .{ .name = "h-screen", .decls = &.{.{ .property = "height", .value = "100vh" }} },
-    .{ .name = "min-w-screen", .decls = &.{.{ .property = "min-width", .value = "100vw" }} },
-    .{ .name = "min-h-screen", .decls = &.{.{ .property = "min-height", .value = "100vh" }} },
-    .{ .name = "max-w-screen", .decls = &.{.{ .property = "max-width", .value = "100vw" }} },
-    .{ .name = "max-h-screen", .decls = &.{.{ .property = "max-height", .value = "100vh" }} },
-    .{ .name = "h-svh", .decls = &.{.{ .property = "height", .value = "100svh" }} },
-    .{ .name = "h-lvh", .decls = &.{.{ .property = "height", .value = "100lvh" }} },
-    .{ .name = "h-dvh", .decls = &.{.{ .property = "height", .value = "100dvh" }} },
+    .{
+        .name = "w-screen",
+        .decls = &.{.{
+            .property = "width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "h-screen",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "min-w-screen",
+        .decls = &.{.{
+            .property = "min-width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "min-h-screen",
+        .decls = &.{.{
+            .property = "min-height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "max-w-screen",
+        .decls = &.{.{
+            .property = "max-width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "max-h-screen",
+        .decls = &.{.{
+            .property = "max-height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "h-svh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "h-lvh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "h-dvh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100dvh",
+        }},
+    },
 
     // ── Logical inline-size / block-size statics ───────────────────────────
-    .{ .name = "inline-screen", .decls = &.{.{ .property = "inline-size", .value = "100vw" }} },
-    .{ .name = "min-inline-screen", .decls = &.{.{ .property = "min-inline-size", .value = "100vw" }} },
-    .{ .name = "max-inline-screen", .decls = &.{.{ .property = "max-inline-size", .value = "100vw" }} },
-    .{ .name = "block-screen", .decls = &.{.{ .property = "block-size", .value = "100vh" }} },
-    .{ .name = "min-block-screen", .decls = &.{.{ .property = "min-block-size", .value = "100vh" }} },
-    .{ .name = "max-block-screen", .decls = &.{.{ .property = "max-block-size", .value = "100vh" }} },
-    .{ .name = "inline-svw", .decls = &.{.{ .property = "inline-size", .value = "100svw" }} },
-    .{ .name = "inline-lvw", .decls = &.{.{ .property = "inline-size", .value = "100lvw" }} },
-    .{ .name = "inline-dvw", .decls = &.{.{ .property = "inline-size", .value = "100dvw" }} },
-    .{ .name = "min-inline-svw", .decls = &.{.{ .property = "min-inline-size", .value = "100svw" }} },
-    .{ .name = "min-inline-lvw", .decls = &.{.{ .property = "min-inline-size", .value = "100lvw" }} },
-    .{ .name = "min-inline-dvw", .decls = &.{.{ .property = "min-inline-size", .value = "100dvw" }} },
-    .{ .name = "max-inline-svw", .decls = &.{.{ .property = "max-inline-size", .value = "100svw" }} },
-    .{ .name = "max-inline-lvw", .decls = &.{.{ .property = "max-inline-size", .value = "100lvw" }} },
-    .{ .name = "max-inline-dvw", .decls = &.{.{ .property = "max-inline-size", .value = "100dvw" }} },
-    .{ .name = "block-svh", .decls = &.{.{ .property = "block-size", .value = "100svh" }} },
-    .{ .name = "block-lvh", .decls = &.{.{ .property = "block-size", .value = "100lvh" }} },
-    .{ .name = "block-dvh", .decls = &.{.{ .property = "block-size", .value = "100dvh" }} },
-    .{ .name = "min-block-svh", .decls = &.{.{ .property = "min-block-size", .value = "100svh" }} },
-    .{ .name = "min-block-lvh", .decls = &.{.{ .property = "min-block-size", .value = "100lvh" }} },
-    .{ .name = "min-block-dvh", .decls = &.{.{ .property = "min-block-size", .value = "100dvh" }} },
-    .{ .name = "max-block-svh", .decls = &.{.{ .property = "max-block-size", .value = "100svh" }} },
-    .{ .name = "max-block-lvh", .decls = &.{.{ .property = "max-block-size", .value = "100lvh" }} },
-    .{ .name = "max-block-dvh", .decls = &.{.{ .property = "max-block-size", .value = "100dvh" }} },
-    .{ .name = "block-lh", .decls = &.{.{ .property = "block-size", .value = "1lh" }} },
-    .{ .name = "min-block-lh", .decls = &.{.{ .property = "min-block-size", .value = "1lh" }} },
-    .{ .name = "max-block-lh", .decls = &.{.{ .property = "max-block-size", .value = "1lh" }} },
+    .{
+        .name = "inline-screen",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "min-inline-screen",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "max-inline-screen",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "block-screen",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "min-block-screen",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "max-block-screen",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "inline-svw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "inline-lvw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "inline-dvw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "min-inline-svw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "min-inline-lvw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "min-inline-dvw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "max-inline-svw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "max-inline-lvw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "max-inline-dvw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "block-svh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "block-lvh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "block-dvh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "min-block-svh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "min-block-lvh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "min-block-dvh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "max-block-svh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "max-block-lvh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "max-block-dvh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "block-lh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "min-block-lh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "max-block-lh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "1lh",
+        }},
+    },
 
     // ── Order shortcuts ─────────────────────────────────────────────────────
-    .{ .name = "order-first", .decls = &.{.{ .property = "order", .value = "-9999" }} },
-    .{ .name = "order-last", .decls = &.{.{ .property = "order", .value = "9999" }} },
-    .{ .name = "order-none", .decls = &.{.{ .property = "order", .value = "0" }} },
+    .{
+        .name = "order-first",
+        .decls = &.{.{
+            .property = "order",
+            .value = "-9999",
+        }},
+    },
+    .{
+        .name = "order-last",
+        .decls = &.{.{
+            .property = "order",
+            .value = "9999",
+        }},
+    },
+    .{
+        .name = "order-none",
+        .decls = &.{.{
+            .property = "order",
+            .value = "0",
+        }},
+    },
 
     // ── GPU compositing hint ────────────────────────────────────────────────
-    .{ .name = "transform-gpu", .decls = &.{.{ .property = "transform", .value = "translateZ(0)" }} },
-    .{ .name = "transform-none", .decls = &.{.{ .property = "transform", .value = "none" }} },
-    .{ .name = "transform-cpu", .decls = &.{.{ .property = "transform", .value = "var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)" }} },
+    .{
+        .name = "transform-gpu",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "translateZ(0)",
+        }},
+    },
+    .{
+        .name = "transform-none",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "transform-cpu",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)",
+        }},
+    },
 
     // ── Transform style + box ───────────────────────────────────────────────
-    .{ .name = "transform-flat", .decls = &.{.{ .property = "transform-style", .value = "flat" }} },
-    .{ .name = "transform-3d", .decls = &.{.{ .property = "transform-style", .value = "preserve-3d" }} },
-    .{ .name = "transform-content", .decls = &.{.{ .property = "transform-box", .value = "content-box" }} },
-    .{ .name = "transform-border", .decls = &.{.{ .property = "transform-box", .value = "border-box" }} },
-    .{ .name = "transform-fill", .decls = &.{.{ .property = "transform-box", .value = "fill-box" }} },
-    .{ .name = "transform-stroke", .decls = &.{.{ .property = "transform-box", .value = "stroke-box" }} },
-    .{ .name = "transform-view", .decls = &.{.{ .property = "transform-box", .value = "view-box" }} },
+    .{
+        .name = "transform-flat",
+        .decls = &.{.{
+            .property = "transform-style",
+            .value = "flat",
+        }},
+    },
+    .{
+        .name = "transform-3d",
+        .decls = &.{.{
+            .property = "transform-style",
+            .value = "preserve-3d",
+        }},
+    },
+    .{
+        .name = "transform-content",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "transform-border",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "transform-fill",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "transform-stroke",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "transform-view",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "view-box",
+        }},
+    },
 
     // ── Transform 3D + per-axis statics ─────────────────────────────────────
-    .{ .name = "translate-none", .decls = &.{.{ .property = "translate", .value = "none" }} },
-    .{ .name = "translate-3d", .decls = &.{.{ .property = "translate", .value = "var(--tw-translate-x, 0) var(--tw-translate-y, 0) var(--tw-translate-z, 0)" }} },
-    .{ .name = "scale-none", .decls = &.{.{ .property = "scale", .value = "none" }} },
-    .{ .name = "scale-3d", .decls = &.{.{ .property = "scale", .value = "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)" }} },
-    .{ .name = "rotate-none", .decls = &.{.{ .property = "rotate", .value = "none" }} },
+    .{
+        .name = "translate-none",
+        .decls = &.{.{
+            .property = "translate",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "translate-3d",
+        .decls = &.{.{
+            .property = "translate",
+            .value = "var(--tw-translate-x, 0) var(--tw-translate-y, 0) var(--tw-translate-z, 0)",
+        }},
+    },
+    .{
+        .name = "scale-none",
+        .decls = &.{.{
+            .property = "scale",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "scale-3d",
+        .decls = &.{.{
+            .property = "scale",
+            .value = "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)",
+        }},
+    },
+    .{
+        .name = "rotate-none",
+        .decls = &.{.{
+            .property = "rotate",
+            .value = "none",
+        }},
+    },
 
     // ── Backface visibility ─────────────────────────────────────────────────
-    .{ .name = "backface-visible", .decls = &.{.{ .property = "backface-visibility", .value = "visible" }} },
-    .{ .name = "backface-hidden", .decls = &.{.{ .property = "backface-visibility", .value = "hidden" }} },
+    .{
+        .name = "backface-visible",
+        .decls = &.{.{
+            .property = "backface-visibility",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "backface-hidden",
+        .decls = &.{.{
+            .property = "backface-visibility",
+            .value = "hidden",
+        }},
+    },
 
     // ── Aspect ratio shortcuts ──────────────────────────────────────────────
-    .{ .name = "aspect-square", .decls = &.{.{ .property = "aspect-ratio", .value = "1 / 1" }} },
-    .{ .name = "aspect-video", .decls = &.{.{ .property = "aspect-ratio", .value = "16 / 9" }} },
-    .{ .name = "aspect-auto", .decls = &.{.{ .property = "aspect-ratio", .value = "auto" }} },
+    .{
+        .name = "aspect-square",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "1 / 1",
+        }},
+    },
+    .{
+        .name = "aspect-video",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "16 / 9",
+        }},
+    },
+    .{
+        .name = "aspect-auto",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "auto",
+        }},
+    },
 
     // ── Tables ──────────────────────────────────────────────────────────────
-    .{ .name = "table-auto", .decls = &.{.{ .property = "table-layout", .value = "auto" }} },
-    .{ .name = "table-fixed", .decls = &.{.{ .property = "table-layout", .value = "fixed" }} },
-    .{ .name = "caption-top", .decls = &.{.{ .property = "caption-side", .value = "top" }} },
-    .{ .name = "caption-bottom", .decls = &.{.{ .property = "caption-side", .value = "bottom" }} },
-    .{ .name = "border-collapse", .decls = &.{.{ .property = "border-collapse", .value = "collapse" }} },
-    .{ .name = "border-separate", .decls = &.{.{ .property = "border-collapse", .value = "separate" }} },
+    .{
+        .name = "table-auto",
+        .decls = &.{.{
+            .property = "table-layout",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "table-fixed",
+        .decls = &.{.{
+            .property = "table-layout",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "caption-top",
+        .decls = &.{.{
+            .property = "caption-side",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "caption-bottom",
+        .decls = &.{.{
+            .property = "caption-side",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "border-collapse",
+        .decls = &.{.{
+            .property = "border-collapse",
+            .value = "collapse",
+        }},
+    },
+    .{
+        .name = "border-separate",
+        .decls = &.{.{
+            .property = "border-collapse",
+            .value = "separate",
+        }},
+    },
 
     // ── Forms ───────────────────────────────────────────────────────────────
-    .{ .name = "appearance-none", .decls = &.{.{ .property = "appearance", .value = "none" }} },
-    .{ .name = "appearance-auto", .decls = &.{.{ .property = "appearance", .value = "auto" }} },
-    .{ .name = "scheme-normal", .decls = &.{.{ .property = "color-scheme", .value = "normal" }} },
-    .{ .name = "scheme-dark", .decls = &.{.{ .property = "color-scheme", .value = "dark" }} },
-    .{ .name = "scheme-light", .decls = &.{.{ .property = "color-scheme", .value = "light" }} },
-    .{ .name = "scheme-light-dark", .decls = &.{.{ .property = "color-scheme", .value = "light dark" }} },
-    .{ .name = "scheme-only-dark", .decls = &.{.{ .property = "color-scheme", .value = "only dark" }} },
-    .{ .name = "scheme-only-light", .decls = &.{.{ .property = "color-scheme", .value = "only light" }} },
+    .{
+        .name = "appearance-none",
+        .decls = &.{.{
+            .property = "appearance",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "appearance-auto",
+        .decls = &.{.{
+            .property = "appearance",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "scheme-normal",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "scheme-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "dark",
+        }},
+    },
+    .{
+        .name = "scheme-light",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "light",
+        }},
+    },
+    .{
+        .name = "scheme-light-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "light dark",
+        }},
+    },
+    .{
+        .name = "scheme-only-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "only dark",
+        }},
+    },
+    .{
+        .name = "scheme-only-light",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "only light",
+        }},
+    },
 
     // ── Color extras ────────────────────────────────────────────────────────
-    .{ .name = "accent-auto", .decls = &.{.{ .property = "accent-color", .value = "auto" }} },
-    .{ .name = "fill-none", .decls = &.{.{ .property = "fill", .value = "none" }} },
-    .{ .name = "stroke-none", .decls = &.{.{ .property = "stroke", .value = "none" }} },
+    .{
+        .name = "accent-auto",
+        .decls = &.{.{
+            .property = "accent-color",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "fill-none",
+        .decls = &.{.{
+            .property = "fill",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "stroke-none",
+        .decls = &.{.{
+            .property = "stroke",
+            .value = "none",
+        }},
+    },
 
     // ── Sizing — line-height units ──────────────────────────────────────────
-    .{ .name = "h-lh", .decls = &.{.{ .property = "height", .value = "1lh" }} },
-    .{ .name = "min-h-lh", .decls = &.{.{ .property = "min-height", .value = "1lh" }} },
-    .{ .name = "max-h-lh", .decls = &.{.{ .property = "max-height", .value = "1lh" }} },
+    .{
+        .name = "h-lh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "min-h-lh",
+        .decls = &.{.{
+            .property = "min-height",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "max-h-lh",
+        .decls = &.{.{
+            .property = "max-height",
+            .value = "1lh",
+        }},
+    },
 
     // ── Grid column shortcuts ───────────────────────────────────────────────
-    .{ .name = "col-auto", .decls = &.{.{ .property = "grid-column", .value = "auto" }} },
-    .{ .name = "col-span-full", .decls = &.{.{ .property = "grid-column", .value = "1 / -1" }} },
-    .{ .name = "col-start-auto", .decls = &.{.{ .property = "grid-column-start", .value = "auto" }} },
-    .{ .name = "col-end-auto", .decls = &.{.{ .property = "grid-column-end", .value = "auto" }} },
+    .{
+        .name = "col-auto",
+        .decls = &.{.{
+            .property = "grid-column",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "col-span-full",
+        .decls = &.{.{
+            .property = "grid-column",
+            .value = "1 / -1",
+        }},
+    },
+    .{
+        .name = "col-start-auto",
+        .decls = &.{.{
+            .property = "grid-column-start",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "col-end-auto",
+        .decls = &.{.{
+            .property = "grid-column-end",
+            .value = "auto",
+        }},
+    },
 
     // ── Grid row shortcuts ──────────────────────────────────────────────────
-    .{ .name = "row-auto", .decls = &.{.{ .property = "grid-row", .value = "auto" }} },
-    .{ .name = "row-span-full", .decls = &.{.{ .property = "grid-row", .value = "1 / -1" }} },
-    .{ .name = "row-start-auto", .decls = &.{.{ .property = "grid-row-start", .value = "auto" }} },
-    .{ .name = "row-end-auto", .decls = &.{.{ .property = "grid-row-end", .value = "auto" }} },
+    .{
+        .name = "row-auto",
+        .decls = &.{.{
+            .property = "grid-row",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "row-span-full",
+        .decls = &.{.{
+            .property = "grid-row",
+            .value = "1 / -1",
+        }},
+    },
+    .{
+        .name = "row-start-auto",
+        .decls = &.{.{
+            .property = "grid-row-start",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "row-end-auto",
+        .decls = &.{.{
+            .property = "grid-row-end",
+            .value = "auto",
+        }},
+    },
 
     // ── Tracking (letter-spacing) presets ──────────────────────────────────
-    .{ .name = "tracking-tight", .decls = &.{.{ .property = "letter-spacing", .value = "-0.025em" }} },
-    .{ .name = "tracking-tighter", .decls = &.{.{ .property = "letter-spacing", .value = "-0.05em" }} },
-    .{ .name = "tracking-normal", .decls = &.{.{ .property = "letter-spacing", .value = "0em" }} },
-    .{ .name = "tracking-wide", .decls = &.{.{ .property = "letter-spacing", .value = "0.025em" }} },
-    .{ .name = "tracking-wider", .decls = &.{.{ .property = "letter-spacing", .value = "0.05em" }} },
+    .{
+        .name = "tracking-tight",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "-0.025em",
+        }},
+    },
+    .{
+        .name = "tracking-tighter",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "-0.05em",
+        }},
+    },
+    .{
+        .name = "tracking-normal",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0em",
+        }},
+    },
+    .{
+        .name = "tracking-wide",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0.025em",
+        }},
+    },
+    .{
+        .name = "tracking-wider",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0.05em",
+        }},
+    },
 };
 
 /// Maps a root prefix (e.g. `p`, `mx`, `gap-x`, `min-w`) to one or more CSS
@@ -1119,85 +5259,295 @@ const SpacingDispatchEntry = struct {
 
 const SPACING_DISPATCH = [_]SpacingDispatchEntry{
     // ── Padding ─────────────────────────────────────────────────────────────
-    .{ .root = "p", .props = &.{"padding"} },
-    .{ .root = "pt", .props = &.{"padding-top"} },
-    .{ .root = "pr", .props = &.{"padding-right"} },
-    .{ .root = "pb", .props = &.{"padding-bottom"} },
-    .{ .root = "pl", .props = &.{"padding-left"} },
-    .{ .root = "px", .props = &.{ "padding-left", "padding-right" } },
-    .{ .root = "py", .props = &.{ "padding-top", "padding-bottom" } },
-    .{ .root = "ps", .props = &.{"padding-inline-start"} },
-    .{ .root = "pe", .props = &.{"padding-inline-end"} },
-    .{ .root = "pbs", .props = &.{"padding-block-start"} },
-    .{ .root = "pbe", .props = &.{"padding-block-end"} },
+    .{
+        .root = "p",
+        .props = &.{"padding"},
+    },
+    .{
+        .root = "pt",
+        .props = &.{"padding-top"},
+    },
+    .{
+        .root = "pr",
+        .props = &.{"padding-right"},
+    },
+    .{
+        .root = "pb",
+        .props = &.{"padding-bottom"},
+    },
+    .{
+        .root = "pl",
+        .props = &.{"padding-left"},
+    },
+    .{
+        .root = "px",
+        .props = &.{ "padding-left", "padding-right" },
+    },
+    .{
+        .root = "py",
+        .props = &.{ "padding-top", "padding-bottom" },
+    },
+    .{
+        .root = "ps",
+        .props = &.{"padding-inline-start"},
+    },
+    .{
+        .root = "pe",
+        .props = &.{"padding-inline-end"},
+    },
+    .{
+        .root = "pbs",
+        .props = &.{"padding-block-start"},
+    },
+    .{
+        .root = "pbe",
+        .props = &.{"padding-block-end"},
+    },
     // ── Margin ──────────────────────────────────────────────────────────────
-    .{ .root = "m", .props = &.{"margin"} },
-    .{ .root = "mt", .props = &.{"margin-top"} },
-    .{ .root = "mr", .props = &.{"margin-right"} },
-    .{ .root = "mb", .props = &.{"margin-bottom"} },
-    .{ .root = "ml", .props = &.{"margin-left"} },
-    .{ .root = "mx", .props = &.{ "margin-left", "margin-right" } },
-    .{ .root = "my", .props = &.{ "margin-top", "margin-bottom" } },
-    .{ .root = "ms", .props = &.{"margin-inline-start"} },
-    .{ .root = "me", .props = &.{"margin-inline-end"} },
-    .{ .root = "mbs", .props = &.{"margin-block-start"} },
-    .{ .root = "mbe", .props = &.{"margin-block-end"} },
+    .{
+        .root = "m",
+        .props = &.{"margin"},
+    },
+    .{
+        .root = "mt",
+        .props = &.{"margin-top"},
+    },
+    .{
+        .root = "mr",
+        .props = &.{"margin-right"},
+    },
+    .{
+        .root = "mb",
+        .props = &.{"margin-bottom"},
+    },
+    .{
+        .root = "ml",
+        .props = &.{"margin-left"},
+    },
+    .{
+        .root = "mx",
+        .props = &.{ "margin-left", "margin-right" },
+    },
+    .{
+        .root = "my",
+        .props = &.{ "margin-top", "margin-bottom" },
+    },
+    .{
+        .root = "ms",
+        .props = &.{"margin-inline-start"},
+    },
+    .{
+        .root = "me",
+        .props = &.{"margin-inline-end"},
+    },
+    .{
+        .root = "mbs",
+        .props = &.{"margin-block-start"},
+    },
+    .{
+        .root = "mbe",
+        .props = &.{"margin-block-end"},
+    },
     // ── Gap ─────────────────────────────────────────────────────────────────
-    .{ .root = "gap", .props = &.{"gap"} },
-    .{ .root = "gap-x", .props = &.{"column-gap"} },
-    .{ .root = "gap-y", .props = &.{"row-gap"} },
+    .{
+        .root = "gap",
+        .props = &.{"gap"},
+    },
+    .{
+        .root = "gap-x",
+        .props = &.{"column-gap"},
+    },
+    .{
+        .root = "gap-y",
+        .props = &.{"row-gap"},
+    },
     // ── Width / height ──────────────────────────────────────────────────────
-    .{ .root = "w", .props = &.{"width"} },
-    .{ .root = "h", .props = &.{"height"} },
-    .{ .root = "min-w", .props = &.{"min-width"} },
-    .{ .root = "min-h", .props = &.{"min-height"} },
-    .{ .root = "max-w", .props = &.{"max-width"} },
-    .{ .root = "max-h", .props = &.{"max-height"} },
+    .{
+        .root = "w",
+        .props = &.{"width"},
+    },
+    .{
+        .root = "h",
+        .props = &.{"height"},
+    },
+    .{
+        .root = "min-w",
+        .props = &.{"min-width"},
+    },
+    .{
+        .root = "min-h",
+        .props = &.{"min-height"},
+    },
+    .{
+        .root = "max-w",
+        .props = &.{"max-width"},
+    },
+    .{
+        .root = "max-h",
+        .props = &.{"max-height"},
+    },
     // ── Flex basis (spacing scale + container namespace) ───────────────────
-    .{ .root = "basis", .props = &.{"flex-basis"} },
+    .{
+        .root = "basis",
+        .props = &.{"flex-basis"},
+    },
     // ── Logical inline-size / block-size ───────────────────────────────────
-    .{ .root = "inline", .props = &.{"inline-size"} },
-    .{ .root = "block", .props = &.{"block-size"} },
-    .{ .root = "min-inline", .props = &.{"min-inline-size"} },
-    .{ .root = "min-block", .props = &.{"min-block-size"} },
-    .{ .root = "max-inline", .props = &.{"max-inline-size"} },
-    .{ .root = "max-block", .props = &.{"max-block-size"} },
+    .{
+        .root = "inline",
+        .props = &.{"inline-size"},
+    },
+    .{
+        .root = "block",
+        .props = &.{"block-size"},
+    },
+    .{
+        .root = "min-inline",
+        .props = &.{"min-inline-size"},
+    },
+    .{
+        .root = "min-block",
+        .props = &.{"min-block-size"},
+    },
+    .{
+        .root = "max-inline",
+        .props = &.{"max-inline-size"},
+    },
+    .{
+        .root = "max-block",
+        .props = &.{"max-block-size"},
+    },
     // ── Inset sides (`top`/`right`/`bottom`/`left` as standalone roots) ────
-    .{ .root = "top", .props = &.{"top"} },
-    .{ .root = "right", .props = &.{"right"} },
-    .{ .root = "bottom", .props = &.{"bottom"} },
-    .{ .root = "left", .props = &.{"left"} },
-    .{ .root = "start", .props = &.{"inset-inline-start"} },
-    .{ .root = "end", .props = &.{"inset-inline-end"} },
-    .{ .root = "inset-s", .props = &.{"inset-inline-start"} },
-    .{ .root = "inset-e", .props = &.{"inset-inline-end"} },
-    .{ .root = "inset-bs", .props = &.{"inset-block-start"} },
-    .{ .root = "inset-be", .props = &.{"inset-block-end"} },
+    .{
+        .root = "top",
+        .props = &.{"top"},
+    },
+    .{
+        .root = "right",
+        .props = &.{"right"},
+    },
+    .{
+        .root = "bottom",
+        .props = &.{"bottom"},
+    },
+    .{
+        .root = "left",
+        .props = &.{"left"},
+    },
+    .{
+        .root = "start",
+        .props = &.{"inset-inline-start"},
+    },
+    .{
+        .root = "end",
+        .props = &.{"inset-inline-end"},
+    },
+    .{
+        .root = "inset-s",
+        .props = &.{"inset-inline-start"},
+    },
+    .{
+        .root = "inset-e",
+        .props = &.{"inset-inline-end"},
+    },
+    .{
+        .root = "inset-bs",
+        .props = &.{"inset-block-start"},
+    },
+    .{
+        .root = "inset-be",
+        .props = &.{"inset-block-end"},
+    },
     // (translate-x/y/z handled by resolveTranslateAxis below — sets the
     //  per-axis var AND the composed `translate:` declaration.)
     // ── Scroll padding / margin (mirror padding/margin) ─────────────────────
-    .{ .root = "scroll-p", .props = &.{"scroll-padding"} },
-    .{ .root = "scroll-pt", .props = &.{"scroll-padding-top"} },
-    .{ .root = "scroll-pr", .props = &.{"scroll-padding-right"} },
-    .{ .root = "scroll-pb", .props = &.{"scroll-padding-bottom"} },
-    .{ .root = "scroll-pl", .props = &.{"scroll-padding-left"} },
-    .{ .root = "scroll-px", .props = &.{ "scroll-padding-left", "scroll-padding-right" } },
-    .{ .root = "scroll-py", .props = &.{ "scroll-padding-top", "scroll-padding-bottom" } },
-    .{ .root = "scroll-m", .props = &.{"scroll-margin"} },
-    .{ .root = "scroll-mt", .props = &.{"scroll-margin-top"} },
-    .{ .root = "scroll-mr", .props = &.{"scroll-margin-right"} },
-    .{ .root = "scroll-mb", .props = &.{"scroll-margin-bottom"} },
-    .{ .root = "scroll-ml", .props = &.{"scroll-margin-left"} },
-    .{ .root = "scroll-mx", .props = &.{ "scroll-margin-left", "scroll-margin-right" } },
-    .{ .root = "scroll-my", .props = &.{ "scroll-margin-top", "scroll-margin-bottom" } },
-    .{ .root = "scroll-ms", .props = &.{"scroll-margin-inline-start"} },
-    .{ .root = "scroll-me", .props = &.{"scroll-margin-inline-end"} },
-    .{ .root = "scroll-mbs", .props = &.{"scroll-margin-block-start"} },
-    .{ .root = "scroll-mbe", .props = &.{"scroll-margin-block-end"} },
-    .{ .root = "scroll-ps", .props = &.{"scroll-padding-inline-start"} },
-    .{ .root = "scroll-pe", .props = &.{"scroll-padding-inline-end"} },
-    .{ .root = "scroll-pbs", .props = &.{"scroll-padding-block-start"} },
-    .{ .root = "scroll-pbe", .props = &.{"scroll-padding-block-end"} },
+    .{
+        .root = "scroll-p",
+        .props = &.{"scroll-padding"},
+    },
+    .{
+        .root = "scroll-pt",
+        .props = &.{"scroll-padding-top"},
+    },
+    .{
+        .root = "scroll-pr",
+        .props = &.{"scroll-padding-right"},
+    },
+    .{
+        .root = "scroll-pb",
+        .props = &.{"scroll-padding-bottom"},
+    },
+    .{
+        .root = "scroll-pl",
+        .props = &.{"scroll-padding-left"},
+    },
+    .{
+        .root = "scroll-px",
+        .props = &.{ "scroll-padding-left", "scroll-padding-right" },
+    },
+    .{
+        .root = "scroll-py",
+        .props = &.{ "scroll-padding-top", "scroll-padding-bottom" },
+    },
+    .{
+        .root = "scroll-m",
+        .props = &.{"scroll-margin"},
+    },
+    .{
+        .root = "scroll-mt",
+        .props = &.{"scroll-margin-top"},
+    },
+    .{
+        .root = "scroll-mr",
+        .props = &.{"scroll-margin-right"},
+    },
+    .{
+        .root = "scroll-mb",
+        .props = &.{"scroll-margin-bottom"},
+    },
+    .{
+        .root = "scroll-ml",
+        .props = &.{"scroll-margin-left"},
+    },
+    .{
+        .root = "scroll-mx",
+        .props = &.{ "scroll-margin-left", "scroll-margin-right" },
+    },
+    .{
+        .root = "scroll-my",
+        .props = &.{ "scroll-margin-top", "scroll-margin-bottom" },
+    },
+    .{
+        .root = "scroll-ms",
+        .props = &.{"scroll-margin-inline-start"},
+    },
+    .{
+        .root = "scroll-me",
+        .props = &.{"scroll-margin-inline-end"},
+    },
+    .{
+        .root = "scroll-mbs",
+        .props = &.{"scroll-margin-block-start"},
+    },
+    .{
+        .root = "scroll-mbe",
+        .props = &.{"scroll-margin-block-end"},
+    },
+    .{
+        .root = "scroll-ps",
+        .props = &.{"scroll-padding-inline-start"},
+    },
+    .{
+        .root = "scroll-pe",
+        .props = &.{"scroll-padding-inline-end"},
+    },
+    .{
+        .root = "scroll-pbs",
+        .props = &.{"scroll-padding-block-start"},
+    },
+    .{
+        .root = "scroll-pbe",
+        .props = &.{"scroll-padding-block-end"},
+    },
 };
 
 /// Whether `name` is a known static utility (needs no theme to resolve).
@@ -1238,9 +5588,14 @@ fn cloneDecls(
     }
     while (i < decls.len) : (i += 1) {
         const dup = try allocator.dupe(u8, decls[i].value);
-        out[i] = .{ .property = decls[i].property, .value = dup };
+        out[i] = .{
+            .property = decls[i].property,
+            .value = dup,
+        };
     }
-    return .{ .declarations = out };
+    return .{
+        .declarations = out,
+    };
 }
 
 // ── Functional utilities ────────────────────────────────────────────────────
@@ -1637,16 +5992,26 @@ fn resolveFunctional(
                         errdefer allocator.free(css_value);
                         const decls = try allocator.alloc(Declaration, 1);
                         errdefer allocator.free(decls);
-                        decls[0] = .{ .property = "flex", .value = css_value };
-                        return .{ .declarations = decls };
+                        decls[0] = .{
+                            .property = "flex",
+                            .value = css_value,
+                        };
+                        return .{
+                            .declarations = decls,
+                        };
                     }
                     if (isInteger(n.value) and f.modifier == null) {
                         const css_value = try allocator.dupe(u8, n.value);
                         errdefer allocator.free(css_value);
                         const decls = try allocator.alloc(Declaration, 1);
                         errdefer allocator.free(decls);
-                        decls[0] = .{ .property = "flex", .value = css_value };
-                        return .{ .declarations = decls };
+                        decls[0] = .{
+                            .property = "flex",
+                            .value = css_value,
+                        };
+                        return .{
+                            .declarations = decls,
+                        };
                     }
                 },
             }
@@ -1741,23 +6106,74 @@ fn resolveFunctional(
     // Theme-driven: each maps to a single CSS property and shares one
     // resolution path covering theme colors, special CSS keywords, arbitrary
     // values, and the `/<opacity>` modifier (rendered via `color-mix`).
-    const color_mappings = [_]struct { root: []const u8, property: []const u8 }{
-        .{ .root = "bg", .property = "background-color" },
-        .{ .root = "text", .property = "color" },
-        .{ .root = "border", .property = "border-color" },
-        .{ .root = "border-t", .property = "border-top-color" },
-        .{ .root = "border-r", .property = "border-right-color" },
-        .{ .root = "border-b", .property = "border-bottom-color" },
-        .{ .root = "border-l", .property = "border-left-color" },
-        .{ .root = "border-s", .property = "border-inline-start-color" },
-        .{ .root = "border-e", .property = "border-inline-end-color" },
-        .{ .root = "ring", .property = "--tw-ring-color" },
-        .{ .root = "decoration", .property = "text-decoration-color" },
-        .{ .root = "outline", .property = "outline-color" },
-        .{ .root = "accent", .property = "accent-color" },
-        .{ .root = "caret", .property = "caret-color" },
-        .{ .root = "fill", .property = "fill" },
-        .{ .root = "stroke", .property = "stroke" },
+    const color_mappings = [_]struct {
+        root: []const u8,
+        property: []const u8,
+    }{
+        .{
+            .root = "bg",
+            .property = "background-color",
+        },
+        .{
+            .root = "text",
+            .property = "color",
+        },
+        .{
+            .root = "border",
+            .property = "border-color",
+        },
+        .{
+            .root = "border-t",
+            .property = "border-top-color",
+        },
+        .{
+            .root = "border-r",
+            .property = "border-right-color",
+        },
+        .{
+            .root = "border-b",
+            .property = "border-bottom-color",
+        },
+        .{
+            .root = "border-l",
+            .property = "border-left-color",
+        },
+        .{
+            .root = "border-s",
+            .property = "border-inline-start-color",
+        },
+        .{
+            .root = "border-e",
+            .property = "border-inline-end-color",
+        },
+        .{
+            .root = "ring",
+            .property = "--tw-ring-color",
+        },
+        .{
+            .root = "decoration",
+            .property = "text-decoration-color",
+        },
+        .{
+            .root = "outline",
+            .property = "outline-color",
+        },
+        .{
+            .root = "accent",
+            .property = "accent-color",
+        },
+        .{
+            .root = "caret",
+            .property = "caret-color",
+        },
+        .{
+            .root = "fill",
+            .property = "fill",
+        },
+        .{
+            .root = "stroke",
+            .property = "stroke",
+        },
     };
     inline for (color_mappings) |cm| {
         if (std.mem.eql(u8, root, cm.root) and !negative) {
@@ -1829,8 +6245,13 @@ fn resolveArbitraryProperty(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = final_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = final_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// CSS properties whose values are colors. Used to decide whether a `/<n>`
@@ -1896,8 +6317,13 @@ fn resolveSpacingDecl(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Negate a CSS value by wrapping in `calc(N * -1)` (preserves units / vars).
@@ -1949,10 +6375,15 @@ fn resolveSpacingPairSigned(
                 while (fj < fi) : (fj += 1) allocator.free(decls[fj].value);
             }
             while (fi < properties.len) : (fi += 1) {
-                decls[fi] = .{ .property = properties[fi], .value = try allocator.dupe(u8, final_value) };
+                decls[fi] = .{
+                    .property = properties[fi],
+                    .value = try allocator.dupe(u8, final_value),
+                };
             }
             allocator.free(final_value);
-            return .{ .declarations = decls };
+            return .{
+                .declarations = decls,
+            };
         }
         // Modifier present but not a numeric/numeric pair: bail out — these
         // utilities don't accept arbitrary modifiers (color modifiers go
@@ -2015,10 +6446,15 @@ fn resolveSpacingPairSigned(
     }
     while (i < properties.len) : (i += 1) {
         // Each property gets its own copy so freeResolvedUtility can free per-decl.
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, final_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, final_value),
+        };
     }
     allocator.free(final_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `divide-x-N` / `divide-y-N` — between-children border via selector
@@ -2050,7 +6486,10 @@ fn resolveDivideAxis(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
     return .{
         .declarations = decls,
         .selector_suffix = try allocator.dupe(u8, " > :not(:last-child)"),
@@ -2081,7 +6520,10 @@ fn resolveDivideColor(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "border-color", .value = final };
+    decls[0] = .{
+        .property = "border-color",
+        .value = final,
+    };
     return .{
         .declarations = decls,
         .selector_suffix = try allocator.dupe(u8, " > :not(:last-child)"),
@@ -2106,8 +6548,13 @@ fn resolveOpacity(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "opacity", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "opacity",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ring-N` — ring width. Numeric → `Npx`. Arbitrary passes through. Returns
@@ -2142,7 +6589,9 @@ fn resolveRingWidth(
         .value = try allocator.dupe(u8, "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)"),
     };
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `space-x-N` / `space-y-N` — child spacing. Emits a single declaration
@@ -2217,7 +6666,9 @@ fn resolveSpanLonghand(
         .property = property,
         .value = try std.fmt.allocPrint(allocator, "span {s} / span {s}", .{ span_n, span_n }),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `grid-cols-{N|subgrid|arbitrary}`, `grid-rows-{N|subgrid|arbitrary}`.
@@ -2242,8 +6693,13 @@ fn resolveGridTrack(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = track_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = track_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn resolveZIndex(
@@ -2279,8 +6735,13 @@ fn resolvePxLonghand(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `outline-N` emits both width and style — without an explicit style the
@@ -2301,9 +6762,17 @@ fn resolveOutlineWidth(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "outline-style", .value = try allocator.dupe(u8, "solid") };
-    decls[1] = .{ .property = "outline-width", .value = width_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "outline-style",
+        .value = try allocator.dupe(u8, "solid"),
+    };
+    decls[1] = .{
+        .property = "outline-width",
+        .value = width_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Generic integer-valued single-property longhand (`order-N`, `col-start-N`,
@@ -2335,8 +6804,13 @@ fn resolveIntegerLonghand(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `aspect-W/H`, `aspect-N`, `aspect-[arbitrary]`. Named values use the
@@ -2373,8 +6847,13 @@ fn resolveAspect(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "aspect-ratio", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "aspect-ratio",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `<root>-N` → `filter: <fn_name>(N<unit>)`. Bare value (`grayscale`, `invert`,
@@ -2451,7 +6930,9 @@ fn resolveFilterFnImpl(
         .value = try std.fmt.allocPrint(allocator, "{s}({s})", .{ fn_name, inner }),
     };
     allocator.free(inner);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `animate-{name|none|arbitrary}`. Theme `--animate-{name}` looks up an
@@ -2477,8 +6958,13 @@ fn resolveAnimate(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "animation", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "animation",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `backdrop-blur-{theme/none/arbitrary}` — emits backdrop-filter blur.
@@ -2509,7 +6995,9 @@ fn resolveBackdropBlur(
         .value = try std.fmt.allocPrint(allocator, "blur({s})", .{blur_value}),
     };
     allocator.free(blur_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `drop-shadow-{theme/arbitrary}` — emits filter:drop-shadow(...).
@@ -2536,7 +7024,9 @@ fn resolveDropShadow(
         .value = try std.fmt.allocPrint(allocator, "drop-shadow({s})", .{shadow_value}),
     };
     allocator.free(shadow_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ring-offset-N` (width) or `ring-offset-{color}`. Falls through if value
@@ -2555,8 +7045,13 @@ fn resolveRingOffset(
             if (std.mem.endsWith(u8, a.value, "px") or std.mem.endsWith(u8, a.value, "rem") or std.mem.endsWith(u8, a.value, "em")) {
                 const decls = try allocator.alloc(Declaration, 1);
                 errdefer allocator.free(decls);
-                decls[0] = .{ .property = "--tw-ring-offset-width", .value = try allocator.dupe(u8, a.value) };
-                return .{ .declarations = decls };
+                decls[0] = .{
+                    .property = "--tw-ring-offset-width",
+                    .value = try allocator.dupe(u8, a.value),
+                };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
         .named => |n| {
@@ -2567,7 +7062,9 @@ fn resolveRingOffset(
                     .property = "--tw-ring-offset-width",
                     .value = try std.fmt.allocPrint(allocator, "{s}px", .{n.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
     }
@@ -2592,7 +7089,9 @@ fn resolveInsetRing(
                     .property = "box-shadow",
                     .value = try std.fmt.allocPrint(allocator, "inset 0 0 0 {s} var(--tw-inset-ring-color, currentColor)", .{a.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
         .named => |n| {
@@ -2603,7 +7102,9 @@ fn resolveInsetRing(
                     .property = "box-shadow",
                     .value = try std.fmt.allocPrint(allocator, "inset 0 0 0 {s}px var(--tw-inset-ring-color, currentColor)", .{n.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
     }
@@ -2645,26 +7146,53 @@ fn resolveTranslate(
         .both => emit: {
             const decls = try allocator.alloc(Declaration, 3);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-translate-x", .value = try allocator.dupe(u8, final) };
-            decls[1] = .{ .property = "--tw-translate-y", .value = try allocator.dupe(u8, final) };
-            decls[2] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_2axis) };
+            decls[0] = .{
+                .property = "--tw-translate-x",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[1] = .{
+                .property = "--tw-translate-y",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[2] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_2axis),
+            };
             allocator.free(final);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x, .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
             const prop = if (axis == .x) "--tw-translate-x" else "--tw-translate-y";
-            decls[0] = .{ .property = prop, .value = final };
-            decls[1] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_2axis) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = prop,
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_2axis),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-translate-z", .value = final };
-            decls[1] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_3axis) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = "--tw-translate-z",
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_3axis),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
     };
 }
@@ -2731,26 +7259,53 @@ fn resolveScale(
         .both => emit: {
             const decls = try allocator.alloc(Declaration, 3);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-scale-x", .value = try allocator.dupe(u8, final) };
-            decls[1] = .{ .property = "--tw-scale-y", .value = try allocator.dupe(u8, final) };
-            decls[2] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_2) };
+            decls[0] = .{
+                .property = "--tw-scale-x",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[1] = .{
+                .property = "--tw-scale-y",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[2] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_2),
+            };
             allocator.free(final);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x, .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
             const prop = if (axis == .x) "--tw-scale-x" else "--tw-scale-y";
-            decls[0] = .{ .property = prop, .value = final };
-            decls[1] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_2) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = prop,
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_2),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-scale-z", .value = final };
-            decls[1] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_3) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = "--tw-scale-z",
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_3),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
     };
 }
@@ -2778,8 +7333,13 @@ fn resolveRotate(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "rotate", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "rotate",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `rotate-x-N` / `rotate-y-N` / `rotate-z-N` — sets per-axis `--tw-rotate-*`
@@ -2817,7 +7377,9 @@ fn resolveRotateAxis(
         .value = try std.fmt.allocPrint(allocator, "{s}({s})", .{ fn_name, angle }),
     };
     allocator.free(angle);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `skew-N`, `skew-x-N`, `skew-y-N`. Same shape as scale.
@@ -2854,9 +7416,14 @@ fn resolveSkew(
                 .property = "--tw-skew-y",
                 .value = try std.fmt.allocPrint(allocator, "skewY({s})", .{angle}),
             };
-            decls[2] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[2] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x => emit: {
             const decls = try allocator.alloc(Declaration, 2);
@@ -2865,9 +7432,14 @@ fn resolveSkew(
                 .property = "--tw-skew-x",
                 .value = try std.fmt.allocPrint(allocator, "skewX({s})", .{angle}),
             };
-            decls[1] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[1] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
@@ -2876,9 +7448,14 @@ fn resolveSkew(
                 .property = "--tw-skew-y",
                 .value = try std.fmt.allocPrint(allocator, "skewY({s})", .{angle}),
             };
-            decls[1] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[1] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => null,
     };
@@ -2918,8 +7495,13 @@ fn resolveTransformOrigin(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "transform-origin", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "transform-origin",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `perspective-N` / `perspective-[arb]` / `perspective-{theme}`. `none` static.
@@ -2942,8 +7524,13 @@ fn resolvePerspective(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "perspective", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "perspective",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `border-spacing-{N|x-N|y-N}`. Sets `--tw-border-spacing-x/y` and the
@@ -2977,21 +7564,39 @@ fn resolveBorderSpacing(
     }
     switch (axis) {
         .x => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, css_value) };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, "0") };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, "0"),
+            };
             i += 1;
         },
         .y => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, "0") };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, "0"),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, css_value) };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
         },
         .both => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, css_value) };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, css_value) };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
         },
     }
@@ -3001,7 +7606,9 @@ fn resolveBorderSpacing(
     };
     i += 1;
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Generic helper: arbitrary value or theme-namespace lookup → single decl.
@@ -3031,8 +7638,13 @@ fn resolveArbitraryOrTheme(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `columns-N` — integer becomes raw integer; `auto`/3xs/2xs/xs/sm/…/7xl
@@ -3059,8 +7671,13 @@ fn resolveColumns(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "columns", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "columns",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `line-clamp-N` / `line-clamp-[arb]`. Emits the 4-decl webkit-box pattern.
@@ -3083,11 +7700,25 @@ fn resolveLineClamp(
     errdefer allocator.free(lc_value);
     const decls = try allocator.alloc(Declaration, 4);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "overflow", .value = try allocator.dupe(u8, "hidden") };
-    decls[1] = .{ .property = "display", .value = try allocator.dupe(u8, "-webkit-box") };
-    decls[2] = .{ .property = "-webkit-box-orient", .value = try allocator.dupe(u8, "vertical") };
-    decls[3] = .{ .property = "-webkit-line-clamp", .value = lc_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "overflow",
+        .value = try allocator.dupe(u8, "hidden"),
+    };
+    decls[1] = .{
+        .property = "display",
+        .value = try allocator.dupe(u8, "-webkit-box"),
+    };
+    decls[2] = .{
+        .property = "-webkit-box-orient",
+        .value = try allocator.dupe(u8, "vertical"),
+    };
+    decls[3] = .{
+        .property = "-webkit-line-clamp",
+        .value = lc_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `tracking-N` / `-tracking-N` — letter-spacing. Theme: `--tracking-{name}`.
@@ -3115,8 +7746,13 @@ fn resolveTracking(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "letter-spacing", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "letter-spacing",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `leading-N` (line-height standalone). N → `calc(var(--spacing) * N)`,
@@ -3141,8 +7777,13 @@ fn resolveLeading(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "line-height", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "line-height",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `decoration-N` (thickness): integer → Npx, arbitrary verbatim. Falls
@@ -3163,8 +7804,13 @@ fn resolveDecorationThickness(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "text-decoration-thickness", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "text-decoration-thickness",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `content-[arb]` / `content-{theme}` — sets `--tw-content` and `content`.
@@ -3186,9 +7832,17 @@ fn resolveContent(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-content", .value = css_value };
-    decls[1] = .{ .property = "content", .value = try allocator.dupe(u8, "var(--tw-content)") };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "--tw-content",
+        .value = css_value,
+    };
+    decls[1] = .{
+        .property = "content",
+        .value = try allocator.dupe(u8, "var(--tw-content)"),
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `shadow-{size}` — theme-driven via `--shadow-{size}` tokens. Emits the
@@ -3216,7 +7870,10 @@ fn resolveShadow(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-shadow", .value = shadow_value };
+    decls[0] = .{
+        .property = "--tw-shadow",
+        .value = shadow_value,
+    };
     decls[1] = .{
         .property = "box-shadow",
         .value = try allocator.dupe(
@@ -3224,7 +7881,9 @@ fn resolveShadow(
             "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
         ),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `blur-{size}` — `filter: blur(<value>)`. Theme tokens at `--blur-{size}`,
@@ -3254,8 +7913,13 @@ fn resolveBlur(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "filter", .value = blur_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "filter",
+        .value = blur_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn resolveFontFamily(
@@ -3278,7 +7942,9 @@ fn resolveFontFamily(
         .property = "font-family",
         .value = try std.fmt.allocPrint(allocator, "var(--font-{s})", .{family_name}),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `text-<size>` (text-xs, text-3xl, …) — resolves via theme `--text-<size>`.
@@ -3354,9 +8020,14 @@ fn resolveTextSize(
         .value = font_size,
     };
     if (line_height) |lh| {
-        decls[1] = .{ .property = "line-height", .value = lh };
+        decls[1] = .{
+            .property = "line-height",
+            .value = lh,
+        };
     }
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Disambiguate `text-[…]`, which can mean either font-size or text color.
@@ -3409,20 +8080,49 @@ fn resolveArbitraryBackground(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn backgroundPropertyOf(a: candidate.ArbitraryUtilityValue) ?[]const u8 {
     if (a.data_type) |data_type| {
-        const hinted = [_]struct { hint: []const u8, property: []const u8 }{
-            .{ .hint = "url", .property = "background-image" },
-            .{ .hint = "image", .property = "background-image" },
-            .{ .hint = "length", .property = "background-size" },
-            .{ .hint = "size", .property = "background-size" },
-            .{ .hint = "bg-size", .property = "background-size" },
-            .{ .hint = "position", .property = "background-position" },
-            .{ .hint = "bg-position", .property = "background-position" },
+        const hinted = [_]struct {
+            hint: []const u8,
+            property: []const u8,
+        }{
+            .{
+                .hint = "url",
+                .property = "background-image",
+            },
+            .{
+                .hint = "image",
+                .property = "background-image",
+            },
+            .{
+                .hint = "length",
+                .property = "background-size",
+            },
+            .{
+                .hint = "size",
+                .property = "background-size",
+            },
+            .{
+                .hint = "bg-size",
+                .property = "background-size",
+            },
+            .{
+                .hint = "position",
+                .property = "background-position",
+            },
+            .{
+                .hint = "bg-position",
+                .property = "background-position",
+            },
         };
         for (hinted) |entry| {
             if (std.mem.eql(u8, data_type, entry.hint)) return entry.property;
@@ -3576,8 +8276,13 @@ fn resolveColorProperty(
         allocator.free(final);
         allocator.free(decls);
     }
-    decls[0] = .{ .property = property, .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Gradients (gap kinds #2, #3, #4) ────────────────────────────────────────
@@ -3622,7 +8327,9 @@ fn resolveBgLinearDirection(
         .property = "background-image",
         .value = try allocator.dupe(u8, "linear-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-linear-{angle}` (degrees) — e.g. `bg-linear-45`. The candidate parser
@@ -3645,12 +8352,17 @@ fn resolveBgLinearAngle(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-gradient-position", .value = angle_value };
+    decls[0] = .{
+        .property = "--tw-gradient-position",
+        .value = angle_value,
+    };
     decls[1] = .{
         .property = "background-image",
         .value = try allocator.dupe(u8, "linear-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-conic-{angle | arbitrary}` — emits a conic-gradient with a from-angle.
@@ -3671,12 +8383,17 @@ fn resolveBgConic(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-gradient-position", .value = position };
+    decls[0] = .{
+        .property = "--tw-gradient-position",
+        .value = position,
+    };
     decls[1] = .{
         .property = "background-image",
         .value = try allocator.dupe(u8, "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-radial-{arbitrary | --var}` — only arbitrary forms accepted (named
@@ -3699,7 +8416,9 @@ fn resolveBgRadial(
         .property = "background-image",
         .value = try allocator.dupe(u8, "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `from-<color>`, `to-<color>`, `via-<color>`, `from-<percent>`, `to-<percent>`, etc.
@@ -3758,12 +8477,17 @@ fn emitGradientStopValueOwned(
     if (stop == .via) {
         const decls = try allocator.alloc(Declaration, 2);
         errdefer allocator.free(decls);
-        decls[0] = .{ .property = "--tw-gradient-via", .value = val };
+        decls[0] = .{
+            .property = "--tw-gradient-via",
+            .value = val,
+        };
         decls[1] = .{
             .property = "--tw-gradient-stops",
             .value = try allocator.dupe(u8, "var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-via), var(--tw-gradient-to, transparent)"),
         };
-        return .{ .declarations = decls };
+        return .{
+            .declarations = decls,
+        };
     }
     const property: []const u8 = switch (stop) {
         .from => "--tw-gradient-from",
@@ -3772,8 +8496,13 @@ fn emitGradientStopValueOwned(
     };
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = val };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = val,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn emitGradientStopPosition(
@@ -3788,8 +8517,13 @@ fn emitGradientStopPosition(
     };
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = try allocator.dupe(u8, pct) };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = try allocator.dupe(u8, pct),
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Transition timing ───────────────────────────────────────────────────────
@@ -3822,8 +8556,13 @@ fn resolveTimingMs(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ease-{key|arb}` — sets `transition-timing-function`. Named keys for the
@@ -3848,8 +8587,13 @@ fn resolveEasing(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "transition-timing-function", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "transition-timing-function",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `shadow-{color}` — sets `--tw-shadow-color` so a sibling `shadow-{size}`
@@ -3876,8 +8620,13 @@ fn resolveShadowColor(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-shadow-color", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "--tw-shadow-color",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Border width ────────────────────────────────────────────────────────────
@@ -3931,10 +8680,15 @@ fn resolveBorderWidth(
         while (j < i) : (j += 1) allocator.free(decls[j].value);
     }
     while (i < properties.len) : (i += 1) {
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, css_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, css_value),
+        };
     }
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Border utilities share roots between width and color. Explicit arbitrary
@@ -4041,10 +8795,15 @@ fn resolveBorderRadius(
     }
     while (i < properties.len) : (i += 1) {
         // Each longhand owns its own copy so freeResolvedUtility can free them.
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, css_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, css_value),
+        };
     }
     allocator.free(css_value); // we duped per-longhand; release the shared copy
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -4085,18 +8844,50 @@ fn isSpacingNumber(s: []const u8) bool {
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "oklch(0.637 0.237 25.331)" },
-    .{ .name = "color-gray-800", .value = "oklch(0.278 0.033 256.848)" },
-    .{ .name = "color-white", .value = "#fff" },
-    .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-    .{ .name = "radius-md", .value = "0.375rem" },
-    .{ .name = "radius-lg", .value = "0.5rem" },
-    .{ .name = "text-2xl", .value = "1.5rem" },
-    .{ .name = "text-2xl--line-height", .value = "calc(2 / 1.5)" },
-    .{ .name = "text-base", .value = "1rem" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "oklch(0.637 0.237 25.331)",
+        },
+        .{
+            .name = "color-gray-800",
+            .value = "oklch(0.278 0.033 256.848)",
+        },
+        .{
+            .name = "color-white",
+            .value = "#fff",
+        },
+        .{
+            .name = "font-sans",
+            .value = "Switzer, system-ui, sans-serif",
+        },
+        .{
+            .name = "radius-md",
+            .value = "0.375rem",
+        },
+        .{
+            .name = "radius-lg",
+            .value = "0.5rem",
+        },
+        .{
+            .name = "text-2xl",
+            .value = "1.5rem",
+        },
+        .{
+            .name = "text-2xl--line-height",
+            .value = "calc(2 / 1.5)",
+        },
+        .{
+            .name = "text-base",
+            .value = "1rem",
+        },
+    },
+};
 
 fn parseAndResolve(allocator: std.mem.Allocator, input: []const u8) !?ResolvedUtility {
     return parseAndResolveWithTheme(allocator, test_theme, input);
@@ -4770,9 +9561,14 @@ test "border arbitrary type hints disambiguate width and color" {
 }
 
 test "border side colors resolve runtime theme tokens" {
-    const runtime_theme = Theme{ .tokens = &.{
-        .{ .name = "color-brand", .value = "#123456" },
-    } };
+    const runtime_theme = Theme{
+        .tokens = &.{
+            .{
+                .name = "color-brand",
+                .value = "#123456",
+            },
+        },
+    };
     const right = (try parseAndResolveWithTheme(tst.allocator, runtime_theme, "border-r-brand")).?;
     defer freeResolvedUtility(tst.allocator, right);
     try tst.expectEqualStrings("border-right-color", right.declarations[0].property);
@@ -5152,17 +9948,50 @@ test "color: bg-{color}/[27%] → arbitrary with % preserved verbatim" {
 }
 
 test "modifierAsOpacity: numberStringTimes100 edge cases" {
-    const cases = [_]struct { in: []const u8, out: ?[]const u8 }{
-        .{ .in = "0.4", .out = "40" },
-        .{ .in = "0.04", .out = "4" },
-        .{ .in = "0.123", .out = "12.3" },
-        .{ .in = "1", .out = "100" },
-        .{ .in = ".5", .out = "50" },
-        .{ .in = "0", .out = "0" },
-        .{ .in = "27%", .out = null }, // contains '%' → not a plain number
-        .{ .in = "1.2.3", .out = null }, // multiple dots
-        .{ .in = "var(--x)", .out = null },
-        .{ .in = "", .out = null },
+    const cases = [_]struct {
+        in: []const u8,
+        out: ?[]const u8,
+    }{
+        .{
+            .in = "0.4",
+            .out = "40",
+        },
+        .{
+            .in = "0.04",
+            .out = "4",
+        },
+        .{
+            .in = "0.123",
+            .out = "12.3",
+        },
+        .{
+            .in = "1",
+            .out = "100",
+        },
+        .{
+            .in = ".5",
+            .out = "50",
+        },
+        .{
+            .in = "0",
+            .out = "0",
+        },
+        .{
+            .in = "27%",
+            .out = null,
+        }, // contains '%' → not a plain number
+        .{
+            .in = "1.2.3",
+            .out = null,
+        }, // multiple dots
+        .{
+            .in = "var(--x)",
+            .out = null,
+        },
+        .{
+            .in = "",
+            .out = null,
+        },
     };
     for (cases) |c| {
         const got = try numberStringTimes100(tst.allocator, c.in);
@@ -5247,14 +10076,35 @@ test "color: bg-{unknown} returns null (falls through)" {
 }
 
 test "color: decoration / outline / accent / caret / fill / stroke" {
-    const Cases = struct { input: []const u8, property: []const u8 };
+    const Cases = struct {
+        input: []const u8,
+        property: []const u8,
+    };
     const cases = [_]Cases{
-        .{ .input = "decoration-red-500", .property = "text-decoration-color" },
-        .{ .input = "outline-red-500", .property = "outline-color" },
-        .{ .input = "accent-red-500", .property = "accent-color" },
-        .{ .input = "caret-red-500", .property = "caret-color" },
-        .{ .input = "fill-red-500", .property = "fill" },
-        .{ .input = "stroke-red-500", .property = "stroke" },
+        .{
+            .input = "decoration-red-500",
+            .property = "text-decoration-color",
+        },
+        .{
+            .input = "outline-red-500",
+            .property = "outline-color",
+        },
+        .{
+            .input = "accent-red-500",
+            .property = "accent-color",
+        },
+        .{
+            .input = "caret-red-500",
+            .property = "caret-color",
+        },
+        .{
+            .input = "fill-red-500",
+            .property = "fill",
+        },
+        .{
+            .input = "stroke-red-500",
+            .property = "stroke",
+        },
     };
     inline for (cases) |c| {
         const r = (try parseAndResolve(tst.allocator, c.input)).?;

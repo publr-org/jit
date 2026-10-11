@@ -58,7 +58,9 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
             .imports = &.{.{
                 .name = "publr_jit",
-                .module = b.createModule(.{ .root_source_file = b.path("publr_jit.zig") }),
+                .module = b.createModule(.{
+                    .root_source_file = b.path("publr_jit.zig"),
+                }),
             }},
         }),
     });
@@ -70,7 +72,10 @@ pub fn build(b: *std.Build) void {
     amalgamation_step.dependOn(&run_amalgamation_tests.step);
 
     // Constraint check: every JIT-side artifact must compile to wasm32-wasi.
-    const wasm_target = b.resolveTargetQuery(.{ .cpu_arch = .wasm32, .os_tag = .wasi });
+    const wasm_target = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .wasi,
+    });
     const jit_wasm = b.addExecutable(.{
         .name = "jit_wasm",
         .root_module = b.createModule(.{
@@ -86,7 +91,10 @@ pub fn build(b: *std.Build) void {
     // exports the linear-memory ABI in src/wasm.zig. A Web Worker loads it and
     // calls compile(classes) -> CSS with no server. ReleaseSmall because the
     // artifact is downloaded by every client.
-    const wasm_engine_target = b.resolveTargetQuery(.{ .cpu_arch = .wasm32, .os_tag = .freestanding });
+    const wasm_engine_target = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .freestanding,
+    });
     const jit_engine = b.addExecutable(.{
         .name = "jit_engine",
         .root_module = b.createModule(.{

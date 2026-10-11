@@ -294,7 +294,9 @@ test "convert: skips nested @keyframes with warning" {
     var warn_buf: [1024]u8 = undefined;
     var warn_writer = std.Io.Writer.fixed(&warn_buf);
 
-    const out = try convert(std.testing.allocator, css, .{ .warn = &warn_writer });
+    const out = try convert(std.testing.allocator, css, .{
+        .warn = &warn_writer,
+    });
     defer std.testing.allocator.free(out);
 
     // Both tokens emitted, keyframe skipped.
@@ -312,7 +314,9 @@ test "convert: warns on @theme default modifier" {
     var warn_buf: [256]u8 = undefined;
     var warn_writer = std.Io.Writer.fixed(&warn_buf);
 
-    const out = try convert(std.testing.allocator, css, .{ .warn = &warn_writer });
+    const out = try convert(std.testing.allocator, css, .{
+        .warn = &warn_writer,
+    });
     defer std.testing.allocator.free(out);
 
     try std.testing.expect(std.mem.indexOf(u8, out, "spacing") != null);

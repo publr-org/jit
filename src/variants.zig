@@ -85,8 +85,8 @@ pub fn applyVariants(
 }
 
 const pseudo_elements = [_][]const u8{
-    "::before",      "::after",   "::placeholder",             "::selection",
-    "::marker",      "::backdrop", "::file-selector-button",
+    "::before", "::after",    "::placeholder",          "::selection",
+    "::marker", "::backdrop", "::file-selector-button",
 };
 
 /// A pseudo-element must end its selector: `has-[…]:after:x` applies `::after` before
@@ -137,52 +137,184 @@ const StaticVariant = struct {
 
 const STATIC_VARIANTS = [_]StaticVariant{
     // ── Pseudo-classes ──────────────────────────────────────────────────────
-    .{ .name = "hover", .suffix = ":hover" },
-    .{ .name = "focus", .suffix = ":focus" },
-    .{ .name = "focus-visible", .suffix = ":focus-visible" },
-    .{ .name = "focus-within", .suffix = ":focus-within" },
-    .{ .name = "active", .suffix = ":active" },
-    .{ .name = "visited", .suffix = ":visited" },
-    .{ .name = "target", .suffix = ":target" },
-    .{ .name = "disabled", .suffix = ":disabled" },
-    .{ .name = "enabled", .suffix = ":enabled" },
-    .{ .name = "checked", .suffix = ":checked" },
-    .{ .name = "indeterminate", .suffix = ":indeterminate" },
-    .{ .name = "default", .suffix = ":default" },
-    .{ .name = "required", .suffix = ":required" },
-    .{ .name = "valid", .suffix = ":valid" },
-    .{ .name = "invalid", .suffix = ":invalid" },
-    .{ .name = "placeholder-shown", .suffix = ":placeholder-shown" },
-    .{ .name = "read-only", .suffix = ":read-only" },
-    .{ .name = "open", .suffix = "[open]" },
+    .{
+        .name = "hover",
+        .suffix = ":hover",
+    },
+    .{
+        .name = "focus",
+        .suffix = ":focus",
+    },
+    .{
+        .name = "focus-visible",
+        .suffix = ":focus-visible",
+    },
+    .{
+        .name = "focus-within",
+        .suffix = ":focus-within",
+    },
+    .{
+        .name = "active",
+        .suffix = ":active",
+    },
+    .{
+        .name = "visited",
+        .suffix = ":visited",
+    },
+    .{
+        .name = "target",
+        .suffix = ":target",
+    },
+    .{
+        .name = "disabled",
+        .suffix = ":disabled",
+    },
+    .{
+        .name = "enabled",
+        .suffix = ":enabled",
+    },
+    .{
+        .name = "checked",
+        .suffix = ":checked",
+    },
+    .{
+        .name = "indeterminate",
+        .suffix = ":indeterminate",
+    },
+    .{
+        .name = "default",
+        .suffix = ":default",
+    },
+    .{
+        .name = "required",
+        .suffix = ":required",
+    },
+    .{
+        .name = "valid",
+        .suffix = ":valid",
+    },
+    .{
+        .name = "invalid",
+        .suffix = ":invalid",
+    },
+    .{
+        .name = "placeholder-shown",
+        .suffix = ":placeholder-shown",
+    },
+    .{
+        .name = "read-only",
+        .suffix = ":read-only",
+    },
+    .{
+        .name = "open",
+        .suffix = "[open]",
+    },
 
     // ── Structural ──────────────────────────────────────────────────────────
-    .{ .name = "first", .suffix = ":first-child" },
-    .{ .name = "last", .suffix = ":last-child" },
-    .{ .name = "only", .suffix = ":only-child" },
-    .{ .name = "odd", .suffix = ":nth-child(odd)" },
-    .{ .name = "even", .suffix = ":nth-child(even)" },
-    .{ .name = "first-of-type", .suffix = ":first-of-type" },
-    .{ .name = "last-of-type", .suffix = ":last-of-type" },
-    .{ .name = "only-of-type", .suffix = ":only-of-type" },
-    .{ .name = "empty", .suffix = ":empty" },
+    .{
+        .name = "first",
+        .suffix = ":first-child",
+    },
+    .{
+        .name = "last",
+        .suffix = ":last-child",
+    },
+    .{
+        .name = "only",
+        .suffix = ":only-child",
+    },
+    .{
+        .name = "odd",
+        .suffix = ":nth-child(odd)",
+    },
+    .{
+        .name = "even",
+        .suffix = ":nth-child(even)",
+    },
+    .{
+        .name = "first-of-type",
+        .suffix = ":first-of-type",
+    },
+    .{
+        .name = "last-of-type",
+        .suffix = ":last-of-type",
+    },
+    .{
+        .name = "only-of-type",
+        .suffix = ":only-of-type",
+    },
+    .{
+        .name = "empty",
+        .suffix = ":empty",
+    },
 
     // ── Pseudo-elements ─────────────────────────────────────────────────────
-    .{ .name = "before", .suffix = "::before" },
-    .{ .name = "after", .suffix = "::after" },
-    .{ .name = "placeholder", .suffix = "::placeholder" },
-    .{ .name = "selection", .suffix = "::selection" },
-    .{ .name = "marker", .suffix = "::marker" },
-    .{ .name = "file", .suffix = "::file-selector-button" },
-    .{ .name = "backdrop", .suffix = "::backdrop" },
+    .{
+        .name = "before",
+        .suffix = "::before",
+    },
+    .{
+        .name = "after",
+        .suffix = "::after",
+    },
+    .{
+        .name = "placeholder",
+        .suffix = "::placeholder",
+    },
+    .{
+        .name = "selection",
+        .suffix = "::selection",
+    },
+    .{
+        .name = "marker",
+        .suffix = "::marker",
+    },
+    .{
+        .name = "file",
+        .suffix = "::file-selector-button",
+    },
+    .{
+        .name = "backdrop",
+        .suffix = "::backdrop",
+    },
 
     // ── Color scheme + media ────────────────────────────────────────────────
-    .{ .name = "dark", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-color-scheme: dark)" },
-    .{ .name = "light", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-color-scheme: light)" },
-    .{ .name = "motion-reduce", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-reduced-motion: reduce)" },
-    .{ .name = "motion-safe", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-reduced-motion: no-preference)" },
-    .{ .name = "print", .suffix = "", .at_rule_name = "media", .at_rule_condition = "print" },
-    .{ .name = "forced-colors", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(forced-colors: active)" },
+    .{
+        .name = "dark",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-color-scheme: dark)",
+    },
+    .{
+        .name = "light",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-color-scheme: light)",
+    },
+    .{
+        .name = "motion-reduce",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-reduced-motion: reduce)",
+    },
+    .{
+        .name = "motion-safe",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-reduced-motion: no-preference)",
+    },
+    .{
+        .name = "print",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "print",
+    },
+    .{
+        .name = "forced-colors",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(forced-colors: active)",
+    },
 };
 
 fn applyStatic(
@@ -220,7 +352,10 @@ fn applyContainerQuery(
     // `@container` (no value) — bare at-rule.
     if (std.mem.eql(u8, name, "@container")) {
         const cond = try allocator.dupe(u8, "");
-        try at_rules.append(.{ .name = "container", .condition = cond });
+        try at_rules.append(.{
+            .name = "container",
+            .condition = cond,
+        });
         return;
     }
 
@@ -242,7 +377,10 @@ fn applyContainerQuery(
             try std.fmt.allocPrint(allocator, "(width < {s})", .{inner})
         else
             try std.fmt.allocPrint(allocator, "({s})", .{inner});
-        try at_rules.append(.{ .name = "container", .condition = cond });
+        try at_rules.append(.{
+            .name = "container",
+            .condition = cond,
+        });
         return;
     }
 
@@ -255,7 +393,10 @@ fn applyContainerQuery(
         try std.fmt.allocPrint(allocator, "(width < {s})", .{value})
     else
         try std.fmt.allocPrint(allocator, "(width >= {s})", .{value});
-    try at_rules.append(.{ .name = "container", .condition = cond });
+    try at_rules.append(.{
+        .name = "container",
+        .condition = cond,
+    });
 }
 
 /// Try the static variant table; returns true on match, false if name unknown.
@@ -271,7 +412,10 @@ fn tryApplyStaticName(
         if (std.mem.eql(u8, name, sv.name)) {
             if (sv.at_rule_name.len > 0) {
                 const cond = try allocator.dupe(u8, sv.at_rule_condition);
-                try at_rules.append(.{ .name = sv.at_rule_name, .condition = cond });
+                try at_rules.append(.{
+                    .name = sv.at_rule_name,
+                    .condition = cond,
+                });
                 return true;
             }
             const new_sel = try insertSelectorSuffix(allocator, selector.*, sv.suffix);
@@ -419,7 +563,10 @@ fn applyFunctional(
             .named => |n| n,
         };
         const cond = try std.fmt.allocPrint(allocator, "({s})", .{val_str});
-        try at_rules.append(.{ .name = "supports", .condition = cond });
+        try at_rules.append(.{
+            .name = "supports",
+            .condition = cond,
+        });
         return;
     }
 
@@ -445,7 +592,9 @@ fn applyFunctional(
             return applyMaxBreakpoint(
                 allocator,
                 t,
-                .{ .named = key },
+                .{
+                    .named = key,
+                },
                 at_rules,
             );
         }
@@ -474,7 +623,10 @@ fn applyBreakpointBare(
     const value = theme.lookup(t, token_name) orelse return VariantError.UnknownVariant;
 
     const cond = try std.fmt.allocPrint(allocator, "(min-width: {s})", .{value});
-    try at_rules.append(.{ .name = "media", .condition = cond });
+    try at_rules.append(.{
+        .name = "media",
+        .condition = cond,
+    });
 }
 
 fn applyMaxBreakpoint(
@@ -497,7 +649,10 @@ fn applyMaxBreakpoint(
         "(max-width: calc({s} - 0.02px))",
         .{value},
     );
-    try at_rules.append(.{ .name = "media", .condition = cond });
+    try at_rules.append(.{
+        .name = "media",
+        .condition = cond,
+    });
 }
 
 // ── Compound variants ───────────────────────────────────────────────────────
@@ -525,7 +680,10 @@ fn applyCompound(
     // Hoist the inner variant's at-rules onto our outer at-rule list.
     for (sub_at_rules.items) |ar| {
         const dup = try allocator.dupe(u8, ar.condition);
-        try at_rules.append(.{ .name = ar.name, .condition = dup });
+        try at_rules.append(.{
+            .name = ar.name,
+            .condition = dup,
+        });
     }
 
     // The "suffix" is whatever the inner variant added after `&`. For
@@ -668,7 +826,10 @@ fn parseArbitraryAtRule(
         allocator.free(cond_owned);
         return VariantError.UnknownVariant;
     };
-    try at_rules.append(.{ .name = name_const, .condition = cond_owned });
+    try at_rules.append(.{
+        .name = name_const,
+        .condition = cond_owned,
+    });
 }
 
 fn isAllowedArbitraryAtRule(name: []const u8) bool {
@@ -755,17 +916,44 @@ pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) Vari
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "breakpoint-sm", .value = "40rem" },
-    .{ .name = "breakpoint-md", .value = "48rem" },
-    .{ .name = "breakpoint-lg", .value = "64rem" },
-    .{ .name = "breakpoint-gallery-canvas", .value = "54rem" },
-    .{ .name = "container-xs", .value = "20rem" },
-    .{ .name = "container-sm", .value = "24rem" },
-    .{ .name = "container-md", .value = "28rem" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "breakpoint-sm",
+            .value = "40rem",
+        },
+        .{
+            .name = "breakpoint-md",
+            .value = "48rem",
+        },
+        .{
+            .name = "breakpoint-lg",
+            .value = "64rem",
+        },
+        .{
+            .name = "breakpoint-gallery-canvas",
+            .value = "54rem",
+        },
+        .{
+            .name = "container-xs",
+            .value = "20rem",
+        },
+        .{
+            .name = "container-sm",
+            .value = "24rem",
+        },
+        .{
+            .name = "container-md",
+            .value = "28rem",
+        },
+    },
+};
 
-fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct { sel: []u8, ats: []AtRule, base: []const u8 } {
+fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct {
+    sel: []u8,
+    ats: []AtRule,
+    base: []const u8,
+} {
     const cands = try candidate.parseCandidate(allocator, input);
     defer candidate.freeCandidates(allocator, cands);
     // Take the first functional or static-c candidate for testing.
@@ -773,11 +961,19 @@ fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct { sel:
         switch (c) {
             .static_c => |s| {
                 const wr = try applyVariants(allocator, test_theme, s.variants, s.root);
-                return .{ .sel = wr.selector, .ats = wr.at_rules, .base = s.root };
+                return .{
+                    .sel = wr.selector,
+                    .ats = wr.at_rules,
+                    .base = s.root,
+                };
             },
             .functional => |f| {
                 const wr = try applyVariants(allocator, test_theme, f.variants, f.root);
-                return .{ .sel = wr.selector, .ats = wr.at_rules, .base = f.root };
+                return .{
+                    .sel = wr.selector,
+                    .ats = wr.at_rules,
+                    .base = f.root,
+                };
             },
             else => continue,
         }

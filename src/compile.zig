@@ -141,7 +141,10 @@ pub fn compile(
         changed = false;
         for (t.tokens) |tok| {
             if (used_tokens.contains(tok.name)) {
-                var iter = VarRefIterator{ .input = tok.value, .pos = 0 };
+                var iter = VarRefIterator{
+                    .input = tok.value,
+                    .pos = 0,
+                };
                 while (iter.next()) |name| {
                     const result = try used_tokens.getOrPut(name);
                     if (!result.found_existing) changed = true;
@@ -198,7 +201,10 @@ const VarRefIterator = struct {
 };
 
 fn collectVarRefs(input: []const u8, set: *std.StringHashMap(void)) !void {
-    var iter = VarRefIterator{ .input = input, .pos = 0 };
+    var iter = VarRefIterator{
+        .input = input,
+        .pos = 0,
+    };
     while (iter.next()) |name| {
         _ = try set.getOrPut(name);
     }
@@ -303,12 +309,26 @@ fn emitClassRule(
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "oklch(0.637 0.237 25.331)" },
-    .{ .name = "breakpoint-md", .value = "48rem" },
-    .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "oklch(0.637 0.237 25.331)",
+        },
+        .{
+            .name = "breakpoint-md",
+            .value = "48rem",
+        },
+        .{
+            .name = "font-sans",
+            .value = "Switzer, system-ui, sans-serif",
+        },
+    },
+};
 
 test "compile: empty class list emits empty layer (no :root needed)" {
     const css = try compile(tst.allocator, test_theme, &.{}, .{});
@@ -483,10 +503,18 @@ test "arbitrary descendant variants escape ampersands in emitted class selectors
 }
 
 test "custom responsive breakpoints sort by width rather than their names" {
-    const custom_theme = theme.Theme{ .tokens = &.{
-        .{ .name = "breakpoint-narrow", .value = "600px" },
-        .{ .name = "breakpoint-wide", .value = "71.875rem" },
-    } };
+    const custom_theme = theme.Theme{
+        .tokens = &.{
+            .{
+                .name = "breakpoint-narrow",
+                .value = "600px",
+            },
+            .{
+                .name = "breakpoint-wide",
+                .value = "71.875rem",
+            },
+        },
+    };
     const css = try compile(tst.allocator, custom_theme, &.{
         "wide:block", "narrow:hidden", "max-narrow:block", "max-wide:hidden",
     }, .{});

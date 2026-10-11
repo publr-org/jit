@@ -96,7 +96,10 @@ pub fn writeClassGroups(
 }
 
 fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const u8) !Entry {
-    var entry = Entry{ .raw = raw, .scope = scopeHash(raw) };
+    var entry = Entry{
+        .raw = raw,
+        .scope = scopeHash(raw),
+    };
     errdefer entry.deinit(allocator);
 
     const candidates = try candidate.parseCandidate(allocator, raw);
@@ -208,16 +211,42 @@ fn ownsAll(incoming: []const u64, existing: []const u64) bool {
     return true;
 }
 
-const test_theme: Theme = .{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "red" },
-    .{ .name = "color-blue-500", .value = "blue" },
-    .{ .name = "text-sm", .value = "0.875rem" },
-    .{ .name = "text-sm--line-height", .value = "1.25rem" },
-    .{ .name = "text-lg", .value = "1.125rem" },
-    .{ .name = "text-lg--line-height", .value = "1.75rem" },
-    .{ .name = "radius", .value = "0.25rem" },
-} };
+const test_theme: Theme = .{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "red",
+        },
+        .{
+            .name = "color-blue-500",
+            .value = "blue",
+        },
+        .{
+            .name = "text-sm",
+            .value = "0.875rem",
+        },
+        .{
+            .name = "text-sm--line-height",
+            .value = "1.25rem",
+        },
+        .{
+            .name = "text-lg",
+            .value = "1.125rem",
+        },
+        .{
+            .name = "text-lg--line-height",
+            .value = "1.75rem",
+        },
+        .{
+            .name = "radius",
+            .value = "0.25rem",
+        },
+    },
+};
 
 fn expectMerge(input: []const u8, expected: []const u8) !void {
     const merged = try mergeClasses(std.testing.allocator, test_theme, &.{input});

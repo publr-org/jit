@@ -42,10 +42,19 @@ test "extendTheme: /site overrides apply correctly to defaults" {
     // override is a no-op for value but still goes through the merge path.
     const site_overrides = theme.Theme{
         .tokens = &.{
-            .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-            .{ .name = "radius-4xl", .value = "2rem" },
+            .{
+                .name = "font-sans",
+                .value = "Switzer, system-ui, sans-serif",
+            },
+            .{
+                .name = "radius-4xl",
+                .value = "2rem",
+            },
             // Add one truly-new token so we exercise the append path.
-            .{ .name = "color-brand-600", .value = "oklch(0.6 0.2 250)" },
+            .{
+                .name = "color-brand-600",
+                .value = "oklch(0.6 0.2 250)",
+            },
         },
     };
 

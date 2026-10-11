@@ -32,7 +32,9 @@ pub fn sortClasses(
     theme_css: []const u8,
 ) SortError![]u8 {
     _ = theme_css; // Legacy sorting API; compilation uses the resolved token theme below.
-    return sortClassesWithTheme(allocator, input, .{ .tokens = &.{} });
+    return sortClassesWithTheme(allocator, input, .{
+        .tokens = &.{},
+    });
 }
 
 pub fn sortClassesWithTheme(
@@ -261,7 +263,10 @@ fn candidateRoot(c: candidate.Candidate) []const u8 {
 /// Map a utility root to its property bucket index. Lower = earlier in cascade.
 /// The bucket numbers implement the JIT's cascade order for known properties.
 /// Extend them as class coverage grows.
-const PropertyBucket = struct { root: []const u8, bucket: u32 };
+const PropertyBucket = struct {
+    root: []const u8,
+    bucket: u32,
+};
 
 const ARBITRARY_PROPERTY_BUCKET: u32 = 5000;
 
@@ -272,144 +277,492 @@ const UNKNOWN_UTILITY_BUCKET: u32 = 4000;
 
 const PROPERTY_BUCKETS = [_]PropertyBucket{
     // ── Layout / position (very early in cascade) ──
-    .{ .root = "static", .bucket = 10 },
-    .{ .root = "relative", .bucket = 10 },
-    .{ .root = "absolute", .bucket = 10 },
-    .{ .root = "fixed", .bucket = 10 },
-    .{ .root = "sticky", .bucket = 10 },
-    .{ .root = "isolate", .bucket = 11 },
-    .{ .root = "z", .bucket = 12 },
-    .{ .root = "inset", .bucket = 13 },
-    .{ .root = "top", .bucket = 14 },
-    .{ .root = "right", .bucket = 14 },
-    .{ .root = "bottom", .bucket = 14 },
-    .{ .root = "left", .bucket = 14 },
+    .{
+        .root = "static",
+        .bucket = 10,
+    },
+    .{
+        .root = "relative",
+        .bucket = 10,
+    },
+    .{
+        .root = "absolute",
+        .bucket = 10,
+    },
+    .{
+        .root = "fixed",
+        .bucket = 10,
+    },
+    .{
+        .root = "sticky",
+        .bucket = 10,
+    },
+    .{
+        .root = "isolate",
+        .bucket = 11,
+    },
+    .{
+        .root = "z",
+        .bucket = 12,
+    },
+    .{
+        .root = "inset",
+        .bucket = 13,
+    },
+    .{
+        .root = "top",
+        .bucket = 14,
+    },
+    .{
+        .root = "right",
+        .bucket = 14,
+    },
+    .{
+        .root = "bottom",
+        .bucket = 14,
+    },
+    .{
+        .root = "left",
+        .bucket = 14,
+    },
 
     // ── Display / box ──
-    .{ .root = "block", .bucket = 20 },
-    .{ .root = "inline", .bucket = 20 },
-    .{ .root = "inline-block", .bucket = 20 },
-    .{ .root = "flex", .bucket = 20 },
-    .{ .root = "inline-flex", .bucket = 20 },
-    .{ .root = "grid", .bucket = 20 },
-    .{ .root = "inline-grid", .bucket = 20 },
-    .{ .root = "hidden", .bucket = 20 },
-    .{ .root = "table", .bucket = 20 },
-    .{ .root = "inline-table", .bucket = 20 },
-    .{ .root = "table-caption", .bucket = 20 },
-    .{ .root = "table-cell", .bucket = 20 },
-    .{ .root = "table-column", .bucket = 20 },
-    .{ .root = "table-column-group", .bucket = 20 },
-    .{ .root = "table-footer-group", .bucket = 20 },
-    .{ .root = "table-header-group", .bucket = 20 },
-    .{ .root = "table-row", .bucket = 20 },
-    .{ .root = "table-row-group", .bucket = 20 },
-    .{ .root = "contents", .bucket = 20 },
-    .{ .root = "flow-root", .bucket = 20 },
-    .{ .root = "list-item", .bucket = 20 },
-    .{ .root = "table-auto", .bucket = 24 },
-    .{ .root = "table-fixed", .bucket = 24 },
-    .{ .root = "caption-top", .bucket = 25 },
-    .{ .root = "caption-bottom", .bucket = 25 },
-    .{ .root = "border-collapse", .bucket = 26 },
-    .{ .root = "border-separate", .bucket = 26 },
-    .{ .root = "overflow", .bucket = 22 },
-    .{ .root = "overflow-hidden", .bucket = 22 },
-    .{ .root = "overflow-auto", .bucket = 22 },
-    .{ .root = "overflow-visible", .bucket = 22 },
+    .{
+        .root = "block",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-block",
+        .bucket = 20,
+    },
+    .{
+        .root = "flex",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-flex",
+        .bucket = 20,
+    },
+    .{
+        .root = "grid",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-grid",
+        .bucket = 20,
+    },
+    .{
+        .root = "hidden",
+        .bucket = 20,
+    },
+    .{
+        .root = "table",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-table",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-caption",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-cell",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-column",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-column-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-footer-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-header-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-row",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-row-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "contents",
+        .bucket = 20,
+    },
+    .{
+        .root = "flow-root",
+        .bucket = 20,
+    },
+    .{
+        .root = "list-item",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-auto",
+        .bucket = 24,
+    },
+    .{
+        .root = "table-fixed",
+        .bucket = 24,
+    },
+    .{
+        .root = "caption-top",
+        .bucket = 25,
+    },
+    .{
+        .root = "caption-bottom",
+        .bucket = 25,
+    },
+    .{
+        .root = "border-collapse",
+        .bucket = 26,
+    },
+    .{
+        .root = "border-separate",
+        .bucket = 26,
+    },
+    .{
+        .root = "overflow",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-hidden",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-auto",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-visible",
+        .bucket = 22,
+    },
 
     // ── Sizing ──
-    .{ .root = "size", .bucket = 30 },
-    .{ .root = "w", .bucket = 31 },
-    .{ .root = "h", .bucket = 32 },
-    .{ .root = "max-w", .bucket = 33 },
-    .{ .root = "max-h", .bucket = 34 },
-    .{ .root = "min-w", .bucket = 35 },
-    .{ .root = "min-h", .bucket = 36 },
+    .{
+        .root = "size",
+        .bucket = 30,
+    },
+    .{
+        .root = "w",
+        .bucket = 31,
+    },
+    .{
+        .root = "h",
+        .bucket = 32,
+    },
+    .{
+        .root = "max-w",
+        .bucket = 33,
+    },
+    .{
+        .root = "max-h",
+        .bucket = 34,
+    },
+    .{
+        .root = "min-w",
+        .bucket = 35,
+    },
+    .{
+        .root = "min-h",
+        .bucket = 36,
+    },
 
     // ── Grid ──
-    .{ .root = "grid-cols", .bucket = 40 },
-    .{ .root = "col-span", .bucket = 41 },
-    .{ .root = "grid-rows", .bucket = 42 },
-    .{ .root = "row-span", .bucket = 43 },
-    .{ .root = "gap", .bucket = 44 },
-    .{ .root = "gap-x", .bucket = 45 },
-    .{ .root = "gap-y", .bucket = 46 },
+    .{
+        .root = "grid-cols",
+        .bucket = 40,
+    },
+    .{
+        .root = "col-span",
+        .bucket = 41,
+    },
+    .{
+        .root = "grid-rows",
+        .bucket = 42,
+    },
+    .{
+        .root = "row-span",
+        .bucket = 43,
+    },
+    .{
+        .root = "gap",
+        .bucket = 44,
+    },
+    .{
+        .root = "gap-x",
+        .bucket = 45,
+    },
+    .{
+        .root = "gap-y",
+        .bucket = 46,
+    },
 
     // ── Flex ──
-    .{ .root = "flex-row", .bucket = 50 },
-    .{ .root = "flex-col", .bucket = 50 },
-    .{ .root = "flex-wrap", .bucket = 51 },
-    .{ .root = "items-center", .bucket = 52 },
-    .{ .root = "items-start", .bucket = 52 },
-    .{ .root = "items-end", .bucket = 52 },
-    .{ .root = "justify-center", .bucket = 53 },
-    .{ .root = "justify-start", .bucket = 53 },
-    .{ .root = "justify-between", .bucket = 53 },
-    .{ .root = "justify-end", .bucket = 53 },
-    .{ .root = "self-center", .bucket = 54 },
+    .{
+        .root = "flex-row",
+        .bucket = 50,
+    },
+    .{
+        .root = "flex-col",
+        .bucket = 50,
+    },
+    .{
+        .root = "flex-wrap",
+        .bucket = 51,
+    },
+    .{
+        .root = "items-center",
+        .bucket = 52,
+    },
+    .{
+        .root = "items-start",
+        .bucket = 52,
+    },
+    .{
+        .root = "items-end",
+        .bucket = 52,
+    },
+    .{
+        .root = "justify-center",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-start",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-between",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-end",
+        .bucket = 53,
+    },
+    .{
+        .root = "self-center",
+        .bucket = 54,
+    },
 
     // ── Padding (cascade-affecting; shorthand-then-axis-then-side) ──
-    .{ .root = "p", .bucket = 100 },
-    .{ .root = "px", .bucket = 101 },
-    .{ .root = "py", .bucket = 102 },
-    .{ .root = "pt", .bucket = 103 },
-    .{ .root = "pr", .bucket = 104 },
-    .{ .root = "pb", .bucket = 105 },
-    .{ .root = "pl", .bucket = 106 },
+    .{
+        .root = "p",
+        .bucket = 100,
+    },
+    .{
+        .root = "px",
+        .bucket = 101,
+    },
+    .{
+        .root = "py",
+        .bucket = 102,
+    },
+    .{
+        .root = "pt",
+        .bucket = 103,
+    },
+    .{
+        .root = "pr",
+        .bucket = 104,
+    },
+    .{
+        .root = "pb",
+        .bucket = 105,
+    },
+    .{
+        .root = "pl",
+        .bucket = 106,
+    },
 
     // ── Margin ──
-    .{ .root = "m", .bucket = 110 },
-    .{ .root = "mx", .bucket = 111 },
-    .{ .root = "my", .bucket = 112 },
-    .{ .root = "mt", .bucket = 113 },
-    .{ .root = "mr", .bucket = 114 },
-    .{ .root = "mb", .bucket = 115 },
-    .{ .root = "ml", .bucket = 116 },
+    .{
+        .root = "m",
+        .bucket = 110,
+    },
+    .{
+        .root = "mx",
+        .bucket = 111,
+    },
+    .{
+        .root = "my",
+        .bucket = 112,
+    },
+    .{
+        .root = "mt",
+        .bucket = 113,
+    },
+    .{
+        .root = "mr",
+        .bucket = 114,
+    },
+    .{
+        .root = "mb",
+        .bucket = 115,
+    },
+    .{
+        .root = "ml",
+        .bucket = 116,
+    },
 
     // ── Background (before padding/border) ──
-    .{ .root = "bg", .bucket = 80 },
-    .{ .root = "bg-linear-to", .bucket = 81 },
-    .{ .root = "from", .bucket = 82 },
-    .{ .root = "via", .bucket = 83 },
-    .{ .root = "to", .bucket = 84 },
+    .{
+        .root = "bg",
+        .bucket = 80,
+    },
+    .{
+        .root = "bg-linear-to",
+        .bucket = 81,
+    },
+    .{
+        .root = "from",
+        .bucket = 82,
+    },
+    .{
+        .root = "via",
+        .bucket = 83,
+    },
+    .{
+        .root = "to",
+        .bucket = 84,
+    },
 
     // ── Border ──
-    .{ .root = "border", .bucket = 200 },
-    .{ .root = "border-x", .bucket = 201 },
-    .{ .root = "border-y", .bucket = 202 },
-    .{ .root = "border-t", .bucket = 203 },
-    .{ .root = "border-r", .bucket = 204 },
-    .{ .root = "border-b", .bucket = 205 },
-    .{ .root = "border-l", .bucket = 206 },
-    .{ .root = "rounded", .bucket = 220 },
-    .{ .root = "ring", .bucket = 230 },
-    .{ .root = "ring-inset", .bucket = 231 },
+    .{
+        .root = "border",
+        .bucket = 200,
+    },
+    .{
+        .root = "border-x",
+        .bucket = 201,
+    },
+    .{
+        .root = "border-y",
+        .bucket = 202,
+    },
+    .{
+        .root = "border-t",
+        .bucket = 203,
+    },
+    .{
+        .root = "border-r",
+        .bucket = 204,
+    },
+    .{
+        .root = "border-b",
+        .bucket = 205,
+    },
+    .{
+        .root = "border-l",
+        .bucket = 206,
+    },
+    .{
+        .root = "rounded",
+        .bucket = 220,
+    },
+    .{
+        .root = "ring",
+        .bucket = 230,
+    },
+    .{
+        .root = "ring-inset",
+        .bucket = 231,
+    },
 
     // ── Typography ──
-    .{ .root = "text", .bucket = 300 },
-    .{ .root = "text-balance", .bucket = 301 },
-    .{ .root = "text-pretty", .bucket = 301 },
-    .{ .root = "text-wrap", .bucket = 301 },
-    .{ .root = "text-nowrap", .bucket = 301 },
-    .{ .root = "text-left", .bucket = 302 },
-    .{ .root = "text-center", .bucket = 302 },
-    .{ .root = "text-right", .bucket = 302 },
-    .{ .root = "font", .bucket = 310 },
-    .{ .root = "tracking", .bucket = 320 },
-    .{ .root = "leading", .bucket = 330 },
-    .{ .root = "antialiased", .bucket = 340 },
-    .{ .root = "subpixel-antialiased", .bucket = 340 },
+    .{
+        .root = "text",
+        .bucket = 300,
+    },
+    .{
+        .root = "text-balance",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-pretty",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-wrap",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-nowrap",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-left",
+        .bucket = 302,
+    },
+    .{
+        .root = "text-center",
+        .bucket = 302,
+    },
+    .{
+        .root = "text-right",
+        .bucket = 302,
+    },
+    .{
+        .root = "font",
+        .bucket = 310,
+    },
+    .{
+        .root = "tracking",
+        .bucket = 320,
+    },
+    .{
+        .root = "leading",
+        .bucket = 330,
+    },
+    .{
+        .root = "antialiased",
+        .bucket = 340,
+    },
+    .{
+        .root = "subpixel-antialiased",
+        .bucket = 340,
+    },
 
     // ── Effects ──
-    .{ .root = "opacity", .bucket = 400 },
-    .{ .root = "shadow", .bucket = 410 },
+    .{
+        .root = "opacity",
+        .bucket = 400,
+    },
+    .{
+        .root = "shadow",
+        .bucket = 410,
+    },
 
     // ── Transition ──
-    .{ .root = "transition", .bucket = 500 },
-    .{ .root = "transition-colors", .bucket = 500 },
-    .{ .root = "transition-opacity", .bucket = 500 },
-    .{ .root = "duration", .bucket = 510 },
+    .{
+        .root = "transition",
+        .bucket = 500,
+    },
+    .{
+        .root = "transition-colors",
+        .bucket = 500,
+    },
+    .{
+        .root = "transition-opacity",
+        .bucket = 500,
+    },
+    .{
+        .root = "duration",
+        .bucket = 510,
+    },
 };
 
 fn bucketForRoot(root: []const u8) ?u32 {

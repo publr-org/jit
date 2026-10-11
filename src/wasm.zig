@@ -76,7 +76,9 @@ export fn compileWithTheme(
         jit.Theme,
         gpa,
         theme_ptr[0..theme_len],
-        .{ .ignore_unknown_fields = true },
+        .{
+            .ignore_unknown_fields = true,
+        },
     ) catch return null;
     defer parsed.deinit();
 
@@ -101,7 +103,9 @@ export fn resolveClassesWithTheme(
         jit.Theme,
         gpa,
         theme_ptr[0..theme_len],
-        .{ .ignore_unknown_fields = true },
+        .{
+            .ignore_unknown_fields = true,
+        },
     ) catch return null;
     defer parsed.deinit();
 
@@ -152,5 +156,7 @@ fn compileClasses(input: []const u8, active_theme: jit.Theme) ![]u8 {
         try classes.append(gpa, c);
     }
 
-    return jit.compile(gpa, active_theme, classes.items, .{ .minify = true });
+    return jit.compile(gpa, active_theme, classes.items, .{
+        .minify = true,
+    });
 }

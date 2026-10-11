@@ -71,7 +71,9 @@ pub const VariantKind = enum { static_v, functional, compound, arbitrary };
 /// Variant tags.
 /// `static_v` instead of `static` to avoid the Zig keyword.
 pub const Variant = union(VariantKind) {
-    static_v: struct { root: []const u8 },
+    static_v: struct {
+        root: []const u8,
+    },
     functional: struct {
         root: []const u8,
         value: ?VariantValue,
@@ -184,12 +186,14 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         std.mem.indexOfScalar(u8, base, '(') == null and
         std.mem.indexOfScalar(u8, base, '/') == null)
     {
-        try results.append(.{ .static_c = .{
-            .root = base,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .static_c = .{
+                .root = base,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
     }
 
     // Modifier slash split (top-level only, outside brackets/parens).
@@ -232,14 +236,16 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
             allocator.free(value);
             return results.toOwnedSlice();
         }
-        try results.append(.{ .arbitrary = .{
-            .property = property,
-            .value = value,
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .arbitrary = .{
+                .property = property,
+                .value = value,
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -280,14 +286,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         errdefer allocator.free(owned_value);
         allocator.free(decoded);
 
-        try results.append(.{ .functional = .{
-            .root = root,
-            .value = .{ .arbitrary = .{ .data_type = data_type, .value = owned_value } },
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .functional = .{
+                .root = root,
+                .value = .{
+                    .arbitrary = .{
+                        .data_type = data_type,
+                        .value = owned_value,
+                    },
+                },
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -312,14 +325,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
         errdefer allocator.free(wrapped);
         const data_type = if (data_type_slice) |dt| try allocator.dupe(u8, dt) else null;
         errdefer if (data_type) |dt| allocator.free(dt);
-        try results.append(.{ .functional = .{
-            .root = root,
-            .value = .{ .arbitrary = .{ .data_type = data_type, .value = wrapped } },
-            .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-            .variants = try cloneVariants(allocator, variants_master),
-            .important = important,
-            .raw = input,
-        } });
+        try results.append(.{
+            .functional = .{
+                .root = root,
+                .value = .{
+                    .arbitrary = .{
+                        .data_type = data_type,
+                        .value = wrapped,
+                    },
+                },
+                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                .variants = try cloneVariants(allocator, variants_master),
+                .important = important,
+                .raw = input,
+            },
+        });
         return results.toOwnedSlice();
     }
 
@@ -347,14 +367,21 @@ pub fn parseCandidate(allocator: std.mem.Allocator, input: []const u8) ParseErro
                 break :blk try std.fmt.allocPrint(allocator, "{s}/{s}", .{ value_part, modifier_str.? });
             };
 
-            try results.append(.{ .functional = .{
-                .root = root,
-                .value = .{ .named = .{ .value = value_part, .fraction = fraction } },
-                .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
-                .variants = try cloneVariants(allocator, variants_master),
-                .important = important,
-                .raw = input,
-            } });
+            try results.append(.{
+                .functional = .{
+                    .root = root,
+                    .value = .{
+                        .named = .{
+                            .value = value_part,
+                            .fraction = fraction,
+                        },
+                    },
+                    .modifier = if (parsed_modifier_master) |m| try cloneModifier(allocator, m) else null,
+                    .variants = try cloneVariants(allocator, variants_master),
+                    .important = important,
+                    .raw = input,
+                },
+            });
 
             idx = std.mem.lastIndexOfScalar(u8, base_no_mod[0..idx.?], '-');
         }
@@ -405,7 +432,12 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
             allocator.free(decoded);
             selector = wrapped;
         }
-        return .{ .arbitrary = .{ .selector = selector, .relative = relative } };
+        return .{
+            .arbitrary = .{
+                .selector = selector,
+                .relative = relative,
+            },
+        };
     }
 
     // Static, functional, compound — split on `/` for modifier.
@@ -432,11 +464,13 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
             if (sub_parsed == null) return null;
             const heap_sub = try allocator.create(Variant);
             heap_sub.* = sub_parsed.?;
-            return .{ .compound = .{
-                .root = cr,
-                .modifier = parsed_modifier,
-                .variant = heap_sub,
-            } };
+            return .{
+                .compound = .{
+                    .root = cr,
+                    .modifier = parsed_modifier,
+                    .variant = heap_sub,
+                },
+            };
         }
     }
 
@@ -463,28 +497,40 @@ pub fn parseVariant(allocator: std.mem.Allocator, input: []const u8) ParseError!
                     allocator.free(decoded);
                     return null;
                 }
-                v_value = .{ .arbitrary = decoded };
+                v_value = .{
+                    .arbitrary = decoded,
+                };
             } else if (value_str.len >= 2 and value_str[0] == '(' and value_str[value_str.len - 1] == ')') {
                 const inner = value_str[1 .. value_str.len - 1];
                 if (inner.len < 2 or inner[0] != '-' or inner[1] != '-') return null;
                 const wrapped = try std.fmt.allocPrint(allocator, "var({s})", .{inner});
-                v_value = .{ .arbitrary = wrapped };
+                v_value = .{
+                    .arbitrary = wrapped,
+                };
             } else if (isValidNamedValue(value_str)) {
-                v_value = .{ .named = value_str };
+                v_value = .{
+                    .named = value_str,
+                };
             } else {
                 return null;
             }
-            return .{ .functional = .{
-                .root = root,
-                .value = v_value,
-                .modifier = parsed_modifier,
-            } };
+            return .{
+                .functional = .{
+                    .root = root,
+                    .value = v_value,
+                    .modifier = parsed_modifier,
+                },
+            };
         }
     }
 
     // Pure static variant (no value, no dash split).
     if (parsed_modifier != null) return null; // static variants don't take modifiers
-    return .{ .static_v = .{ .root = without_modifier } };
+    return .{
+        .static_v = .{
+            .root = without_modifier,
+        },
+    };
 }
 
 // ── Modifier parsing ────────────────────────────────────────────────────────
@@ -499,7 +545,9 @@ pub fn parseModifier(allocator: std.mem.Allocator, input: []const u8) ParseError
             allocator.free(decoded);
             return null;
         }
-        return .{ .arbitrary = decoded };
+        return .{
+            .arbitrary = decoded,
+        };
     }
     // Parens `(--var)`
     if (input[0] == '(' and input[input.len - 1] == ')') {
@@ -507,11 +555,15 @@ pub fn parseModifier(allocator: std.mem.Allocator, input: []const u8) ParseError
         if (inner.len < 2 or inner[0] != '-' or inner[1] != '-') return null;
         if (!isValidArbitrary(inner)) return null;
         const wrapped = try std.fmt.allocPrint(allocator, "var({s})", .{inner});
-        return .{ .arbitrary = wrapped };
+        return .{
+            .arbitrary = wrapped,
+        };
     }
     // Named
     if (!isValidNamedValue(input)) return null;
-    return .{ .named = input };
+    return .{
+        .named = input,
+    };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -701,45 +753,66 @@ fn isValidNamedValue(s: []const u8) bool {
 /// for the inner Variant pointer of compound variants.
 pub fn cloneVariant(allocator: std.mem.Allocator, v: Variant) ParseError!Variant {
     return switch (v) {
-        .static_v => |s| .{ .static_v = .{ .root = s.root } },
+        .static_v => |s| .{
+            .static_v = .{
+                .root = s.root,
+            },
+        },
         .functional => |f| blk: {
             var new_value: ?VariantValue = null;
             if (f.value) |val| switch (val) {
-                .named => |n| new_value = .{ .named = n },
+                .named => |n| new_value = .{
+                    .named = n,
+                },
                 .arbitrary => |a| {
                     const dup = try allocator.dupe(u8, a);
-                    new_value = .{ .arbitrary = dup };
+                    new_value = .{
+                        .arbitrary = dup,
+                    };
                 },
             };
             const new_modifier: ?Modifier = if (f.modifier) |m| try cloneModifier(allocator, m) else null;
-            break :blk .{ .functional = .{
-                .root = f.root,
-                .value = new_value,
-                .modifier = new_modifier,
-            } };
+            break :blk .{
+                .functional = .{
+                    .root = f.root,
+                    .value = new_value,
+                    .modifier = new_modifier,
+                },
+            };
         },
         .compound => |c| blk: {
             const inner = try cloneVariant(allocator, c.variant.*);
             const heap_inner = try allocator.create(Variant);
             heap_inner.* = inner;
             const new_modifier: ?Modifier = if (c.modifier) |m| try cloneModifier(allocator, m) else null;
-            break :blk .{ .compound = .{
-                .root = c.root,
-                .modifier = new_modifier,
-                .variant = heap_inner,
-            } };
+            break :blk .{
+                .compound = .{
+                    .root = c.root,
+                    .modifier = new_modifier,
+                    .variant = heap_inner,
+                },
+            };
         },
         .arbitrary => |a| blk: {
             const dup = try allocator.dupe(u8, a.selector);
-            break :blk .{ .arbitrary = .{ .selector = dup, .relative = a.relative } };
+            break :blk .{
+                .arbitrary = .{
+                    .selector = dup,
+                    .relative = a.relative,
+                },
+            };
         },
     };
 }
 
 fn cloneModifier(allocator: std.mem.Allocator, m: Modifier) ParseError!Modifier {
     return switch (m) {
-        .named => |n| .{ .named = n },
-        .arbitrary => |a| .{ .arbitrary = try allocator.dupe(u8, a) },
+        .named => |n| .{
+            .named = n,
+        },
+        .arbitrary => |a| .{
+            .arbitrary = try allocator.dupe(u8, a),
+        },
     };
 }
 
@@ -919,7 +992,9 @@ pub fn extendTheme(comptime base: Theme, comptime override: Theme) Theme {
         }
 
         const final = merged[0..len].*;
-        return Theme{ .tokens = &final };
+        return Theme{
+            .tokens = &final,
+        };
     }
 }
 
@@ -966,7 +1041,9 @@ pub fn extendThemeRuntime(
         if (!was_match) out.appendAssumeCapacity(ot);
     }
 
-    return Theme{ .tokens = try out.toOwnedSlice(allocator) };
+    return Theme{
+        .tokens = try out.toOwnedSlice(allocator),
+    };
 }
 
 /// Look up a token by `name`. Returns the value, or null if absent.
@@ -1102,1012 +1179,5152 @@ const StaticEntry = struct {
 
 const STATIC_UTILITIES = [_]StaticEntry{
     // ── Display ─────────────────────────────────────────────────────────────
-    .{ .name = "block", .decls = &.{.{ .property = "display", .value = "block" }} },
-    .{ .name = "inline", .decls = &.{.{ .property = "display", .value = "inline" }} },
-    .{ .name = "inline-block", .decls = &.{.{ .property = "display", .value = "inline-block" }} },
-    .{ .name = "flex", .decls = &.{.{ .property = "display", .value = "flex" }} },
-    .{ .name = "inline-flex", .decls = &.{.{ .property = "display", .value = "inline-flex" }} },
-    .{ .name = "grid", .decls = &.{.{ .property = "display", .value = "grid" }} },
-    .{ .name = "inline-grid", .decls = &.{.{ .property = "display", .value = "inline-grid" }} },
-    .{ .name = "hidden", .decls = &.{.{ .property = "display", .value = "none" }} },
-    .{ .name = "table", .decls = &.{.{ .property = "display", .value = "table" }} },
-    .{ .name = "inline-table", .decls = &.{.{ .property = "display", .value = "inline-table" }} },
-    .{ .name = "table-caption", .decls = &.{.{ .property = "display", .value = "table-caption" }} },
-    .{ .name = "table-cell", .decls = &.{.{ .property = "display", .value = "table-cell" }} },
-    .{ .name = "table-column", .decls = &.{.{ .property = "display", .value = "table-column" }} },
-    .{ .name = "table-column-group", .decls = &.{.{ .property = "display", .value = "table-column-group" }} },
-    .{ .name = "table-footer-group", .decls = &.{.{ .property = "display", .value = "table-footer-group" }} },
-    .{ .name = "table-header-group", .decls = &.{.{ .property = "display", .value = "table-header-group" }} },
-    .{ .name = "table-row-group", .decls = &.{.{ .property = "display", .value = "table-row-group" }} },
-    .{ .name = "table-row", .decls = &.{.{ .property = "display", .value = "table-row" }} },
-    .{ .name = "flow-root", .decls = &.{.{ .property = "display", .value = "flow-root" }} },
-    .{ .name = "contents", .decls = &.{.{ .property = "display", .value = "contents" }} },
-    .{ .name = "list-item", .decls = &.{.{ .property = "display", .value = "list-item" }} },
+    .{
+        .name = "block",
+        .decls = &.{.{
+            .property = "display",
+            .value = "block",
+        }},
+    },
+    .{
+        .name = "inline",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline",
+        }},
+    },
+    .{
+        .name = "inline-block",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-block",
+        }},
+    },
+    .{
+        .name = "flex",
+        .decls = &.{.{
+            .property = "display",
+            .value = "flex",
+        }},
+    },
+    .{
+        .name = "inline-flex",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-flex",
+        }},
+    },
+    .{
+        .name = "grid",
+        .decls = &.{.{
+            .property = "display",
+            .value = "grid",
+        }},
+    },
+    .{
+        .name = "inline-grid",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-grid",
+        }},
+    },
+    .{
+        .name = "hidden",
+        .decls = &.{.{
+            .property = "display",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "table",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table",
+        }},
+    },
+    .{
+        .name = "inline-table",
+        .decls = &.{.{
+            .property = "display",
+            .value = "inline-table",
+        }},
+    },
+    .{
+        .name = "table-caption",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-caption",
+        }},
+    },
+    .{
+        .name = "table-cell",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-cell",
+        }},
+    },
+    .{
+        .name = "table-column",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-column",
+        }},
+    },
+    .{
+        .name = "table-column-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-column-group",
+        }},
+    },
+    .{
+        .name = "table-footer-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-footer-group",
+        }},
+    },
+    .{
+        .name = "table-header-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-header-group",
+        }},
+    },
+    .{
+        .name = "table-row-group",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-row-group",
+        }},
+    },
+    .{
+        .name = "table-row",
+        .decls = &.{.{
+            .property = "display",
+            .value = "table-row",
+        }},
+    },
+    .{
+        .name = "flow-root",
+        .decls = &.{.{
+            .property = "display",
+            .value = "flow-root",
+        }},
+    },
+    .{
+        .name = "contents",
+        .decls = &.{.{
+            .property = "display",
+            .value = "contents",
+        }},
+    },
+    .{
+        .name = "list-item",
+        .decls = &.{.{
+            .property = "display",
+            .value = "list-item",
+        }},
+    },
 
     // ── Field-sizing ────────────────────────────────────────────────────────
-    .{ .name = "field-sizing-content", .decls = &.{.{ .property = "field-sizing", .value = "content" }} },
-    .{ .name = "field-sizing-fixed", .decls = &.{.{ .property = "field-sizing", .value = "fixed" }} },
+    .{
+        .name = "field-sizing-content",
+        .decls = &.{.{
+            .property = "field-sizing",
+            .value = "content",
+        }},
+    },
+    .{
+        .name = "field-sizing-fixed",
+        .decls = &.{.{
+            .property = "field-sizing",
+            .value = "fixed",
+        }},
+    },
 
     // ── Visibility ──────────────────────────────────────────────────────────
-    .{ .name = "visible", .decls = &.{.{ .property = "visibility", .value = "visible" }} },
-    .{ .name = "invisible", .decls = &.{.{ .property = "visibility", .value = "hidden" }} },
-    .{ .name = "collapse", .decls = &.{.{ .property = "visibility", .value = "collapse" }} },
+    .{
+        .name = "visible",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "invisible",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "collapse",
+        .decls = &.{.{
+            .property = "visibility",
+            .value = "collapse",
+        }},
+    },
 
     // ── Box sizing ──────────────────────────────────────────────────────────
-    .{ .name = "box-border", .decls = &.{.{ .property = "box-sizing", .value = "border-box" }} },
-    .{ .name = "box-content", .decls = &.{.{ .property = "box-sizing", .value = "content-box" }} },
+    .{
+        .name = "box-border",
+        .decls = &.{.{
+            .property = "box-sizing",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "box-content",
+        .decls = &.{.{
+            .property = "box-sizing",
+            .value = "content-box",
+        }},
+    },
 
     // ── Box decoration break ────────────────────────────────────────────────
-    .{ .name = "box-decoration-slice", .decls = &.{
-        .{ .property = "-webkit-box-decoration-break", .value = "slice" },
-        .{ .property = "box-decoration-break", .value = "slice" },
-    } },
-    .{ .name = "box-decoration-clone", .decls = &.{
-        .{ .property = "-webkit-box-decoration-break", .value = "clone" },
-        .{ .property = "box-decoration-break", .value = "clone" },
-    } },
+    .{
+        .name = "box-decoration-slice",
+        .decls = &.{
+            .{
+                .property = "-webkit-box-decoration-break",
+                .value = "slice",
+            },
+            .{
+                .property = "box-decoration-break",
+                .value = "slice",
+            },
+        },
+    },
+    .{
+        .name = "box-decoration-clone",
+        .decls = &.{
+            .{
+                .property = "-webkit-box-decoration-break",
+                .value = "clone",
+            },
+            .{
+                .property = "box-decoration-break",
+                .value = "clone",
+            },
+        },
+    },
 
     // ── Isolation ───────────────────────────────────────────────────────────
-    .{ .name = "isolation-auto", .decls = &.{.{ .property = "isolation", .value = "auto" }} },
+    .{
+        .name = "isolation-auto",
+        .decls = &.{.{
+            .property = "isolation",
+            .value = "auto",
+        }},
+    },
 
     // ── Float ───────────────────────────────────────────────────────────────
-    .{ .name = "float-start", .decls = &.{.{ .property = "float", .value = "inline-start" }} },
-    .{ .name = "float-end", .decls = &.{.{ .property = "float", .value = "inline-end" }} },
-    .{ .name = "float-right", .decls = &.{.{ .property = "float", .value = "right" }} },
-    .{ .name = "float-left", .decls = &.{.{ .property = "float", .value = "left" }} },
-    .{ .name = "float-none", .decls = &.{.{ .property = "float", .value = "none" }} },
+    .{
+        .name = "float-start",
+        .decls = &.{.{
+            .property = "float",
+            .value = "inline-start",
+        }},
+    },
+    .{
+        .name = "float-end",
+        .decls = &.{.{
+            .property = "float",
+            .value = "inline-end",
+        }},
+    },
+    .{
+        .name = "float-right",
+        .decls = &.{.{
+            .property = "float",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "float-left",
+        .decls = &.{.{
+            .property = "float",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "float-none",
+        .decls = &.{.{
+            .property = "float",
+            .value = "none",
+        }},
+    },
 
     // ── Clear ───────────────────────────────────────────────────────────────
-    .{ .name = "clear-start", .decls = &.{.{ .property = "clear", .value = "inline-start" }} },
-    .{ .name = "clear-end", .decls = &.{.{ .property = "clear", .value = "inline-end" }} },
-    .{ .name = "clear-right", .decls = &.{.{ .property = "clear", .value = "right" }} },
-    .{ .name = "clear-left", .decls = &.{.{ .property = "clear", .value = "left" }} },
-    .{ .name = "clear-both", .decls = &.{.{ .property = "clear", .value = "both" }} },
-    .{ .name = "clear-none", .decls = &.{.{ .property = "clear", .value = "none" }} },
+    .{
+        .name = "clear-start",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "inline-start",
+        }},
+    },
+    .{
+        .name = "clear-end",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "inline-end",
+        }},
+    },
+    .{
+        .name = "clear-right",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "clear-left",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "clear-both",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "both",
+        }},
+    },
+    .{
+        .name = "clear-none",
+        .decls = &.{.{
+            .property = "clear",
+            .value = "none",
+        }},
+    },
 
     // ── Position ────────────────────────────────────────────────────────────
-    .{ .name = "static", .decls = &.{.{ .property = "position", .value = "static" }} },
-    .{ .name = "relative", .decls = &.{.{ .property = "position", .value = "relative" }} },
-    .{ .name = "absolute", .decls = &.{.{ .property = "position", .value = "absolute" }} },
-    .{ .name = "fixed", .decls = &.{.{ .property = "position", .value = "fixed" }} },
-    .{ .name = "sticky", .decls = &.{.{ .property = "position", .value = "sticky" }} },
+    .{
+        .name = "static",
+        .decls = &.{.{
+            .property = "position",
+            .value = "static",
+        }},
+    },
+    .{
+        .name = "relative",
+        .decls = &.{.{
+            .property = "position",
+            .value = "relative",
+        }},
+    },
+    .{
+        .name = "absolute",
+        .decls = &.{.{
+            .property = "position",
+            .value = "absolute",
+        }},
+    },
+    .{
+        .name = "fixed",
+        .decls = &.{.{
+            .property = "position",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "sticky",
+        .decls = &.{.{
+            .property = "position",
+            .value = "sticky",
+        }},
+    },
 
     // ── Flex direction ──────────────────────────────────────────────────────
-    .{ .name = "flex-row", .decls = &.{.{ .property = "flex-direction", .value = "row" }} },
-    .{ .name = "flex-row-reverse", .decls = &.{.{ .property = "flex-direction", .value = "row-reverse" }} },
-    .{ .name = "flex-col", .decls = &.{.{ .property = "flex-direction", .value = "column" }} },
-    .{ .name = "flex-col-reverse", .decls = &.{.{ .property = "flex-direction", .value = "column-reverse" }} },
-    .{ .name = "flex-wrap", .decls = &.{.{ .property = "flex-wrap", .value = "wrap" }} },
-    .{ .name = "flex-nowrap", .decls = &.{.{ .property = "flex-wrap", .value = "nowrap" }} },
-    .{ .name = "flex-wrap-reverse", .decls = &.{.{ .property = "flex-wrap", .value = "wrap-reverse" }} },
+    .{
+        .name = "flex-row",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "row",
+        }},
+    },
+    .{
+        .name = "flex-row-reverse",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "row-reverse",
+        }},
+    },
+    .{
+        .name = "flex-col",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "flex-col-reverse",
+        .decls = &.{.{
+            .property = "flex-direction",
+            .value = "column-reverse",
+        }},
+    },
+    .{
+        .name = "flex-wrap",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "wrap",
+        }},
+    },
+    .{
+        .name = "flex-nowrap",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "nowrap",
+        }},
+    },
+    .{
+        .name = "flex-wrap-reverse",
+        .decls = &.{.{
+            .property = "flex-wrap",
+            .value = "wrap-reverse",
+        }},
+    },
 
     // ── place-content / place-items / place-self ────────────────────────────
-    .{ .name = "place-content-center", .decls = &.{.{ .property = "place-content", .value = "center" }} },
-    .{ .name = "place-content-start", .decls = &.{.{ .property = "place-content", .value = "start" }} },
-    .{ .name = "place-content-end", .decls = &.{.{ .property = "place-content", .value = "end" }} },
-    .{ .name = "place-content-center-safe", .decls = &.{.{ .property = "place-content", .value = "safe center" }} },
-    .{ .name = "place-content-end-safe", .decls = &.{.{ .property = "place-content", .value = "safe end" }} },
-    .{ .name = "place-content-between", .decls = &.{.{ .property = "place-content", .value = "space-between" }} },
-    .{ .name = "place-content-around", .decls = &.{.{ .property = "place-content", .value = "space-around" }} },
-    .{ .name = "place-content-evenly", .decls = &.{.{ .property = "place-content", .value = "space-evenly" }} },
-    .{ .name = "place-content-baseline", .decls = &.{.{ .property = "place-content", .value = "baseline" }} },
-    .{ .name = "place-content-stretch", .decls = &.{.{ .property = "place-content", .value = "stretch" }} },
+    .{
+        .name = "place-content-center",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-content-start",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-content-end",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-content-center-safe",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-content-end-safe",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-content-between",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "place-content-around",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "place-content-evenly",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "place-content-baseline",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "place-content-stretch",
+        .decls = &.{.{
+            .property = "place-content",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "place-items-center", .decls = &.{.{ .property = "place-items", .value = "center" }} },
-    .{ .name = "place-items-start", .decls = &.{.{ .property = "place-items", .value = "start" }} },
-    .{ .name = "place-items-end", .decls = &.{.{ .property = "place-items", .value = "end" }} },
-    .{ .name = "place-items-center-safe", .decls = &.{.{ .property = "place-items", .value = "safe center" }} },
-    .{ .name = "place-items-end-safe", .decls = &.{.{ .property = "place-items", .value = "safe end" }} },
-    .{ .name = "place-items-baseline", .decls = &.{.{ .property = "place-items", .value = "baseline" }} },
-    .{ .name = "place-items-stretch", .decls = &.{.{ .property = "place-items", .value = "stretch" }} },
+    .{
+        .name = "place-items-center",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-items-start",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-items-end",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-items-center-safe",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-items-end-safe",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-items-baseline",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "place-items-stretch",
+        .decls = &.{.{
+            .property = "place-items",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "place-self-auto", .decls = &.{.{ .property = "place-self", .value = "auto" }} },
-    .{ .name = "place-self-start", .decls = &.{.{ .property = "place-self", .value = "start" }} },
-    .{ .name = "place-self-end", .decls = &.{.{ .property = "place-self", .value = "end" }} },
-    .{ .name = "place-self-center", .decls = &.{.{ .property = "place-self", .value = "center" }} },
-    .{ .name = "place-self-end-safe", .decls = &.{.{ .property = "place-self", .value = "safe end" }} },
-    .{ .name = "place-self-center-safe", .decls = &.{.{ .property = "place-self", .value = "safe center" }} },
-    .{ .name = "place-self-stretch", .decls = &.{.{ .property = "place-self", .value = "stretch" }} },
+    .{
+        .name = "place-self-auto",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "place-self-start",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "place-self-end",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "place-self-center",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "place-self-end-safe",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "place-self-center-safe",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "place-self-stretch",
+        .decls = &.{.{
+            .property = "place-self",
+            .value = "stretch",
+        }},
+    },
 
     // ── align-content (`content-*`) ─────────────────────────────────────────
-    .{ .name = "content-normal", .decls = &.{.{ .property = "align-content", .value = "normal" }} },
-    .{ .name = "content-center", .decls = &.{.{ .property = "align-content", .value = "center" }} },
-    .{ .name = "content-start", .decls = &.{.{ .property = "align-content", .value = "flex-start" }} },
-    .{ .name = "content-end", .decls = &.{.{ .property = "align-content", .value = "flex-end" }} },
-    .{ .name = "content-center-safe", .decls = &.{.{ .property = "align-content", .value = "safe center" }} },
-    .{ .name = "content-end-safe", .decls = &.{.{ .property = "align-content", .value = "safe flex-end" }} },
-    .{ .name = "content-between", .decls = &.{.{ .property = "align-content", .value = "space-between" }} },
-    .{ .name = "content-around", .decls = &.{.{ .property = "align-content", .value = "space-around" }} },
-    .{ .name = "content-evenly", .decls = &.{.{ .property = "align-content", .value = "space-evenly" }} },
-    .{ .name = "content-baseline", .decls = &.{.{ .property = "align-content", .value = "baseline" }} },
-    .{ .name = "content-stretch", .decls = &.{.{ .property = "align-content", .value = "stretch" }} },
+    .{
+        .name = "content-normal",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "content-center",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "content-start",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "content-end",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "content-center-safe",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "content-end-safe",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "content-between",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "content-around",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "content-evenly",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "content-baseline",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "content-stretch",
+        .decls = &.{.{
+            .property = "align-content",
+            .value = "stretch",
+        }},
+    },
 
     // ── justify-items ───────────────────────────────────────────────────────
-    .{ .name = "justify-items-normal", .decls = &.{.{ .property = "justify-items", .value = "normal" }} },
-    .{ .name = "justify-items-center", .decls = &.{.{ .property = "justify-items", .value = "center" }} },
-    .{ .name = "justify-items-start", .decls = &.{.{ .property = "justify-items", .value = "start" }} },
-    .{ .name = "justify-items-end", .decls = &.{.{ .property = "justify-items", .value = "end" }} },
-    .{ .name = "justify-items-center-safe", .decls = &.{.{ .property = "justify-items", .value = "safe center" }} },
-    .{ .name = "justify-items-end-safe", .decls = &.{.{ .property = "justify-items", .value = "safe end" }} },
-    .{ .name = "justify-items-stretch", .decls = &.{.{ .property = "justify-items", .value = "stretch" }} },
+    .{
+        .name = "justify-items-normal",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "justify-items-center",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-items-start",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "justify-items-end",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "justify-items-center-safe",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-items-end-safe",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "justify-items-stretch",
+        .decls = &.{.{
+            .property = "justify-items",
+            .value = "stretch",
+        }},
+    },
 
     // ── justify-self ────────────────────────────────────────────────────────
-    .{ .name = "justify-self-auto", .decls = &.{.{ .property = "justify-self", .value = "auto" }} },
-    .{ .name = "justify-self-start", .decls = &.{.{ .property = "justify-self", .value = "start" }} },
-    .{ .name = "justify-self-end", .decls = &.{.{ .property = "justify-self", .value = "end" }} },
-    .{ .name = "justify-self-center", .decls = &.{.{ .property = "justify-self", .value = "center" }} },
-    .{ .name = "justify-self-end-safe", .decls = &.{.{ .property = "justify-self", .value = "safe end" }} },
-    .{ .name = "justify-self-center-safe", .decls = &.{.{ .property = "justify-self", .value = "safe center" }} },
-    .{ .name = "justify-self-stretch", .decls = &.{.{ .property = "justify-self", .value = "stretch" }} },
+    .{
+        .name = "justify-self-auto",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "justify-self-start",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "justify-self-end",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "justify-self-center",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-self-end-safe",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "safe end",
+        }},
+    },
+    .{
+        .name = "justify-self-center-safe",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-self-stretch",
+        .decls = &.{.{
+            .property = "justify-self",
+            .value = "stretch",
+        }},
+    },
 
     // ── grid-flow ───────────────────────────────────────────────────────────
-    .{ .name = "grid-flow-row", .decls = &.{.{ .property = "grid-auto-flow", .value = "row" }} },
-    .{ .name = "grid-flow-col", .decls = &.{.{ .property = "grid-auto-flow", .value = "column" }} },
-    .{ .name = "grid-flow-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "dense" }} },
-    .{ .name = "grid-flow-row-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "row dense" }} },
-    .{ .name = "grid-flow-col-dense", .decls = &.{.{ .property = "grid-auto-flow", .value = "column dense" }} },
+    .{
+        .name = "grid-flow-row",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "row",
+        }},
+    },
+    .{
+        .name = "grid-flow-col",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "grid-flow-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "dense",
+        }},
+    },
+    .{
+        .name = "grid-flow-row-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "row dense",
+        }},
+    },
+    .{
+        .name = "grid-flow-col-dense",
+        .decls = &.{.{
+            .property = "grid-auto-flow",
+            .value = "column dense",
+        }},
+    },
 
     // ── Justify / Align ─────────────────────────────────────────────────────
-    .{ .name = "justify-normal", .decls = &.{.{ .property = "justify-content", .value = "normal" }} },
-    .{ .name = "justify-start", .decls = &.{.{ .property = "justify-content", .value = "flex-start" }} },
-    .{ .name = "justify-center", .decls = &.{.{ .property = "justify-content", .value = "center" }} },
-    .{ .name = "justify-between", .decls = &.{.{ .property = "justify-content", .value = "space-between" }} },
-    .{ .name = "justify-end", .decls = &.{.{ .property = "justify-content", .value = "flex-end" }} },
-    .{ .name = "justify-around", .decls = &.{.{ .property = "justify-content", .value = "space-around" }} },
-    .{ .name = "justify-evenly", .decls = &.{.{ .property = "justify-content", .value = "space-evenly" }} },
-    .{ .name = "justify-center-safe", .decls = &.{.{ .property = "justify-content", .value = "safe center" }} },
-    .{ .name = "justify-end-safe", .decls = &.{.{ .property = "justify-content", .value = "safe flex-end" }} },
-    .{ .name = "justify-baseline", .decls = &.{.{ .property = "justify-content", .value = "baseline" }} },
-    .{ .name = "justify-stretch", .decls = &.{.{ .property = "justify-content", .value = "stretch" }} },
+    .{
+        .name = "justify-normal",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "justify-start",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "justify-center",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "justify-between",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-between",
+        }},
+    },
+    .{
+        .name = "justify-end",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "justify-around",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-around",
+        }},
+    },
+    .{
+        .name = "justify-evenly",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "space-evenly",
+        }},
+    },
+    .{
+        .name = "justify-center-safe",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "justify-end-safe",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "justify-baseline",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "justify-stretch",
+        .decls = &.{.{
+            .property = "justify-content",
+            .value = "stretch",
+        }},
+    },
 
-    .{ .name = "items-start", .decls = &.{.{ .property = "align-items", .value = "flex-start" }} },
-    .{ .name = "items-center", .decls = &.{.{ .property = "align-items", .value = "center" }} },
-    .{ .name = "items-end", .decls = &.{.{ .property = "align-items", .value = "flex-end" }} },
-    .{ .name = "items-baseline", .decls = &.{.{ .property = "align-items", .value = "baseline" }} },
-    .{ .name = "items-baseline-last", .decls = &.{.{ .property = "align-items", .value = "last baseline" }} },
-    .{ .name = "items-stretch", .decls = &.{.{ .property = "align-items", .value = "stretch" }} },
-    .{ .name = "items-center-safe", .decls = &.{.{ .property = "align-items", .value = "safe center" }} },
-    .{ .name = "items-end-safe", .decls = &.{.{ .property = "align-items", .value = "safe flex-end" }} },
+    .{
+        .name = "items-start",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "items-center",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "items-end",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "items-baseline",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "items-baseline-last",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "last baseline",
+        }},
+    },
+    .{
+        .name = "items-stretch",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "stretch",
+        }},
+    },
+    .{
+        .name = "items-center-safe",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "items-end-safe",
+        .decls = &.{.{
+            .property = "align-items",
+            .value = "safe flex-end",
+        }},
+    },
 
-    .{ .name = "self-auto", .decls = &.{.{ .property = "align-self", .value = "auto" }} },
-    .{ .name = "self-start", .decls = &.{.{ .property = "align-self", .value = "flex-start" }} },
-    .{ .name = "self-end", .decls = &.{.{ .property = "align-self", .value = "flex-end" }} },
-    .{ .name = "self-center", .decls = &.{.{ .property = "align-self", .value = "center" }} },
-    .{ .name = "self-end-safe", .decls = &.{.{ .property = "align-self", .value = "safe flex-end" }} },
-    .{ .name = "self-center-safe", .decls = &.{.{ .property = "align-self", .value = "safe center" }} },
-    .{ .name = "self-stretch", .decls = &.{.{ .property = "align-self", .value = "stretch" }} },
-    .{ .name = "self-baseline", .decls = &.{.{ .property = "align-self", .value = "baseline" }} },
-    .{ .name = "self-baseline-last", .decls = &.{.{ .property = "align-self", .value = "last baseline" }} },
+    .{
+        .name = "self-auto",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "self-start",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "flex-start",
+        }},
+    },
+    .{
+        .name = "self-end",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "flex-end",
+        }},
+    },
+    .{
+        .name = "self-center",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "self-end-safe",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "safe flex-end",
+        }},
+    },
+    .{
+        .name = "self-center-safe",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "safe center",
+        }},
+    },
+    .{
+        .name = "self-stretch",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "stretch",
+        }},
+    },
+    .{
+        .name = "self-baseline",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "self-baseline-last",
+        .decls = &.{.{
+            .property = "align-self",
+            .value = "last baseline",
+        }},
+    },
 
     // ── Text wrap (gap kind #14 from validation C) ──────────────────────────
-    .{ .name = "text-balance", .decls = &.{.{ .property = "text-wrap", .value = "balance" }} },
-    .{ .name = "text-pretty", .decls = &.{.{ .property = "text-wrap", .value = "pretty" }} },
-    .{ .name = "text-wrap", .decls = &.{.{ .property = "text-wrap", .value = "wrap" }} },
-    .{ .name = "text-nowrap", .decls = &.{.{ .property = "text-wrap", .value = "nowrap" }} },
+    .{
+        .name = "text-balance",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "balance",
+        }},
+    },
+    .{
+        .name = "text-pretty",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "pretty",
+        }},
+    },
+    .{
+        .name = "text-wrap",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "wrap",
+        }},
+    },
+    .{
+        .name = "text-nowrap",
+        .decls = &.{.{
+            .property = "text-wrap",
+            .value = "nowrap",
+        }},
+    },
 
     // ── Text overflow ───────────────────────────────────────────────────────
-    .{ .name = "text-clip", .decls = &.{.{ .property = "text-overflow", .value = "clip" }} },
-    .{ .name = "text-ellipsis", .decls = &.{.{ .property = "text-overflow", .value = "ellipsis" }} },
+    .{
+        .name = "text-clip",
+        .decls = &.{.{
+            .property = "text-overflow",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "text-ellipsis",
+        .decls = &.{.{
+            .property = "text-overflow",
+            .value = "ellipsis",
+        }},
+    },
 
     // ── Truncate (3-property shortcut) ──────────────────────────────────────
-    .{ .name = "truncate", .decls = &.{
-        .{ .property = "overflow", .value = "hidden" },
-        .{ .property = "text-overflow", .value = "ellipsis" },
-        .{ .property = "white-space", .value = "nowrap" },
-    } },
+    .{
+        .name = "truncate",
+        .decls = &.{
+            .{
+                .property = "overflow",
+                .value = "hidden",
+            },
+            .{
+                .property = "text-overflow",
+                .value = "ellipsis",
+            },
+            .{
+                .property = "white-space",
+                .value = "nowrap",
+            },
+        },
+    },
 
     // ── Text alignment ──────────────────────────────────────────────────────
-    .{ .name = "text-left", .decls = &.{.{ .property = "text-align", .value = "left" }} },
-    .{ .name = "text-center", .decls = &.{.{ .property = "text-align", .value = "center" }} },
-    .{ .name = "text-right", .decls = &.{.{ .property = "text-align", .value = "right" }} },
-    .{ .name = "text-justify", .decls = &.{.{ .property = "text-align", .value = "justify" }} },
-    .{ .name = "text-start", .decls = &.{.{ .property = "text-align", .value = "start" }} },
-    .{ .name = "text-end", .decls = &.{.{ .property = "text-align", .value = "end" }} },
+    .{
+        .name = "text-left",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "text-center",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "text-right",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "text-justify",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "justify",
+        }},
+    },
+    .{
+        .name = "text-start",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "text-end",
+        .decls = &.{.{
+            .property = "text-align",
+            .value = "end",
+        }},
+    },
 
     // ── Vertical-align (`align-*`) ──────────────────────────────────────────
-    .{ .name = "align-baseline", .decls = &.{.{ .property = "vertical-align", .value = "baseline" }} },
-    .{ .name = "align-top", .decls = &.{.{ .property = "vertical-align", .value = "top" }} },
-    .{ .name = "align-middle", .decls = &.{.{ .property = "vertical-align", .value = "middle" }} },
-    .{ .name = "align-bottom", .decls = &.{.{ .property = "vertical-align", .value = "bottom" }} },
-    .{ .name = "align-text-top", .decls = &.{.{ .property = "vertical-align", .value = "text-top" }} },
-    .{ .name = "align-text-bottom", .decls = &.{.{ .property = "vertical-align", .value = "text-bottom" }} },
-    .{ .name = "align-sub", .decls = &.{.{ .property = "vertical-align", .value = "sub" }} },
-    .{ .name = "align-super", .decls = &.{.{ .property = "vertical-align", .value = "super" }} },
+    .{
+        .name = "align-baseline",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "baseline",
+        }},
+    },
+    .{
+        .name = "align-top",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "align-middle",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "middle",
+        }},
+    },
+    .{
+        .name = "align-bottom",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "align-text-top",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "text-top",
+        }},
+    },
+    .{
+        .name = "align-text-bottom",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "text-bottom",
+        }},
+    },
+    .{
+        .name = "align-sub",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "sub",
+        }},
+    },
+    .{
+        .name = "align-super",
+        .decls = &.{.{
+            .property = "vertical-align",
+            .value = "super",
+        }},
+    },
 
     // ── Decoration style + thickness statics ────────────────────────────────
-    .{ .name = "decoration-solid", .decls = &.{.{ .property = "text-decoration-style", .value = "solid" }} },
-    .{ .name = "decoration-double", .decls = &.{.{ .property = "text-decoration-style", .value = "double" }} },
-    .{ .name = "decoration-dotted", .decls = &.{.{ .property = "text-decoration-style", .value = "dotted" }} },
-    .{ .name = "decoration-dashed", .decls = &.{.{ .property = "text-decoration-style", .value = "dashed" }} },
-    .{ .name = "decoration-wavy", .decls = &.{.{ .property = "text-decoration-style", .value = "wavy" }} },
-    .{ .name = "decoration-auto", .decls = &.{.{ .property = "text-decoration-thickness", .value = "auto" }} },
-    .{ .name = "decoration-from-font", .decls = &.{.{ .property = "text-decoration-thickness", .value = "from-font" }} },
+    .{
+        .name = "decoration-solid",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "solid",
+        }},
+    },
+    .{
+        .name = "decoration-double",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "double",
+        }},
+    },
+    .{
+        .name = "decoration-dotted",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "dotted",
+        }},
+    },
+    .{
+        .name = "decoration-dashed",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "dashed",
+        }},
+    },
+    .{
+        .name = "decoration-wavy",
+        .decls = &.{.{
+            .property = "text-decoration-style",
+            .value = "wavy",
+        }},
+    },
+    .{
+        .name = "decoration-auto",
+        .decls = &.{.{
+            .property = "text-decoration-thickness",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "decoration-from-font",
+        .decls = &.{.{
+            .property = "text-decoration-thickness",
+            .value = "from-font",
+        }},
+    },
 
     // ── Hyphens ─────────────────────────────────────────────────────────────
-    .{ .name = "hyphens-none", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "none" },
-        .{ .property = "hyphens", .value = "none" },
-    } },
-    .{ .name = "hyphens-manual", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "manual" },
-        .{ .property = "hyphens", .value = "manual" },
-    } },
-    .{ .name = "hyphens-auto", .decls = &.{
-        .{ .property = "-webkit-hyphens", .value = "auto" },
-        .{ .property = "hyphens", .value = "auto" },
-    } },
+    .{
+        .name = "hyphens-none",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "none",
+            },
+            .{
+                .property = "hyphens",
+                .value = "none",
+            },
+        },
+    },
+    .{
+        .name = "hyphens-manual",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "manual",
+            },
+            .{
+                .property = "hyphens",
+                .value = "manual",
+            },
+        },
+    },
+    .{
+        .name = "hyphens-auto",
+        .decls = &.{
+            .{
+                .property = "-webkit-hyphens",
+                .value = "auto",
+            },
+            .{
+                .property = "hyphens",
+                .value = "auto",
+            },
+        },
+    },
 
     // ── White-space ─────────────────────────────────────────────────────────
-    .{ .name = "whitespace-normal", .decls = &.{.{ .property = "white-space", .value = "normal" }} },
-    .{ .name = "whitespace-nowrap", .decls = &.{.{ .property = "white-space", .value = "nowrap" }} },
-    .{ .name = "whitespace-pre", .decls = &.{.{ .property = "white-space", .value = "pre" }} },
-    .{ .name = "whitespace-pre-line", .decls = &.{.{ .property = "white-space", .value = "pre-line" }} },
-    .{ .name = "whitespace-pre-wrap", .decls = &.{.{ .property = "white-space", .value = "pre-wrap" }} },
-    .{ .name = "whitespace-break-spaces", .decls = &.{.{ .property = "white-space", .value = "break-spaces" }} },
+    .{
+        .name = "whitespace-normal",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "whitespace-nowrap",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "nowrap",
+        }},
+    },
+    .{
+        .name = "whitespace-pre",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre",
+        }},
+    },
+    .{
+        .name = "whitespace-pre-line",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre-line",
+        }},
+    },
+    .{
+        .name = "whitespace-pre-wrap",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "pre-wrap",
+        }},
+    },
+    .{
+        .name = "whitespace-break-spaces",
+        .decls = &.{.{
+            .property = "white-space",
+            .value = "break-spaces",
+        }},
+    },
 
     // ── Word break / overflow wrap ──────────────────────────────────────────
-    .{ .name = "break-normal", .decls = &.{
-        .{ .property = "overflow-wrap", .value = "normal" },
-        .{ .property = "word-break", .value = "normal" },
-    } },
-    .{ .name = "break-all", .decls = &.{.{ .property = "word-break", .value = "break-all" }} },
-    .{ .name = "break-keep", .decls = &.{.{ .property = "word-break", .value = "keep-all" }} },
-    .{ .name = "wrap-anywhere", .decls = &.{.{ .property = "overflow-wrap", .value = "anywhere" }} },
-    .{ .name = "wrap-break-word", .decls = &.{.{ .property = "overflow-wrap", .value = "break-word" }} },
-    .{ .name = "wrap-normal", .decls = &.{.{ .property = "overflow-wrap", .value = "normal" }} },
+    .{
+        .name = "break-normal",
+        .decls = &.{
+            .{
+                .property = "overflow-wrap",
+                .value = "normal",
+            },
+            .{
+                .property = "word-break",
+                .value = "normal",
+            },
+        },
+    },
+    .{
+        .name = "break-all",
+        .decls = &.{.{
+            .property = "word-break",
+            .value = "break-all",
+        }},
+    },
+    .{
+        .name = "break-keep",
+        .decls = &.{.{
+            .property = "word-break",
+            .value = "keep-all",
+        }},
+    },
+    .{
+        .name = "wrap-anywhere",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "anywhere",
+        }},
+    },
+    .{
+        .name = "wrap-break-word",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "break-word",
+        }},
+    },
+    .{
+        .name = "wrap-normal",
+        .decls = &.{.{
+            .property = "overflow-wrap",
+            .value = "normal",
+        }},
+    },
 
     // ── List-style-position ─────────────────────────────────────────────────
-    .{ .name = "list-inside", .decls = &.{.{ .property = "list-style-position", .value = "inside" }} },
-    .{ .name = "list-outside", .decls = &.{.{ .property = "list-style-position", .value = "outside" }} },
-    .{ .name = "list-none", .decls = &.{.{ .property = "list-style-type", .value = "none" }} },
-    .{ .name = "list-disc", .decls = &.{.{ .property = "list-style-type", .value = "disc" }} },
-    .{ .name = "list-decimal", .decls = &.{.{ .property = "list-style-type", .value = "decimal" }} },
-    .{ .name = "list-image-none", .decls = &.{.{ .property = "list-style-image", .value = "none" }} },
+    .{
+        .name = "list-inside",
+        .decls = &.{.{
+            .property = "list-style-position",
+            .value = "inside",
+        }},
+    },
+    .{
+        .name = "list-outside",
+        .decls = &.{.{
+            .property = "list-style-position",
+            .value = "outside",
+        }},
+    },
+    .{
+        .name = "list-none",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "list-disc",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "disc",
+        }},
+    },
+    .{
+        .name = "list-decimal",
+        .decls = &.{.{
+            .property = "list-style-type",
+            .value = "decimal",
+        }},
+    },
+    .{
+        .name = "list-image-none",
+        .decls = &.{.{
+            .property = "list-style-image",
+            .value = "none",
+        }},
+    },
 
     // ── Font-variant-numeric ────────────────────────────────────────────────
     // The class contract composes via `--tw-numeric-*` vars; we emit each utility
     // directly (last-write-wins). For most use cases this is identical.
-    .{ .name = "normal-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "normal" }} },
-    .{ .name = "ordinal", .decls = &.{.{ .property = "font-variant-numeric", .value = "ordinal" }} },
-    .{ .name = "slashed-zero", .decls = &.{.{ .property = "font-variant-numeric", .value = "slashed-zero" }} },
-    .{ .name = "lining-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "lining-nums" }} },
-    .{ .name = "oldstyle-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "oldstyle-nums" }} },
-    .{ .name = "proportional-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "proportional-nums" }} },
-    .{ .name = "tabular-nums", .decls = &.{.{ .property = "font-variant-numeric", .value = "tabular-nums" }} },
-    .{ .name = "diagonal-fractions", .decls = &.{.{ .property = "font-variant-numeric", .value = "diagonal-fractions" }} },
-    .{ .name = "stacked-fractions", .decls = &.{.{ .property = "font-variant-numeric", .value = "stacked-fractions" }} },
+    .{
+        .name = "normal-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "ordinal",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "ordinal",
+        }},
+    },
+    .{
+        .name = "slashed-zero",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "slashed-zero",
+        }},
+    },
+    .{
+        .name = "lining-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "lining-nums",
+        }},
+    },
+    .{
+        .name = "oldstyle-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "oldstyle-nums",
+        }},
+    },
+    .{
+        .name = "proportional-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "proportional-nums",
+        }},
+    },
+    .{
+        .name = "tabular-nums",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "tabular-nums",
+        }},
+    },
+    .{
+        .name = "diagonal-fractions",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "diagonal-fractions",
+        }},
+    },
+    .{
+        .name = "stacked-fractions",
+        .decls = &.{.{
+            .property = "font-variant-numeric",
+            .value = "stacked-fractions",
+        }},
+    },
 
     // ── Filter / backdrop-filter resets ─────────────────────────────────────
-    .{ .name = "filter-none", .decls = &.{.{ .property = "filter", .value = "none" }} },
-    .{ .name = "backdrop-filter-none", .decls = &.{.{ .property = "backdrop-filter", .value = "none" }} },
+    .{
+        .name = "filter-none",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "backdrop-filter-none",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "none",
+        }},
+    },
 
     // ── Filter bare-form defaults (100%) ───────────────────────────────────
-    .{ .name = "grayscale", .decls = &.{.{ .property = "filter", .value = "grayscale(100%)" }} },
-    .{ .name = "invert", .decls = &.{.{ .property = "filter", .value = "invert(100%)" }} },
-    .{ .name = "sepia", .decls = &.{.{ .property = "filter", .value = "sepia(100%)" }} },
-    .{ .name = "backdrop-grayscale", .decls = &.{.{ .property = "backdrop-filter", .value = "grayscale(100%)" }} },
-    .{ .name = "backdrop-invert", .decls = &.{.{ .property = "backdrop-filter", .value = "invert(100%)" }} },
-    .{ .name = "backdrop-sepia", .decls = &.{.{ .property = "backdrop-filter", .value = "sepia(100%)" }} },
-    .{ .name = "blur", .decls = &.{.{ .property = "filter", .value = "blur(8px)" }} },
-    .{ .name = "backdrop-blur", .decls = &.{.{ .property = "backdrop-filter", .value = "blur(8px)" }} },
+    .{
+        .name = "grayscale",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "grayscale(100%)",
+        }},
+    },
+    .{
+        .name = "invert",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "invert(100%)",
+        }},
+    },
+    .{
+        .name = "sepia",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "sepia(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-grayscale",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "grayscale(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-invert",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "invert(100%)",
+        }},
+    },
+    .{
+        .name = "backdrop-sepia",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "sepia(100%)",
+        }},
+    },
+    .{
+        .name = "blur",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "blur(8px)",
+        }},
+    },
+    .{
+        .name = "backdrop-blur",
+        .decls = &.{.{
+            .property = "backdrop-filter",
+            .value = "blur(8px)",
+        }},
+    },
 
     // ── Content (pseudo-element content property) ───────────────────────────
-    .{ .name = "content-none", .decls = &.{
-        .{ .property = "--tw-content", .value = "none" },
-        .{ .property = "content", .value = "none" },
-    } },
+    .{
+        .name = "content-none",
+        .decls = &.{
+            .{
+                .property = "--tw-content",
+                .value = "none",
+            },
+            .{
+                .property = "content",
+                .value = "none",
+            },
+        },
+    },
 
     // ── Grid auto cols / auto rows statics ─────────────────────────────────
-    .{ .name = "auto-cols-auto", .decls = &.{.{ .property = "grid-auto-columns", .value = "auto" }} },
-    .{ .name = "auto-cols-min", .decls = &.{.{ .property = "grid-auto-columns", .value = "min-content" }} },
-    .{ .name = "auto-cols-max", .decls = &.{.{ .property = "grid-auto-columns", .value = "max-content" }} },
-    .{ .name = "auto-cols-fr", .decls = &.{.{ .property = "grid-auto-columns", .value = "minmax(0, 1fr)" }} },
-    .{ .name = "auto-rows-auto", .decls = &.{.{ .property = "grid-auto-rows", .value = "auto" }} },
-    .{ .name = "auto-rows-min", .decls = &.{.{ .property = "grid-auto-rows", .value = "min-content" }} },
-    .{ .name = "auto-rows-max", .decls = &.{.{ .property = "grid-auto-rows", .value = "max-content" }} },
-    .{ .name = "auto-rows-fr", .decls = &.{.{ .property = "grid-auto-rows", .value = "minmax(0, 1fr)" }} },
+    .{
+        .name = "auto-cols-auto",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "auto-cols-min",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "min-content",
+        }},
+    },
+    .{
+        .name = "auto-cols-max",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "max-content",
+        }},
+    },
+    .{
+        .name = "auto-cols-fr",
+        .decls = &.{.{
+            .property = "grid-auto-columns",
+            .value = "minmax(0, 1fr)",
+        }},
+    },
+    .{
+        .name = "auto-rows-auto",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "auto-rows-min",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "min-content",
+        }},
+    },
+    .{
+        .name = "auto-rows-max",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "max-content",
+        }},
+    },
+    .{
+        .name = "auto-rows-fr",
+        .decls = &.{.{
+            .property = "grid-auto-rows",
+            .value = "minmax(0, 1fr)",
+        }},
+    },
 
     // ── Underline-offset auto ──────────────────────────────────────────────
-    .{ .name = "underline-offset-auto", .decls = &.{.{ .property = "text-underline-offset", .value = "auto" }} },
+    .{
+        .name = "underline-offset-auto",
+        .decls = &.{.{
+            .property = "text-underline-offset",
+            .value = "auto",
+        }},
+    },
 
     // ── Line-clamp none ────────────────────────────────────────────────────
-    .{ .name = "line-clamp-none", .decls = &.{
-        .{ .property = "overflow", .value = "visible" },
-        .{ .property = "display", .value = "block" },
-        .{ .property = "-webkit-box-orient", .value = "horizontal" },
-        .{ .property = "-webkit-line-clamp", .value = "unset" },
-    } },
+    .{
+        .name = "line-clamp-none",
+        .decls = &.{
+            .{
+                .property = "overflow",
+                .value = "visible",
+            },
+            .{
+                .property = "display",
+                .value = "block",
+            },
+            .{
+                .property = "-webkit-box-orient",
+                .value = "horizontal",
+            },
+            .{
+                .property = "-webkit-line-clamp",
+                .value = "unset",
+            },
+        },
+    },
 
     // ── Text decoration ─────────────────────────────────────────────────────
-    .{ .name = "underline", .decls = &.{.{ .property = "text-decoration-line", .value = "underline" }} },
-    .{ .name = "overline", .decls = &.{.{ .property = "text-decoration-line", .value = "overline" }} },
-    .{ .name = "line-through", .decls = &.{.{ .property = "text-decoration-line", .value = "line-through" }} },
-    .{ .name = "no-underline", .decls = &.{.{ .property = "text-decoration-line", .value = "none" }} },
+    .{
+        .name = "underline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "underline",
+        }},
+    },
+    .{
+        .name = "overline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "overline",
+        }},
+    },
+    .{
+        .name = "line-through",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "line-through",
+        }},
+    },
+    .{
+        .name = "no-underline",
+        .decls = &.{.{
+            .property = "text-decoration-line",
+            .value = "none",
+        }},
+    },
 
     // ── Text transform ──────────────────────────────────────────────────────
-    .{ .name = "uppercase", .decls = &.{.{ .property = "text-transform", .value = "uppercase" }} },
-    .{ .name = "lowercase", .decls = &.{.{ .property = "text-transform", .value = "lowercase" }} },
-    .{ .name = "capitalize", .decls = &.{.{ .property = "text-transform", .value = "capitalize" }} },
-    .{ .name = "normal-case", .decls = &.{.{ .property = "text-transform", .value = "none" }} },
+    .{
+        .name = "uppercase",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "uppercase",
+        }},
+    },
+    .{
+        .name = "lowercase",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "lowercase",
+        }},
+    },
+    .{
+        .name = "capitalize",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "capitalize",
+        }},
+    },
+    .{
+        .name = "normal-case",
+        .decls = &.{.{
+            .property = "text-transform",
+            .value = "none",
+        }},
+    },
 
     // ── Font style ──────────────────────────────────────────────────────────
-    .{ .name = "italic", .decls = &.{.{ .property = "font-style", .value = "italic" }} },
-    .{ .name = "not-italic", .decls = &.{.{ .property = "font-style", .value = "normal" }} },
+    .{
+        .name = "italic",
+        .decls = &.{.{
+            .property = "font-style",
+            .value = "italic",
+        }},
+    },
+    .{
+        .name = "not-italic",
+        .decls = &.{.{
+            .property = "font-style",
+            .value = "normal",
+        }},
+    },
 
     // ── Font weight (full supported scale) ─────────────────────────────────
-    .{ .name = "font-thin", .decls = &.{.{ .property = "font-weight", .value = "100" }} },
-    .{ .name = "font-extralight", .decls = &.{.{ .property = "font-weight", .value = "200" }} },
-    .{ .name = "font-light", .decls = &.{.{ .property = "font-weight", .value = "300" }} },
-    .{ .name = "font-normal", .decls = &.{.{ .property = "font-weight", .value = "400" }} },
-    .{ .name = "font-medium", .decls = &.{.{ .property = "font-weight", .value = "500" }} },
-    .{ .name = "font-semibold", .decls = &.{.{ .property = "font-weight", .value = "600" }} },
-    .{ .name = "font-bold", .decls = &.{.{ .property = "font-weight", .value = "700" }} },
-    .{ .name = "font-extrabold", .decls = &.{.{ .property = "font-weight", .value = "800" }} },
-    .{ .name = "font-black", .decls = &.{.{ .property = "font-weight", .value = "900" }} },
+    .{
+        .name = "font-thin",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "100",
+        }},
+    },
+    .{
+        .name = "font-extralight",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "200",
+        }},
+    },
+    .{
+        .name = "font-light",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "300",
+        }},
+    },
+    .{
+        .name = "font-normal",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "400",
+        }},
+    },
+    .{
+        .name = "font-medium",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "500",
+        }},
+    },
+    .{
+        .name = "font-semibold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "600",
+        }},
+    },
+    .{
+        .name = "font-bold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "700",
+        }},
+    },
+    .{
+        .name = "font-extrabold",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "800",
+        }},
+    },
+    .{
+        .name = "font-black",
+        .decls = &.{.{
+            .property = "font-weight",
+            .value = "900",
+        }},
+    },
 
     // ── Flex shorthand ──────────────────────────────────────────────────────
-    .{ .name = "flex-auto", .decls = &.{.{ .property = "flex", .value = "auto" }} },
-    .{ .name = "flex-initial", .decls = &.{.{ .property = "flex", .value = "0 auto" }} },
-    .{ .name = "flex-none", .decls = &.{.{ .property = "flex", .value = "none" }} },
-    .{ .name = "flex-1", .decls = &.{.{ .property = "flex", .value = "1 1 0%" }} },
+    .{
+        .name = "flex-auto",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "flex-initial",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "0 auto",
+        }},
+    },
+    .{
+        .name = "flex-none",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "flex-1",
+        .decls = &.{.{
+            .property = "flex",
+            .value = "1 1 0%",
+        }},
+    },
 
     // ── Flex shrink / grow ─────────────────────────────────────────────────
-    .{ .name = "shrink", .decls = &.{.{ .property = "flex-shrink", .value = "1" }} },
-    .{ .name = "shrink-0", .decls = &.{.{ .property = "flex-shrink", .value = "0" }} },
-    .{ .name = "grow", .decls = &.{.{ .property = "flex-grow", .value = "1" }} },
-    .{ .name = "grow-0", .decls = &.{.{ .property = "flex-grow", .value = "0" }} },
+    .{
+        .name = "shrink",
+        .decls = &.{.{
+            .property = "flex-shrink",
+            .value = "1",
+        }},
+    },
+    .{
+        .name = "shrink-0",
+        .decls = &.{.{
+            .property = "flex-shrink",
+            .value = "0",
+        }},
+    },
+    .{
+        .name = "grow",
+        .decls = &.{.{
+            .property = "flex-grow",
+            .value = "1",
+        }},
+    },
+    .{
+        .name = "grow-0",
+        .decls = &.{.{
+            .property = "flex-grow",
+            .value = "0",
+        }},
+    },
 
     // ── Flex basis statics ─────────────────────────────────────────────────
-    .{ .name = "basis-auto", .decls = &.{.{ .property = "flex-basis", .value = "auto" }} },
-    .{ .name = "basis-full", .decls = &.{.{ .property = "flex-basis", .value = "100%" }} },
+    .{
+        .name = "basis-auto",
+        .decls = &.{.{
+            .property = "flex-basis",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "basis-full",
+        .decls = &.{.{
+            .property = "flex-basis",
+            .value = "100%",
+        }},
+    },
 
     // ── Screen-reader only (3-decl shortcut, multi-property) ────────────────
-    .{ .name = "sr-only", .decls = &.{
-        .{ .property = "position", .value = "absolute" },
-        .{ .property = "width", .value = "1px" },
-        .{ .property = "height", .value = "1px" },
-        .{ .property = "padding", .value = "0" },
-        .{ .property = "margin", .value = "-1px" },
-        .{ .property = "overflow", .value = "hidden" },
-        .{ .property = "clip", .value = "rect(0, 0, 0, 0)" },
-        .{ .property = "white-space", .value = "nowrap" },
-        .{ .property = "border-width", .value = "0" },
-    } },
-    .{ .name = "not-sr-only", .decls = &.{
-        .{ .property = "position", .value = "static" },
-        .{ .property = "width", .value = "auto" },
-        .{ .property = "height", .value = "auto" },
-        .{ .property = "padding", .value = "0" },
-        .{ .property = "margin", .value = "0" },
-        .{ .property = "overflow", .value = "visible" },
-        .{ .property = "clip", .value = "auto" },
-        .{ .property = "white-space", .value = "normal" },
-    } },
+    .{
+        .name = "sr-only",
+        .decls = &.{
+            .{
+                .property = "position",
+                .value = "absolute",
+            },
+            .{
+                .property = "width",
+                .value = "1px",
+            },
+            .{
+                .property = "height",
+                .value = "1px",
+            },
+            .{
+                .property = "padding",
+                .value = "0",
+            },
+            .{
+                .property = "margin",
+                .value = "-1px",
+            },
+            .{
+                .property = "overflow",
+                .value = "hidden",
+            },
+            .{
+                .property = "clip",
+                .value = "rect(0, 0, 0, 0)",
+            },
+            .{
+                .property = "white-space",
+                .value = "nowrap",
+            },
+            .{
+                .property = "border-width",
+                .value = "0",
+            },
+        },
+    },
+    .{
+        .name = "not-sr-only",
+        .decls = &.{
+            .{
+                .property = "position",
+                .value = "static",
+            },
+            .{
+                .property = "width",
+                .value = "auto",
+            },
+            .{
+                .property = "height",
+                .value = "auto",
+            },
+            .{
+                .property = "padding",
+                .value = "0",
+            },
+            .{
+                .property = "margin",
+                .value = "0",
+            },
+            .{
+                .property = "overflow",
+                .value = "visible",
+            },
+            .{
+                .property = "clip",
+                .value = "auto",
+            },
+            .{
+                .property = "white-space",
+                .value = "normal",
+            },
+        },
+    },
 
     // ── Ring width: bare `ring` defaults to 3px ────────────────────────────
-    .{ .name = "ring", .decls = &.{
-        .{ .property = "--tw-ring-shadow", .value = "var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentColor)" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)" },
-    } },
+    .{
+        .name = "ring",
+        .decls = &.{
+            .{
+                .property = "--tw-ring-shadow",
+                .value = "var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width, 0px)) var(--tw-ring-color, currentColor)",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)",
+            },
+        },
+    },
 
     // ── Font smoothing ──────────────────────────────────────────────────────
-    .{ .name = "antialiased", .decls = &.{
-        .{ .property = "-webkit-font-smoothing", .value = "antialiased" },
-        .{ .property = "-moz-osx-font-smoothing", .value = "grayscale" },
-    } },
-    .{ .name = "subpixel-antialiased", .decls = &.{
-        .{ .property = "-webkit-font-smoothing", .value = "auto" },
-        .{ .property = "-moz-osx-font-smoothing", .value = "auto" },
-    } },
+    .{
+        .name = "antialiased",
+        .decls = &.{
+            .{
+                .property = "-webkit-font-smoothing",
+                .value = "antialiased",
+            },
+            .{
+                .property = "-moz-osx-font-smoothing",
+                .value = "grayscale",
+            },
+        },
+    },
+    .{
+        .name = "subpixel-antialiased",
+        .decls = &.{
+            .{
+                .property = "-webkit-font-smoothing",
+                .value = "auto",
+            },
+            .{
+                .property = "-moz-osx-font-smoothing",
+                .value = "auto",
+            },
+        },
+    },
 
     // ── Overflow (full set) ─────────────────────────────────────────────────
-    .{ .name = "overflow-auto", .decls = &.{.{ .property = "overflow", .value = "auto" }} },
-    .{ .name = "overflow-hidden", .decls = &.{.{ .property = "overflow", .value = "hidden" }} },
-    .{ .name = "overflow-clip", .decls = &.{.{ .property = "overflow", .value = "clip" }} },
-    .{ .name = "overflow-visible", .decls = &.{.{ .property = "overflow", .value = "visible" }} },
-    .{ .name = "overflow-scroll", .decls = &.{.{ .property = "overflow", .value = "scroll" }} },
-    .{ .name = "overflow-x-auto", .decls = &.{.{ .property = "overflow-x", .value = "auto" }} },
-    .{ .name = "overflow-x-hidden", .decls = &.{.{ .property = "overflow-x", .value = "hidden" }} },
-    .{ .name = "overflow-x-clip", .decls = &.{.{ .property = "overflow-x", .value = "clip" }} },
-    .{ .name = "overflow-x-visible", .decls = &.{.{ .property = "overflow-x", .value = "visible" }} },
-    .{ .name = "overflow-x-scroll", .decls = &.{.{ .property = "overflow-x", .value = "scroll" }} },
-    .{ .name = "overflow-y-auto", .decls = &.{.{ .property = "overflow-y", .value = "auto" }} },
-    .{ .name = "overflow-y-hidden", .decls = &.{.{ .property = "overflow-y", .value = "hidden" }} },
-    .{ .name = "overflow-y-clip", .decls = &.{.{ .property = "overflow-y", .value = "clip" }} },
-    .{ .name = "overflow-y-visible", .decls = &.{.{ .property = "overflow-y", .value = "visible" }} },
-    .{ .name = "overflow-y-scroll", .decls = &.{.{ .property = "overflow-y", .value = "scroll" }} },
+    .{
+        .name = "overflow-auto",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-hidden",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-clip",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-visible",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-scroll",
+        .decls = &.{.{
+            .property = "overflow",
+            .value = "scroll",
+        }},
+    },
+    .{
+        .name = "overflow-x-auto",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-x-hidden",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-x-clip",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-x-visible",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-x-scroll",
+        .decls = &.{.{
+            .property = "overflow-x",
+            .value = "scroll",
+        }},
+    },
+    .{
+        .name = "overflow-y-auto",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overflow-y-hidden",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "hidden",
+        }},
+    },
+    .{
+        .name = "overflow-y-clip",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "clip",
+        }},
+    },
+    .{
+        .name = "overflow-y-visible",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "overflow-y-scroll",
+        .decls = &.{.{
+            .property = "overflow-y",
+            .value = "scroll",
+        }},
+    },
 
     // ── Marker classes (no output; used by other variants like peer-*) ──────
-    .{ .name = "peer", .decls = &.{} },
-    .{ .name = "group", .decls = &.{} },
+    .{
+        .name = "peer",
+        .decls = &.{},
+    },
+    .{
+        .name = "group",
+        .decls = &.{},
+    },
 
     // ── Mask family (statics) ───────────────────────────────────────────────
-    .{ .name = "mask-none", .decls = &.{.{ .property = "mask-image", .value = "none" }} },
-    .{ .name = "mask-add", .decls = &.{.{ .property = "mask-composite", .value = "add" }} },
-    .{ .name = "mask-subtract", .decls = &.{.{ .property = "mask-composite", .value = "subtract" }} },
-    .{ .name = "mask-intersect", .decls = &.{.{ .property = "mask-composite", .value = "intersect" }} },
-    .{ .name = "mask-exclude", .decls = &.{.{ .property = "mask-composite", .value = "exclude" }} },
-    .{ .name = "mask-alpha", .decls = &.{.{ .property = "mask-mode", .value = "alpha" }} },
-    .{ .name = "mask-luminance", .decls = &.{.{ .property = "mask-mode", .value = "luminance" }} },
-    .{ .name = "mask-match", .decls = &.{.{ .property = "mask-mode", .value = "match-source" }} },
-    .{ .name = "mask-type-alpha", .decls = &.{.{ .property = "mask-type", .value = "alpha" }} },
-    .{ .name = "mask-type-luminance", .decls = &.{.{ .property = "mask-type", .value = "luminance" }} },
-    .{ .name = "mask-auto", .decls = &.{.{ .property = "mask-size", .value = "auto" }} },
-    .{ .name = "mask-cover", .decls = &.{.{ .property = "mask-size", .value = "cover" }} },
-    .{ .name = "mask-contain", .decls = &.{.{ .property = "mask-size", .value = "contain" }} },
-    .{ .name = "mask-top", .decls = &.{.{ .property = "mask-position", .value = "top" }} },
-    .{ .name = "mask-top-left", .decls = &.{.{ .property = "mask-position", .value = "left top" }} },
-    .{ .name = "mask-top-right", .decls = &.{.{ .property = "mask-position", .value = "right top" }} },
-    .{ .name = "mask-bottom", .decls = &.{.{ .property = "mask-position", .value = "bottom" }} },
-    .{ .name = "mask-bottom-left", .decls = &.{.{ .property = "mask-position", .value = "left bottom" }} },
-    .{ .name = "mask-bottom-right", .decls = &.{.{ .property = "mask-position", .value = "right bottom" }} },
-    .{ .name = "mask-left", .decls = &.{.{ .property = "mask-position", .value = "left" }} },
-    .{ .name = "mask-right", .decls = &.{.{ .property = "mask-position", .value = "right" }} },
-    .{ .name = "mask-center", .decls = &.{.{ .property = "mask-position", .value = "center" }} },
-    .{ .name = "mask-repeat", .decls = &.{.{ .property = "mask-repeat", .value = "repeat" }} },
-    .{ .name = "mask-no-repeat", .decls = &.{.{ .property = "mask-repeat", .value = "no-repeat" }} },
-    .{ .name = "mask-repeat-x", .decls = &.{.{ .property = "mask-repeat", .value = "repeat-x" }} },
-    .{ .name = "mask-repeat-y", .decls = &.{.{ .property = "mask-repeat", .value = "repeat-y" }} },
-    .{ .name = "mask-repeat-round", .decls = &.{.{ .property = "mask-repeat", .value = "round" }} },
-    .{ .name = "mask-repeat-space", .decls = &.{.{ .property = "mask-repeat", .value = "space" }} },
-    .{ .name = "mask-clip-border", .decls = &.{.{ .property = "mask-clip", .value = "border-box" }} },
-    .{ .name = "mask-clip-padding", .decls = &.{.{ .property = "mask-clip", .value = "padding-box" }} },
-    .{ .name = "mask-clip-content", .decls = &.{.{ .property = "mask-clip", .value = "content-box" }} },
-    .{ .name = "mask-clip-fill", .decls = &.{.{ .property = "mask-clip", .value = "fill-box" }} },
-    .{ .name = "mask-clip-stroke", .decls = &.{.{ .property = "mask-clip", .value = "stroke-box" }} },
-    .{ .name = "mask-clip-view", .decls = &.{.{ .property = "mask-clip", .value = "view-box" }} },
-    .{ .name = "mask-no-clip", .decls = &.{.{ .property = "mask-clip", .value = "no-clip" }} },
-    .{ .name = "mask-origin-border", .decls = &.{.{ .property = "mask-origin", .value = "border-box" }} },
-    .{ .name = "mask-origin-padding", .decls = &.{.{ .property = "mask-origin", .value = "padding-box" }} },
-    .{ .name = "mask-origin-content", .decls = &.{.{ .property = "mask-origin", .value = "content-box" }} },
-    .{ .name = "mask-origin-fill", .decls = &.{.{ .property = "mask-origin", .value = "fill-box" }} },
-    .{ .name = "mask-origin-stroke", .decls = &.{.{ .property = "mask-origin", .value = "stroke-box" }} },
-    .{ .name = "mask-origin-view", .decls = &.{.{ .property = "mask-origin", .value = "view-box" }} },
-    .{ .name = "mask-circle", .decls = &.{.{ .property = "--tw-mask-radial-shape", .value = "circle" }} },
-    .{ .name = "mask-ellipse", .decls = &.{.{ .property = "--tw-mask-radial-shape", .value = "ellipse" }} },
-    .{ .name = "mask-radial-closest-side", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "closest-side" }} },
-    .{ .name = "mask-radial-farthest-side", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "farthest-side" }} },
-    .{ .name = "mask-radial-closest-corner", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "closest-corner" }} },
-    .{ .name = "mask-radial-farthest-corner", .decls = &.{.{ .property = "--tw-mask-radial-size", .value = "farthest-corner" }} },
-    .{ .name = "mask-radial-at-top", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top" }} },
-    .{ .name = "mask-radial-at-top-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top left" }} },
-    .{ .name = "mask-radial-at-top-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "top right" }} },
-    .{ .name = "mask-radial-at-bottom", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom" }} },
-    .{ .name = "mask-radial-at-bottom-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom left" }} },
-    .{ .name = "mask-radial-at-bottom-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "bottom right" }} },
-    .{ .name = "mask-radial-at-left", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "left" }} },
-    .{ .name = "mask-radial-at-right", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "right" }} },
-    .{ .name = "mask-radial-at-center", .decls = &.{.{ .property = "--tw-mask-radial-position", .value = "center" }} },
+    .{
+        .name = "mask-none",
+        .decls = &.{.{
+            .property = "mask-image",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "mask-add",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "add",
+        }},
+    },
+    .{
+        .name = "mask-subtract",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "subtract",
+        }},
+    },
+    .{
+        .name = "mask-intersect",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "intersect",
+        }},
+    },
+    .{
+        .name = "mask-exclude",
+        .decls = &.{.{
+            .property = "mask-composite",
+            .value = "exclude",
+        }},
+    },
+    .{
+        .name = "mask-alpha",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "alpha",
+        }},
+    },
+    .{
+        .name = "mask-luminance",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "luminance",
+        }},
+    },
+    .{
+        .name = "mask-match",
+        .decls = &.{.{
+            .property = "mask-mode",
+            .value = "match-source",
+        }},
+    },
+    .{
+        .name = "mask-type-alpha",
+        .decls = &.{.{
+            .property = "mask-type",
+            .value = "alpha",
+        }},
+    },
+    .{
+        .name = "mask-type-luminance",
+        .decls = &.{.{
+            .property = "mask-type",
+            .value = "luminance",
+        }},
+    },
+    .{
+        .name = "mask-auto",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "mask-cover",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "mask-contain",
+        .decls = &.{.{
+            .property = "mask-size",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "mask-top",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "mask-top-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left top",
+        }},
+    },
+    .{
+        .name = "mask-top-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right top",
+        }},
+    },
+    .{
+        .name = "mask-bottom",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "mask-bottom-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left bottom",
+        }},
+    },
+    .{
+        .name = "mask-bottom-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right bottom",
+        }},
+    },
+    .{
+        .name = "mask-left",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "mask-right",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "mask-center",
+        .decls = &.{.{
+            .property = "mask-position",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "mask-repeat",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat",
+        }},
+    },
+    .{
+        .name = "mask-no-repeat",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "no-repeat",
+        }},
+    },
+    .{
+        .name = "mask-repeat-x",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat-x",
+        }},
+    },
+    .{
+        .name = "mask-repeat-y",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "repeat-y",
+        }},
+    },
+    .{
+        .name = "mask-repeat-round",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "round",
+        }},
+    },
+    .{
+        .name = "mask-repeat-space",
+        .decls = &.{.{
+            .property = "mask-repeat",
+            .value = "space",
+        }},
+    },
+    .{
+        .name = "mask-clip-border",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-padding",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-content",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-fill",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-stroke",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "mask-clip-view",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "view-box",
+        }},
+    },
+    .{
+        .name = "mask-no-clip",
+        .decls = &.{.{
+            .property = "mask-clip",
+            .value = "no-clip",
+        }},
+    },
+    .{
+        .name = "mask-origin-border",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-padding",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-content",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-fill",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-stroke",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "mask-origin-view",
+        .decls = &.{.{
+            .property = "mask-origin",
+            .value = "view-box",
+        }},
+    },
+    .{
+        .name = "mask-circle",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-shape",
+            .value = "circle",
+        }},
+    },
+    .{
+        .name = "mask-ellipse",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-shape",
+            .value = "ellipse",
+        }},
+    },
+    .{
+        .name = "mask-radial-closest-side",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "closest-side",
+        }},
+    },
+    .{
+        .name = "mask-radial-farthest-side",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "farthest-side",
+        }},
+    },
+    .{
+        .name = "mask-radial-closest-corner",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "closest-corner",
+        }},
+    },
+    .{
+        .name = "mask-radial-farthest-corner",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-size",
+            .value = "farthest-corner",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-top-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "top right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-bottom-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "bottom right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-left",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-right",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "mask-radial-at-center",
+        .decls = &.{.{
+            .property = "--tw-mask-radial-position",
+            .value = "center",
+        }},
+    },
 
     // ── Space-reverse markers — flag classes referenced by `space-x-N` etc.
     //    in the v4-with-CSS-variables emission. We don't emit the variable
     //    chain (simpler `> :not(:last-child)` form is used), but the markers
     //    still need to be recognised so they don't fall through as unknown.
-    .{ .name = "space-x-reverse", .decls = &.{} },
-    .{ .name = "space-y-reverse", .decls = &.{} },
+    .{
+        .name = "space-x-reverse",
+        .decls = &.{},
+    },
+    .{
+        .name = "space-y-reverse",
+        .decls = &.{},
+    },
 
     // ── Background size ─────────────────────────────────────────────────────
-    .{ .name = "bg-auto", .decls = &.{.{ .property = "background-size", .value = "auto" }} },
-    .{ .name = "bg-cover", .decls = &.{.{ .property = "background-size", .value = "cover" }} },
-    .{ .name = "bg-contain", .decls = &.{.{ .property = "background-size", .value = "contain" }} },
+    .{
+        .name = "bg-auto",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "bg-cover",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "bg-contain",
+        .decls = &.{.{
+            .property = "background-size",
+            .value = "contain",
+        }},
+    },
 
     // ── Background attachment ───────────────────────────────────────────────
-    .{ .name = "bg-fixed", .decls = &.{.{ .property = "background-attachment", .value = "fixed" }} },
-    .{ .name = "bg-local", .decls = &.{.{ .property = "background-attachment", .value = "local" }} },
-    .{ .name = "bg-scroll", .decls = &.{.{ .property = "background-attachment", .value = "scroll" }} },
+    .{
+        .name = "bg-fixed",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "bg-local",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "local",
+        }},
+    },
+    .{
+        .name = "bg-scroll",
+        .decls = &.{.{
+            .property = "background-attachment",
+            .value = "scroll",
+        }},
+    },
 
     // ── Background position ─────────────────────────────────────────────────
-    .{ .name = "bg-top", .decls = &.{.{ .property = "background-position", .value = "top" }} },
-    .{ .name = "bg-top-left", .decls = &.{.{ .property = "background-position", .value = "left top" }} },
-    .{ .name = "bg-top-right", .decls = &.{.{ .property = "background-position", .value = "right top" }} },
-    .{ .name = "bg-bottom", .decls = &.{.{ .property = "background-position", .value = "bottom" }} },
-    .{ .name = "bg-bottom-left", .decls = &.{.{ .property = "background-position", .value = "left bottom" }} },
-    .{ .name = "bg-bottom-right", .decls = &.{.{ .property = "background-position", .value = "right bottom" }} },
-    .{ .name = "bg-left", .decls = &.{.{ .property = "background-position", .value = "left" }} },
-    .{ .name = "bg-right", .decls = &.{.{ .property = "background-position", .value = "right" }} },
-    .{ .name = "bg-center", .decls = &.{.{ .property = "background-position", .value = "center" }} },
+    .{
+        .name = "bg-top",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "bg-top-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left top",
+        }},
+    },
+    .{
+        .name = "bg-top-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right top",
+        }},
+    },
+    .{
+        .name = "bg-bottom",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "bg-bottom-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left bottom",
+        }},
+    },
+    .{
+        .name = "bg-bottom-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right bottom",
+        }},
+    },
+    .{
+        .name = "bg-left",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "bg-right",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "bg-center",
+        .decls = &.{.{
+            .property = "background-position",
+            .value = "center",
+        }},
+    },
 
     // ── Background repeat ───────────────────────────────────────────────────
-    .{ .name = "bg-repeat", .decls = &.{.{ .property = "background-repeat", .value = "repeat" }} },
-    .{ .name = "bg-no-repeat", .decls = &.{.{ .property = "background-repeat", .value = "no-repeat" }} },
-    .{ .name = "bg-repeat-x", .decls = &.{.{ .property = "background-repeat", .value = "repeat-x" }} },
-    .{ .name = "bg-repeat-y", .decls = &.{.{ .property = "background-repeat", .value = "repeat-y" }} },
-    .{ .name = "bg-repeat-round", .decls = &.{.{ .property = "background-repeat", .value = "round" }} },
-    .{ .name = "bg-repeat-space", .decls = &.{.{ .property = "background-repeat", .value = "space" }} },
+    .{
+        .name = "bg-repeat",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat",
+        }},
+    },
+    .{
+        .name = "bg-no-repeat",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "no-repeat",
+        }},
+    },
+    .{
+        .name = "bg-repeat-x",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat-x",
+        }},
+    },
+    .{
+        .name = "bg-repeat-y",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "repeat-y",
+        }},
+    },
+    .{
+        .name = "bg-repeat-round",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "round",
+        }},
+    },
+    .{
+        .name = "bg-repeat-space",
+        .decls = &.{.{
+            .property = "background-repeat",
+            .value = "space",
+        }},
+    },
 
     // ── Background image: none ──────────────────────────────────────────────
-    .{ .name = "bg-none", .decls = &.{.{ .property = "background-image", .value = "none" }} },
+    .{
+        .name = "bg-none",
+        .decls = &.{.{
+            .property = "background-image",
+            .value = "none",
+        }},
+    },
 
     // ── Background clip ─────────────────────────────────────────────────────
-    .{ .name = "bg-clip-text", .decls = &.{.{ .property = "background-clip", .value = "text" }} },
-    .{ .name = "bg-clip-border", .decls = &.{.{ .property = "background-clip", .value = "border-box" }} },
-    .{ .name = "bg-clip-padding", .decls = &.{.{ .property = "background-clip", .value = "padding-box" }} },
-    .{ .name = "bg-clip-content", .decls = &.{.{ .property = "background-clip", .value = "content-box" }} },
+    .{
+        .name = "bg-clip-text",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "bg-clip-border",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "bg-clip-padding",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "bg-clip-content",
+        .decls = &.{.{
+            .property = "background-clip",
+            .value = "content-box",
+        }},
+    },
 
     // ── Background origin ───────────────────────────────────────────────────
-    .{ .name = "bg-origin-border", .decls = &.{.{ .property = "background-origin", .value = "border-box" }} },
-    .{ .name = "bg-origin-padding", .decls = &.{.{ .property = "background-origin", .value = "padding-box" }} },
-    .{ .name = "bg-origin-content", .decls = &.{.{ .property = "background-origin", .value = "content-box" }} },
+    .{
+        .name = "bg-origin-border",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "bg-origin-padding",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "padding-box",
+        }},
+    },
+    .{
+        .name = "bg-origin-content",
+        .decls = &.{.{
+            .property = "background-origin",
+            .value = "content-box",
+        }},
+    },
 
     // ── Background blend mode ───────────────────────────────────────────────
-    .{ .name = "bg-blend-normal", .decls = &.{.{ .property = "background-blend-mode", .value = "normal" }} },
-    .{ .name = "bg-blend-multiply", .decls = &.{.{ .property = "background-blend-mode", .value = "multiply" }} },
-    .{ .name = "bg-blend-screen", .decls = &.{.{ .property = "background-blend-mode", .value = "screen" }} },
-    .{ .name = "bg-blend-overlay", .decls = &.{.{ .property = "background-blend-mode", .value = "overlay" }} },
-    .{ .name = "bg-blend-darken", .decls = &.{.{ .property = "background-blend-mode", .value = "darken" }} },
-    .{ .name = "bg-blend-lighten", .decls = &.{.{ .property = "background-blend-mode", .value = "lighten" }} },
-    .{ .name = "bg-blend-color-dodge", .decls = &.{.{ .property = "background-blend-mode", .value = "color-dodge" }} },
-    .{ .name = "bg-blend-color-burn", .decls = &.{.{ .property = "background-blend-mode", .value = "color-burn" }} },
-    .{ .name = "bg-blend-hard-light", .decls = &.{.{ .property = "background-blend-mode", .value = "hard-light" }} },
-    .{ .name = "bg-blend-soft-light", .decls = &.{.{ .property = "background-blend-mode", .value = "soft-light" }} },
-    .{ .name = "bg-blend-difference", .decls = &.{.{ .property = "background-blend-mode", .value = "difference" }} },
-    .{ .name = "bg-blend-exclusion", .decls = &.{.{ .property = "background-blend-mode", .value = "exclusion" }} },
-    .{ .name = "bg-blend-hue", .decls = &.{.{ .property = "background-blend-mode", .value = "hue" }} },
-    .{ .name = "bg-blend-saturation", .decls = &.{.{ .property = "background-blend-mode", .value = "saturation" }} },
-    .{ .name = "bg-blend-color", .decls = &.{.{ .property = "background-blend-mode", .value = "color" }} },
-    .{ .name = "bg-blend-luminosity", .decls = &.{.{ .property = "background-blend-mode", .value = "luminosity" }} },
+    .{
+        .name = "bg-blend-normal",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "bg-blend-multiply",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "multiply",
+        }},
+    },
+    .{
+        .name = "bg-blend-screen",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "screen",
+        }},
+    },
+    .{
+        .name = "bg-blend-overlay",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "overlay",
+        }},
+    },
+    .{
+        .name = "bg-blend-darken",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "darken",
+        }},
+    },
+    .{
+        .name = "bg-blend-lighten",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "lighten",
+        }},
+    },
+    .{
+        .name = "bg-blend-color-dodge",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color-dodge",
+        }},
+    },
+    .{
+        .name = "bg-blend-color-burn",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color-burn",
+        }},
+    },
+    .{
+        .name = "bg-blend-hard-light",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "hard-light",
+        }},
+    },
+    .{
+        .name = "bg-blend-soft-light",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "soft-light",
+        }},
+    },
+    .{
+        .name = "bg-blend-difference",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "difference",
+        }},
+    },
+    .{
+        .name = "bg-blend-exclusion",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "exclusion",
+        }},
+    },
+    .{
+        .name = "bg-blend-hue",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "hue",
+        }},
+    },
+    .{
+        .name = "bg-blend-saturation",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "saturation",
+        }},
+    },
+    .{
+        .name = "bg-blend-color",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "color",
+        }},
+    },
+    .{
+        .name = "bg-blend-luminosity",
+        .decls = &.{.{
+            .property = "background-blend-mode",
+            .value = "luminosity",
+        }},
+    },
 
     // ── Mix blend mode ──────────────────────────────────────────────────────
-    .{ .name = "mix-blend-normal", .decls = &.{.{ .property = "mix-blend-mode", .value = "normal" }} },
-    .{ .name = "mix-blend-multiply", .decls = &.{.{ .property = "mix-blend-mode", .value = "multiply" }} },
-    .{ .name = "mix-blend-screen", .decls = &.{.{ .property = "mix-blend-mode", .value = "screen" }} },
-    .{ .name = "mix-blend-overlay", .decls = &.{.{ .property = "mix-blend-mode", .value = "overlay" }} },
-    .{ .name = "mix-blend-darken", .decls = &.{.{ .property = "mix-blend-mode", .value = "darken" }} },
-    .{ .name = "mix-blend-lighten", .decls = &.{.{ .property = "mix-blend-mode", .value = "lighten" }} },
-    .{ .name = "mix-blend-color-dodge", .decls = &.{.{ .property = "mix-blend-mode", .value = "color-dodge" }} },
-    .{ .name = "mix-blend-color-burn", .decls = &.{.{ .property = "mix-blend-mode", .value = "color-burn" }} },
-    .{ .name = "mix-blend-hard-light", .decls = &.{.{ .property = "mix-blend-mode", .value = "hard-light" }} },
-    .{ .name = "mix-blend-soft-light", .decls = &.{.{ .property = "mix-blend-mode", .value = "soft-light" }} },
-    .{ .name = "mix-blend-difference", .decls = &.{.{ .property = "mix-blend-mode", .value = "difference" }} },
-    .{ .name = "mix-blend-exclusion", .decls = &.{.{ .property = "mix-blend-mode", .value = "exclusion" }} },
-    .{ .name = "mix-blend-hue", .decls = &.{.{ .property = "mix-blend-mode", .value = "hue" }} },
-    .{ .name = "mix-blend-saturation", .decls = &.{.{ .property = "mix-blend-mode", .value = "saturation" }} },
-    .{ .name = "mix-blend-color", .decls = &.{.{ .property = "mix-blend-mode", .value = "color" }} },
-    .{ .name = "mix-blend-luminosity", .decls = &.{.{ .property = "mix-blend-mode", .value = "luminosity" }} },
-    .{ .name = "mix-blend-plus-darker", .decls = &.{.{ .property = "mix-blend-mode", .value = "plus-darker" }} },
-    .{ .name = "mix-blend-plus-lighter", .decls = &.{.{ .property = "mix-blend-mode", .value = "plus-lighter" }} },
+    .{
+        .name = "mix-blend-normal",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "mix-blend-multiply",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "multiply",
+        }},
+    },
+    .{
+        .name = "mix-blend-screen",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "screen",
+        }},
+    },
+    .{
+        .name = "mix-blend-overlay",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "overlay",
+        }},
+    },
+    .{
+        .name = "mix-blend-darken",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "darken",
+        }},
+    },
+    .{
+        .name = "mix-blend-lighten",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "lighten",
+        }},
+    },
+    .{
+        .name = "mix-blend-color-dodge",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color-dodge",
+        }},
+    },
+    .{
+        .name = "mix-blend-color-burn",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color-burn",
+        }},
+    },
+    .{
+        .name = "mix-blend-hard-light",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "hard-light",
+        }},
+    },
+    .{
+        .name = "mix-blend-soft-light",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "soft-light",
+        }},
+    },
+    .{
+        .name = "mix-blend-difference",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "difference",
+        }},
+    },
+    .{
+        .name = "mix-blend-exclusion",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "exclusion",
+        }},
+    },
+    .{
+        .name = "mix-blend-hue",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "hue",
+        }},
+    },
+    .{
+        .name = "mix-blend-saturation",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "saturation",
+        }},
+    },
+    .{
+        .name = "mix-blend-color",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "color",
+        }},
+    },
+    .{
+        .name = "mix-blend-luminosity",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "luminosity",
+        }},
+    },
+    .{
+        .name = "mix-blend-plus-darker",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "plus-darker",
+        }},
+    },
+    .{
+        .name = "mix-blend-plus-lighter",
+        .decls = &.{.{
+            .property = "mix-blend-mode",
+            .value = "plus-lighter",
+        }},
+    },
 
     // ── Gradient via-none ───────────────────────────────────────────────────
-    .{ .name = "via-none", .decls = &.{.{ .property = "--tw-gradient-via-stops", .value = "initial" }} },
+    .{
+        .name = "via-none",
+        .decls = &.{.{
+            .property = "--tw-gradient-via-stops",
+            .value = "initial",
+        }},
+    },
 
     // ── Gradient base shapes (no value / no angle) ──────────────────────────
-    .{ .name = "bg-radial", .decls = &.{
-        .{ .property = "--tw-gradient-position", .value = "in oklab" },
-        .{ .property = "background-image", .value = "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))" },
-    } },
-    .{ .name = "bg-conic", .decls = &.{
-        .{ .property = "--tw-gradient-position", .value = "in oklab" },
-        .{ .property = "background-image", .value = "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))" },
-    } },
+    .{
+        .name = "bg-radial",
+        .decls = &.{
+            .{
+                .property = "--tw-gradient-position",
+                .value = "in oklab",
+            },
+            .{
+                .property = "background-image",
+                .value = "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))",
+            },
+        },
+    },
+    .{
+        .name = "bg-conic",
+        .decls = &.{
+            .{
+                .property = "--tw-gradient-position",
+                .value = "in oklab",
+            },
+            .{
+                .property = "background-image",
+                .value = "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-stops-fallback)))",
+            },
+        },
+    },
 
     // ── Border width — bare forms (functional `border-N` handled separately) ─
-    .{ .name = "border", .decls = &.{
-        .{ .property = "border-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-width", .value = "1px" },
-    } },
-    .{ .name = "border-t", .decls = &.{
-        .{ .property = "border-top-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-top-width", .value = "1px" },
-    } },
-    .{ .name = "border-r", .decls = &.{
-        .{ .property = "border-right-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-right-width", .value = "1px" },
-    } },
-    .{ .name = "border-b", .decls = &.{
-        .{ .property = "border-bottom-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-bottom-width", .value = "1px" },
-    } },
-    .{ .name = "border-l", .decls = &.{
-        .{ .property = "border-left-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-left-width", .value = "1px" },
-    } },
-    .{ .name = "border-x", .decls = &.{
-        .{ .property = "border-inline-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-width", .value = "1px" },
-    } },
-    .{ .name = "border-y", .decls = &.{
-        .{ .property = "border-block-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-block-width", .value = "1px" },
-    } },
-    .{ .name = "border-s", .decls = &.{
-        .{ .property = "border-inline-start-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-start-width", .value = "1px" },
-    } },
-    .{ .name = "border-e", .decls = &.{
-        .{ .property = "border-inline-end-style", .value = "var(--tw-border-style, solid)" },
-        .{ .property = "border-inline-end-width", .value = "1px" },
-    } },
+    .{
+        .name = "border",
+        .decls = &.{
+            .{
+                .property = "border-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-t",
+        .decls = &.{
+            .{
+                .property = "border-top-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-top-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-r",
+        .decls = &.{
+            .{
+                .property = "border-right-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-right-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-b",
+        .decls = &.{
+            .{
+                .property = "border-bottom-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-bottom-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-l",
+        .decls = &.{
+            .{
+                .property = "border-left-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-left-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-x",
+        .decls = &.{
+            .{
+                .property = "border-inline-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-y",
+        .decls = &.{
+            .{
+                .property = "border-block-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-block-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-s",
+        .decls = &.{
+            .{
+                .property = "border-inline-start-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-start-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "border-e",
+        .decls = &.{
+            .{
+                .property = "border-inline-end-style",
+                .value = "var(--tw-border-style, solid)",
+            },
+            .{
+                .property = "border-inline-end-width",
+                .value = "1px",
+            },
+        },
+    },
 
     // ── Border style ────────────────────────────────────────────────────────
-    .{ .name = "border-solid", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "solid" },
-        .{ .property = "border-style", .value = "solid" },
-    } },
-    .{ .name = "border-dashed", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "dashed" },
-        .{ .property = "border-style", .value = "dashed" },
-    } },
-    .{ .name = "border-dotted", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "dotted" },
-        .{ .property = "border-style", .value = "dotted" },
-    } },
-    .{ .name = "border-double", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "double" },
-        .{ .property = "border-style", .value = "double" },
-    } },
-    .{ .name = "border-hidden", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "hidden" },
-        .{ .property = "border-style", .value = "hidden" },
-    } },
-    .{ .name = "border-none", .decls = &.{
-        .{ .property = "--tw-border-style", .value = "none" },
-        .{ .property = "border-style", .value = "none" },
-    } },
+    .{
+        .name = "border-solid",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "solid",
+            },
+            .{
+                .property = "border-style",
+                .value = "solid",
+            },
+        },
+    },
+    .{
+        .name = "border-dashed",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "dashed",
+            },
+            .{
+                .property = "border-style",
+                .value = "dashed",
+            },
+        },
+    },
+    .{
+        .name = "border-dotted",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "dotted",
+            },
+            .{
+                .property = "border-style",
+                .value = "dotted",
+            },
+        },
+    },
+    .{
+        .name = "border-double",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "double",
+            },
+            .{
+                .property = "border-style",
+                .value = "double",
+            },
+        },
+    },
+    .{
+        .name = "border-hidden",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "hidden",
+            },
+            .{
+                .property = "border-style",
+                .value = "hidden",
+            },
+        },
+    },
+    .{
+        .name = "border-none",
+        .decls = &.{
+            .{
+                .property = "--tw-border-style",
+                .value = "none",
+            },
+            .{
+                .property = "border-style",
+                .value = "none",
+            },
+        },
+    },
 
     // ── Border radius — bare + extremes (theme-driven scale handled below) ──
-    .{ .name = "rounded", .decls = &.{.{ .property = "border-radius", .value = "var(--radius)" }} },
-    .{ .name = "rounded-none", .decls = &.{.{ .property = "border-radius", .value = "0" }} },
-    .{ .name = "rounded-full", .decls = &.{.{ .property = "border-radius", .value = "calc(infinity * 1px)" }} },
+    .{
+        .name = "rounded",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "var(--radius)",
+        }},
+    },
+    .{
+        .name = "rounded-none",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "0",
+        }},
+    },
+    .{
+        .name = "rounded-full",
+        .decls = &.{.{
+            .property = "border-radius",
+            .value = "calc(infinity * 1px)",
+        }},
+    },
 
     // ── Misc ────────────────────────────────────────────────────────────────
     // ── Cursor (full supported set) ─────────────────────────────────────────
-    .{ .name = "cursor-auto", .decls = &.{.{ .property = "cursor", .value = "auto" }} },
-    .{ .name = "cursor-default", .decls = &.{.{ .property = "cursor", .value = "default" }} },
-    .{ .name = "cursor-pointer", .decls = &.{.{ .property = "cursor", .value = "pointer" }} },
-    .{ .name = "cursor-wait", .decls = &.{.{ .property = "cursor", .value = "wait" }} },
-    .{ .name = "cursor-text", .decls = &.{.{ .property = "cursor", .value = "text" }} },
-    .{ .name = "cursor-move", .decls = &.{.{ .property = "cursor", .value = "move" }} },
-    .{ .name = "cursor-help", .decls = &.{.{ .property = "cursor", .value = "help" }} },
-    .{ .name = "cursor-not-allowed", .decls = &.{.{ .property = "cursor", .value = "not-allowed" }} },
-    .{ .name = "cursor-none", .decls = &.{.{ .property = "cursor", .value = "none" }} },
-    .{ .name = "cursor-context-menu", .decls = &.{.{ .property = "cursor", .value = "context-menu" }} },
-    .{ .name = "cursor-progress", .decls = &.{.{ .property = "cursor", .value = "progress" }} },
-    .{ .name = "cursor-cell", .decls = &.{.{ .property = "cursor", .value = "cell" }} },
-    .{ .name = "cursor-crosshair", .decls = &.{.{ .property = "cursor", .value = "crosshair" }} },
-    .{ .name = "cursor-vertical-text", .decls = &.{.{ .property = "cursor", .value = "vertical-text" }} },
-    .{ .name = "cursor-alias", .decls = &.{.{ .property = "cursor", .value = "alias" }} },
-    .{ .name = "cursor-copy", .decls = &.{.{ .property = "cursor", .value = "copy" }} },
-    .{ .name = "cursor-no-drop", .decls = &.{.{ .property = "cursor", .value = "no-drop" }} },
-    .{ .name = "cursor-grab", .decls = &.{.{ .property = "cursor", .value = "grab" }} },
-    .{ .name = "cursor-grabbing", .decls = &.{.{ .property = "cursor", .value = "grabbing" }} },
-    .{ .name = "cursor-all-scroll", .decls = &.{.{ .property = "cursor", .value = "all-scroll" }} },
-    .{ .name = "cursor-col-resize", .decls = &.{.{ .property = "cursor", .value = "col-resize" }} },
-    .{ .name = "cursor-row-resize", .decls = &.{.{ .property = "cursor", .value = "row-resize" }} },
-    .{ .name = "cursor-n-resize", .decls = &.{.{ .property = "cursor", .value = "n-resize" }} },
-    .{ .name = "cursor-e-resize", .decls = &.{.{ .property = "cursor", .value = "e-resize" }} },
-    .{ .name = "cursor-s-resize", .decls = &.{.{ .property = "cursor", .value = "s-resize" }} },
-    .{ .name = "cursor-w-resize", .decls = &.{.{ .property = "cursor", .value = "w-resize" }} },
-    .{ .name = "cursor-ne-resize", .decls = &.{.{ .property = "cursor", .value = "ne-resize" }} },
-    .{ .name = "cursor-nw-resize", .decls = &.{.{ .property = "cursor", .value = "nw-resize" }} },
-    .{ .name = "cursor-se-resize", .decls = &.{.{ .property = "cursor", .value = "se-resize" }} },
-    .{ .name = "cursor-sw-resize", .decls = &.{.{ .property = "cursor", .value = "sw-resize" }} },
-    .{ .name = "cursor-ew-resize", .decls = &.{.{ .property = "cursor", .value = "ew-resize" }} },
-    .{ .name = "cursor-ns-resize", .decls = &.{.{ .property = "cursor", .value = "ns-resize" }} },
-    .{ .name = "cursor-nesw-resize", .decls = &.{.{ .property = "cursor", .value = "nesw-resize" }} },
-    .{ .name = "cursor-nwse-resize", .decls = &.{.{ .property = "cursor", .value = "nwse-resize" }} },
-    .{ .name = "cursor-zoom-in", .decls = &.{.{ .property = "cursor", .value = "zoom-in" }} },
-    .{ .name = "cursor-zoom-out", .decls = &.{.{ .property = "cursor", .value = "zoom-out" }} },
+    .{
+        .name = "cursor-auto",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "cursor-default",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "default",
+        }},
+    },
+    .{
+        .name = "cursor-pointer",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "pointer",
+        }},
+    },
+    .{
+        .name = "cursor-wait",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "wait",
+        }},
+    },
+    .{
+        .name = "cursor-text",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "cursor-move",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "move",
+        }},
+    },
+    .{
+        .name = "cursor-help",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "help",
+        }},
+    },
+    .{
+        .name = "cursor-not-allowed",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "not-allowed",
+        }},
+    },
+    .{
+        .name = "cursor-none",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "cursor-context-menu",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "context-menu",
+        }},
+    },
+    .{
+        .name = "cursor-progress",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "progress",
+        }},
+    },
+    .{
+        .name = "cursor-cell",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "cell",
+        }},
+    },
+    .{
+        .name = "cursor-crosshair",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "crosshair",
+        }},
+    },
+    .{
+        .name = "cursor-vertical-text",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "vertical-text",
+        }},
+    },
+    .{
+        .name = "cursor-alias",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "alias",
+        }},
+    },
+    .{
+        .name = "cursor-copy",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "copy",
+        }},
+    },
+    .{
+        .name = "cursor-no-drop",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "no-drop",
+        }},
+    },
+    .{
+        .name = "cursor-grab",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "grab",
+        }},
+    },
+    .{
+        .name = "cursor-grabbing",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "grabbing",
+        }},
+    },
+    .{
+        .name = "cursor-all-scroll",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "all-scroll",
+        }},
+    },
+    .{
+        .name = "cursor-col-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "col-resize",
+        }},
+    },
+    .{
+        .name = "cursor-row-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "row-resize",
+        }},
+    },
+    .{
+        .name = "cursor-n-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "n-resize",
+        }},
+    },
+    .{
+        .name = "cursor-e-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "e-resize",
+        }},
+    },
+    .{
+        .name = "cursor-s-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "s-resize",
+        }},
+    },
+    .{
+        .name = "cursor-w-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "w-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ne-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ne-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-se-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "se-resize",
+        }},
+    },
+    .{
+        .name = "cursor-sw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "sw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ew-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ew-resize",
+        }},
+    },
+    .{
+        .name = "cursor-ns-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "ns-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nesw-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nesw-resize",
+        }},
+    },
+    .{
+        .name = "cursor-nwse-resize",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "nwse-resize",
+        }},
+    },
+    .{
+        .name = "cursor-zoom-in",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "zoom-in",
+        }},
+    },
+    .{
+        .name = "cursor-zoom-out",
+        .decls = &.{.{
+            .property = "cursor",
+            .value = "zoom-out",
+        }},
+    },
 
     // ── User-select ─────────────────────────────────────────────────────────
-    .{ .name = "select-none", .decls = &.{.{ .property = "user-select", .value = "none" }} },
-    .{ .name = "select-text", .decls = &.{.{ .property = "user-select", .value = "text" }} },
-    .{ .name = "select-all", .decls = &.{.{ .property = "user-select", .value = "all" }} },
-    .{ .name = "select-auto", .decls = &.{.{ .property = "user-select", .value = "auto" }} },
+    .{
+        .name = "select-none",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "select-text",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "text",
+        }},
+    },
+    .{
+        .name = "select-all",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "select-auto",
+        .decls = &.{.{
+            .property = "user-select",
+            .value = "auto",
+        }},
+    },
 
     // ── Object-fit ──────────────────────────────────────────────────────────
-    .{ .name = "object-contain", .decls = &.{.{ .property = "object-fit", .value = "contain" }} },
-    .{ .name = "object-cover", .decls = &.{.{ .property = "object-fit", .value = "cover" }} },
-    .{ .name = "object-fill", .decls = &.{.{ .property = "object-fit", .value = "fill" }} },
-    .{ .name = "object-none", .decls = &.{.{ .property = "object-fit", .value = "none" }} },
-    .{ .name = "object-scale-down", .decls = &.{.{ .property = "object-fit", .value = "scale-down" }} },
+    .{
+        .name = "object-contain",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "object-cover",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "cover",
+        }},
+    },
+    .{
+        .name = "object-fill",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "fill",
+        }},
+    },
+    .{
+        .name = "object-none",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "object-scale-down",
+        .decls = &.{.{
+            .property = "object-fit",
+            .value = "scale-down",
+        }},
+    },
 
     // ── Object-position ─────────────────────────────────────────────────────
-    .{ .name = "object-top", .decls = &.{.{ .property = "object-position", .value = "top" }} },
-    .{ .name = "object-right", .decls = &.{.{ .property = "object-position", .value = "right" }} },
-    .{ .name = "object-bottom", .decls = &.{.{ .property = "object-position", .value = "bottom" }} },
-    .{ .name = "object-left", .decls = &.{.{ .property = "object-position", .value = "left" }} },
-    .{ .name = "object-center", .decls = &.{.{ .property = "object-position", .value = "center" }} },
-    .{ .name = "object-top-right", .decls = &.{.{ .property = "object-position", .value = "top right" }} },
-    .{ .name = "object-top-left", .decls = &.{.{ .property = "object-position", .value = "top left" }} },
-    .{ .name = "object-bottom-right", .decls = &.{.{ .property = "object-position", .value = "bottom right" }} },
-    .{ .name = "object-bottom-left", .decls = &.{.{ .property = "object-position", .value = "bottom left" }} },
+    .{
+        .name = "object-top",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "object-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "object-bottom",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "object-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "object-center",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "object-top-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top right",
+        }},
+    },
+    .{
+        .name = "object-top-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "top left",
+        }},
+    },
+    .{
+        .name = "object-bottom-right",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom right",
+        }},
+    },
+    .{
+        .name = "object-bottom-left",
+        .decls = &.{.{
+            .property = "object-position",
+            .value = "bottom left",
+        }},
+    },
 
     // ── Pointer-events ──────────────────────────────────────────────────────
-    .{ .name = "pointer-events-auto", .decls = &.{.{ .property = "pointer-events", .value = "auto" }} },
-    .{ .name = "pointer-events-none", .decls = &.{.{ .property = "pointer-events", .value = "none" }} },
+    .{
+        .name = "pointer-events-auto",
+        .decls = &.{.{
+            .property = "pointer-events",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "pointer-events-none",
+        .decls = &.{.{
+            .property = "pointer-events",
+            .value = "none",
+        }},
+    },
 
     // ── Resize ──────────────────────────────────────────────────────────────
-    .{ .name = "resize", .decls = &.{.{ .property = "resize", .value = "both" }} },
-    .{ .name = "resize-x", .decls = &.{.{ .property = "resize", .value = "horizontal" }} },
-    .{ .name = "resize-y", .decls = &.{.{ .property = "resize", .value = "vertical" }} },
-    .{ .name = "resize-none", .decls = &.{.{ .property = "resize", .value = "none" }} },
+    .{
+        .name = "resize",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "both",
+        }},
+    },
+    .{
+        .name = "resize-x",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "horizontal",
+        }},
+    },
+    .{
+        .name = "resize-y",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "vertical",
+        }},
+    },
+    .{
+        .name = "resize-none",
+        .decls = &.{.{
+            .property = "resize",
+            .value = "none",
+        }},
+    },
 
     // ── Touch action ────────────────────────────────────────────────────────
-    .{ .name = "touch-auto", .decls = &.{.{ .property = "touch-action", .value = "auto" }} },
-    .{ .name = "touch-none", .decls = &.{.{ .property = "touch-action", .value = "none" }} },
-    .{ .name = "touch-manipulation", .decls = &.{.{ .property = "touch-action", .value = "manipulation" }} },
-    .{ .name = "touch-pan-x", .decls = &.{.{ .property = "touch-action", .value = "pan-x" }} },
-    .{ .name = "touch-pan-left", .decls = &.{.{ .property = "touch-action", .value = "pan-left" }} },
-    .{ .name = "touch-pan-right", .decls = &.{.{ .property = "touch-action", .value = "pan-right" }} },
-    .{ .name = "touch-pan-y", .decls = &.{.{ .property = "touch-action", .value = "pan-y" }} },
-    .{ .name = "touch-pan-up", .decls = &.{.{ .property = "touch-action", .value = "pan-up" }} },
-    .{ .name = "touch-pan-down", .decls = &.{.{ .property = "touch-action", .value = "pan-down" }} },
-    .{ .name = "touch-pinch-zoom", .decls = &.{.{ .property = "touch-action", .value = "pinch-zoom" }} },
+    .{
+        .name = "touch-auto",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "touch-none",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "touch-manipulation",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "manipulation",
+        }},
+    },
+    .{
+        .name = "touch-pan-x",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-x",
+        }},
+    },
+    .{
+        .name = "touch-pan-left",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-left",
+        }},
+    },
+    .{
+        .name = "touch-pan-right",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-right",
+        }},
+    },
+    .{
+        .name = "touch-pan-y",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-y",
+        }},
+    },
+    .{
+        .name = "touch-pan-up",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-up",
+        }},
+    },
+    .{
+        .name = "touch-pan-down",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pan-down",
+        }},
+    },
+    .{
+        .name = "touch-pinch-zoom",
+        .decls = &.{.{
+            .property = "touch-action",
+            .value = "pinch-zoom",
+        }},
+    },
 
     // ── Scroll behavior + scroll-snap-* ─────────────────────────────────────
-    .{ .name = "scroll-auto", .decls = &.{.{ .property = "scroll-behavior", .value = "auto" }} },
-    .{ .name = "scroll-smooth", .decls = &.{.{ .property = "scroll-behavior", .value = "smooth" }} },
-    .{ .name = "snap-none", .decls = &.{.{ .property = "scroll-snap-type", .value = "none" }} },
-    .{ .name = "snap-x", .decls = &.{.{ .property = "scroll-snap-type", .value = "x var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-y", .decls = &.{.{ .property = "scroll-snap-type", .value = "y var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-both", .decls = &.{.{ .property = "scroll-snap-type", .value = "both var(--tw-scroll-snap-strictness, proximity)" }} },
-    .{ .name = "snap-mandatory", .decls = &.{.{ .property = "--tw-scroll-snap-strictness", .value = "mandatory" }} },
-    .{ .name = "snap-proximity", .decls = &.{.{ .property = "--tw-scroll-snap-strictness", .value = "proximity" }} },
-    .{ .name = "snap-align-none", .decls = &.{.{ .property = "scroll-snap-align", .value = "none" }} },
-    .{ .name = "snap-start", .decls = &.{.{ .property = "scroll-snap-align", .value = "start" }} },
-    .{ .name = "snap-end", .decls = &.{.{ .property = "scroll-snap-align", .value = "end" }} },
-    .{ .name = "snap-center", .decls = &.{.{ .property = "scroll-snap-align", .value = "center" }} },
-    .{ .name = "snap-normal", .decls = &.{.{ .property = "scroll-snap-stop", .value = "normal" }} },
-    .{ .name = "snap-always", .decls = &.{.{ .property = "scroll-snap-stop", .value = "always" }} },
+    .{
+        .name = "scroll-auto",
+        .decls = &.{.{
+            .property = "scroll-behavior",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "scroll-smooth",
+        .decls = &.{.{
+            .property = "scroll-behavior",
+            .value = "smooth",
+        }},
+    },
+    .{
+        .name = "snap-none",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "snap-x",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "x var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-y",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "y var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-both",
+        .decls = &.{.{
+            .property = "scroll-snap-type",
+            .value = "both var(--tw-scroll-snap-strictness, proximity)",
+        }},
+    },
+    .{
+        .name = "snap-mandatory",
+        .decls = &.{.{
+            .property = "--tw-scroll-snap-strictness",
+            .value = "mandatory",
+        }},
+    },
+    .{
+        .name = "snap-proximity",
+        .decls = &.{.{
+            .property = "--tw-scroll-snap-strictness",
+            .value = "proximity",
+        }},
+    },
+    .{
+        .name = "snap-align-none",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "snap-start",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "start",
+        }},
+    },
+    .{
+        .name = "snap-end",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "end",
+        }},
+    },
+    .{
+        .name = "snap-center",
+        .decls = &.{.{
+            .property = "scroll-snap-align",
+            .value = "center",
+        }},
+    },
+    .{
+        .name = "snap-normal",
+        .decls = &.{.{
+            .property = "scroll-snap-stop",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "snap-always",
+        .decls = &.{.{
+            .property = "scroll-snap-stop",
+            .value = "always",
+        }},
+    },
 
     // ── Will-change ─────────────────────────────────────────────────────────
-    .{ .name = "will-change-auto", .decls = &.{.{ .property = "will-change", .value = "auto" }} },
-    .{ .name = "will-change-scroll", .decls = &.{.{ .property = "will-change", .value = "scroll-position" }} },
-    .{ .name = "will-change-contents", .decls = &.{.{ .property = "will-change", .value = "contents" }} },
-    .{ .name = "will-change-transform", .decls = &.{.{ .property = "will-change", .value = "transform" }} },
+    .{
+        .name = "will-change-auto",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "will-change-scroll",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "scroll-position",
+        }},
+    },
+    .{
+        .name = "will-change-contents",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "contents",
+        }},
+    },
+    .{
+        .name = "will-change-transform",
+        .decls = &.{.{
+            .property = "will-change",
+            .value = "transform",
+        }},
+    },
 
     // ── Forced colors / contain ─────────────────────────────────────────────
-    .{ .name = "forced-color-adjust-none", .decls = &.{.{ .property = "forced-color-adjust", .value = "none" }} },
-    .{ .name = "forced-color-adjust-auto", .decls = &.{.{ .property = "forced-color-adjust", .value = "auto" }} },
-    .{ .name = "contain-none", .decls = &.{.{ .property = "contain", .value = "none" }} },
-    .{ .name = "contain-content", .decls = &.{.{ .property = "contain", .value = "content" }} },
-    .{ .name = "contain-strict", .decls = &.{.{ .property = "contain", .value = "strict" }} },
-    .{ .name = "contain-size", .decls = &.{.{ .property = "contain", .value = "size" }} },
-    .{ .name = "contain-inline-size", .decls = &.{.{ .property = "contain", .value = "inline-size" }} },
-    .{ .name = "contain-layout", .decls = &.{.{ .property = "contain", .value = "layout" }} },
-    .{ .name = "contain-paint", .decls = &.{.{ .property = "contain", .value = "paint" }} },
-    .{ .name = "contain-style", .decls = &.{.{ .property = "contain", .value = "style" }} },
+    .{
+        .name = "forced-color-adjust-none",
+        .decls = &.{.{
+            .property = "forced-color-adjust",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "forced-color-adjust-auto",
+        .decls = &.{.{
+            .property = "forced-color-adjust",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "contain-none",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "contain-content",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "content",
+        }},
+    },
+    .{
+        .name = "contain-strict",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "strict",
+        }},
+    },
+    .{
+        .name = "contain-size",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "size",
+        }},
+    },
+    .{
+        .name = "contain-inline-size",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "inline-size",
+        }},
+    },
+    .{
+        .name = "contain-layout",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "layout",
+        }},
+    },
+    .{
+        .name = "contain-paint",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "paint",
+        }},
+    },
+    .{
+        .name = "contain-style",
+        .decls = &.{.{
+            .property = "contain",
+            .value = "style",
+        }},
+    },
 
     // ── Overscroll ──────────────────────────────────────────────────────────
-    .{ .name = "overscroll-auto", .decls = &.{.{ .property = "overscroll-behavior", .value = "auto" }} },
-    .{ .name = "overscroll-contain", .decls = &.{.{ .property = "overscroll-behavior", .value = "contain" }} },
-    .{ .name = "overscroll-none", .decls = &.{.{ .property = "overscroll-behavior", .value = "none" }} },
-    .{ .name = "overscroll-x-auto", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "auto" }} },
-    .{ .name = "overscroll-x-contain", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "contain" }} },
-    .{ .name = "overscroll-x-none", .decls = &.{.{ .property = "overscroll-behavior-x", .value = "none" }} },
-    .{ .name = "overscroll-y-auto", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "auto" }} },
-    .{ .name = "overscroll-y-contain", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "contain" }} },
-    .{ .name = "overscroll-y-none", .decls = &.{.{ .property = "overscroll-behavior-y", .value = "none" }} },
+    .{
+        .name = "overscroll-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "overscroll-x-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-x-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-x-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior-x",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "overscroll-y-auto",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "overscroll-y-contain",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "contain",
+        }},
+    },
+    .{
+        .name = "overscroll-y-none",
+        .decls = &.{.{
+            .property = "overscroll-behavior-y",
+            .value = "none",
+        }},
+    },
 
     // ── Break before/inside/after ───────────────────────────────────────────
-    .{ .name = "break-before-auto", .decls = &.{.{ .property = "break-before", .value = "auto" }} },
-    .{ .name = "break-before-avoid", .decls = &.{.{ .property = "break-before", .value = "avoid" }} },
-    .{ .name = "break-before-all", .decls = &.{.{ .property = "break-before", .value = "all" }} },
-    .{ .name = "break-before-avoid-page", .decls = &.{.{ .property = "break-before", .value = "avoid-page" }} },
-    .{ .name = "break-before-page", .decls = &.{.{ .property = "break-before", .value = "page" }} },
-    .{ .name = "break-before-left", .decls = &.{.{ .property = "break-before", .value = "left" }} },
-    .{ .name = "break-before-right", .decls = &.{.{ .property = "break-before", .value = "right" }} },
-    .{ .name = "break-before-column", .decls = &.{.{ .property = "break-before", .value = "column" }} },
-    .{ .name = "break-inside-auto", .decls = &.{.{ .property = "break-inside", .value = "auto" }} },
-    .{ .name = "break-inside-avoid", .decls = &.{.{ .property = "break-inside", .value = "avoid" }} },
-    .{ .name = "break-inside-avoid-page", .decls = &.{.{ .property = "break-inside", .value = "avoid-page" }} },
-    .{ .name = "break-inside-avoid-column", .decls = &.{.{ .property = "break-inside", .value = "avoid-column" }} },
-    .{ .name = "break-after-auto", .decls = &.{.{ .property = "break-after", .value = "auto" }} },
-    .{ .name = "break-after-avoid", .decls = &.{.{ .property = "break-after", .value = "avoid" }} },
-    .{ .name = "break-after-all", .decls = &.{.{ .property = "break-after", .value = "all" }} },
-    .{ .name = "break-after-avoid-page", .decls = &.{.{ .property = "break-after", .value = "avoid-page" }} },
-    .{ .name = "break-after-page", .decls = &.{.{ .property = "break-after", .value = "page" }} },
-    .{ .name = "break-after-left", .decls = &.{.{ .property = "break-after", .value = "left" }} },
-    .{ .name = "break-after-right", .decls = &.{.{ .property = "break-after", .value = "right" }} },
-    .{ .name = "break-after-column", .decls = &.{.{ .property = "break-after", .value = "column" }} },
+    .{
+        .name = "break-before-auto",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-before-avoid",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-before-all",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "break-before-avoid-page",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-before-page",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "page",
+        }},
+    },
+    .{
+        .name = "break-before-left",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "break-before-right",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "break-before-column",
+        .decls = &.{.{
+            .property = "break-before",
+            .value = "column",
+        }},
+    },
+    .{
+        .name = "break-inside-auto",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid-page",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-inside-avoid-column",
+        .decls = &.{.{
+            .property = "break-inside",
+            .value = "avoid-column",
+        }},
+    },
+    .{
+        .name = "break-after-auto",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "break-after-avoid",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "avoid",
+        }},
+    },
+    .{
+        .name = "break-after-all",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "all",
+        }},
+    },
+    .{
+        .name = "break-after-avoid-page",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "avoid-page",
+        }},
+    },
+    .{
+        .name = "break-after-page",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "page",
+        }},
+    },
+    .{
+        .name = "break-after-left",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "left",
+        }},
+    },
+    .{
+        .name = "break-after-right",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "right",
+        }},
+    },
+    .{
+        .name = "break-after-column",
+        .decls = &.{.{
+            .property = "break-after",
+            .value = "column",
+        }},
+    },
 
     // ── Transition (bare + property variants + none) ────────────────────────
-    .{ .name = "transition", .decls = &.{
-        .{ .property = "transition-property", .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-all", .decls = &.{
-        .{ .property = "transition-property", .value = "all" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-colors", .decls = &.{
-        .{ .property = "transition-property", .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-opacity", .decls = &.{
-        .{ .property = "transition-property", .value = "opacity" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-shadow", .decls = &.{
-        .{ .property = "transition-property", .value = "box-shadow" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-transform", .decls = &.{
-        .{ .property = "transition-property", .value = "transform, translate, scale, rotate" },
-        .{ .property = "transition-timing-function", .value = "var(--default-transition-timing-function, ease)" },
-        .{ .property = "transition-duration", .value = "var(--default-transition-duration, 150ms)" },
-    } },
-    .{ .name = "transition-none", .decls = &.{.{ .property = "transition-property", .value = "none" }} },
-    .{ .name = "transition-discrete", .decls = &.{.{ .property = "transition-behavior", .value = "allow-discrete" }} },
-    .{ .name = "transition-normal", .decls = &.{.{ .property = "transition-behavior", .value = "normal" }} },
-    .{ .name = "duration-initial", .decls = &.{.{ .property = "transition-duration", .value = "initial" }} },
+    .{
+        .name = "transition",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, backdrop-filter",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-all",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "all",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-colors",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-opacity",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "opacity",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-shadow",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "box-shadow",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-transform",
+        .decls = &.{
+            .{
+                .property = "transition-property",
+                .value = "transform, translate, scale, rotate",
+            },
+            .{
+                .property = "transition-timing-function",
+                .value = "var(--default-transition-timing-function, ease)",
+            },
+            .{
+                .property = "transition-duration",
+                .value = "var(--default-transition-duration, 150ms)",
+            },
+        },
+    },
+    .{
+        .name = "transition-none",
+        .decls = &.{.{
+            .property = "transition-property",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "transition-discrete",
+        .decls = &.{.{
+            .property = "transition-behavior",
+            .value = "allow-discrete",
+        }},
+    },
+    .{
+        .name = "transition-normal",
+        .decls = &.{.{
+            .property = "transition-behavior",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "duration-initial",
+        .decls = &.{.{
+            .property = "transition-duration",
+            .value = "initial",
+        }},
+    },
 
     // ── Easing presets ──────────────────────────────────────────────────────
-    .{ .name = "ease-linear", .decls = &.{.{ .property = "transition-timing-function", .value = "linear" }} },
-    .{ .name = "ease-in", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-in, cubic-bezier(0.4, 0, 1, 1))" }} },
-    .{ .name = "ease-out", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-out, cubic-bezier(0, 0, 0.2, 1))" }} },
-    .{ .name = "ease-in-out", .decls = &.{.{ .property = "transition-timing-function", .value = "var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))" }} },
-    .{ .name = "ease-initial", .decls = &.{.{ .property = "transition-timing-function", .value = "initial" }} },
+    .{
+        .name = "ease-linear",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "linear",
+        }},
+    },
+    .{
+        .name = "ease-in",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-in, cubic-bezier(0.4, 0, 1, 1))",
+        }},
+    },
+    .{
+        .name = "ease-out",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-out, cubic-bezier(0, 0, 0.2, 1))",
+        }},
+    },
+    .{
+        .name = "ease-in-out",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "var(--ease-in-out, cubic-bezier(0.4, 0, 0.2, 1))",
+        }},
+    },
+    .{
+        .name = "ease-initial",
+        .decls = &.{.{
+            .property = "transition-timing-function",
+            .value = "initial",
+        }},
+    },
 
     // ── Shadow base statics ─────────────────────────────────────────────────
     // Bare `shadow` defaults to the theme's `--shadow-DEFAULT` (or `--shadow`).
     // The functional `shadow-{key}` and `shadow-{color}` paths handle the rest.
-    .{ .name = "shadow", .decls = &.{
-        .{ .property = "--tw-shadow", .value = "var(--shadow, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1))" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)" },
-    } },
-    .{ .name = "shadow-none", .decls = &.{
-        .{ .property = "--tw-shadow", .value = "0 0 #0000" },
-        .{ .property = "box-shadow", .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)" },
-    } },
-    .{ .name = "shadow-initial", .decls = &.{.{ .property = "--tw-shadow-color", .value = "initial" }} },
-    .{ .name = "shadow-inherit", .decls = &.{.{ .property = "--tw-shadow", .value = "inherit" }} },
-    .{ .name = "inset-shadow-initial", .decls = &.{.{ .property = "--tw-inset-shadow-color", .value = "initial" }} },
-    .{ .name = "drop-shadow-none", .decls = &.{.{ .property = "filter", .value = "drop-shadow(0 0 #0000)" }} },
-    .{ .name = "text-shadow-initial", .decls = &.{.{ .property = "--tw-text-shadow-color", .value = "initial" }} },
+    .{
+        .name = "shadow",
+        .decls = &.{
+            .{
+                .property = "--tw-shadow",
+                .value = "var(--shadow, 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1))",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
+            },
+        },
+    },
+    .{
+        .name = "shadow-none",
+        .decls = &.{
+            .{
+                .property = "--tw-shadow",
+                .value = "0 0 #0000",
+            },
+            .{
+                .property = "box-shadow",
+                .value = "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
+            },
+        },
+    },
+    .{
+        .name = "shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-shadow-color",
+            .value = "initial",
+        }},
+    },
+    .{
+        .name = "shadow-inherit",
+        .decls = &.{.{
+            .property = "--tw-shadow",
+            .value = "inherit",
+        }},
+    },
+    .{
+        .name = "inset-shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-inset-shadow-color",
+            .value = "initial",
+        }},
+    },
+    .{
+        .name = "drop-shadow-none",
+        .decls = &.{.{
+            .property = "filter",
+            .value = "drop-shadow(0 0 #0000)",
+        }},
+    },
+    .{
+        .name = "text-shadow-initial",
+        .decls = &.{.{
+            .property = "--tw-text-shadow-color",
+            .value = "initial",
+        }},
+    },
 
     // ── Outline base statics ────────────────────────────────────────────────
-    .{ .name = "outline", .decls = &.{
-        .{ .property = "outline-style", .value = "solid" },
-        .{ .property = "outline-width", .value = "1px" },
-    } },
-    .{ .name = "outline-none", .decls = &.{
-        .{ .property = "outline-style", .value = "none" },
-    } },
-    .{ .name = "outline-hidden", .decls = &.{
-        .{ .property = "outline", .value = "2px solid transparent" },
-        .{ .property = "outline-offset", .value = "2px" },
-    } },
-    .{ .name = "outline-dashed", .decls = &.{.{ .property = "outline-style", .value = "dashed" }} },
-    .{ .name = "outline-dotted", .decls = &.{.{ .property = "outline-style", .value = "dotted" }} },
-    .{ .name = "outline-double", .decls = &.{.{ .property = "outline-style", .value = "double" }} },
-    .{ .name = "isolate", .decls = &.{.{ .property = "isolation", .value = "isolate" }} },
-    .{ .name = "ring-inset", .decls = &.{.{ .property = "--tw-ring-inset", .value = "inset" }} },
+    .{
+        .name = "outline",
+        .decls = &.{
+            .{
+                .property = "outline-style",
+                .value = "solid",
+            },
+            .{
+                .property = "outline-width",
+                .value = "1px",
+            },
+        },
+    },
+    .{
+        .name = "outline-none",
+        .decls = &.{
+            .{
+                .property = "outline-style",
+                .value = "none",
+            },
+        },
+    },
+    .{
+        .name = "outline-hidden",
+        .decls = &.{
+            .{
+                .property = "outline",
+                .value = "2px solid transparent",
+            },
+            .{
+                .property = "outline-offset",
+                .value = "2px",
+            },
+        },
+    },
+    .{
+        .name = "outline-dashed",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "dashed",
+        }},
+    },
+    .{
+        .name = "outline-dotted",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "dotted",
+        }},
+    },
+    .{
+        .name = "outline-double",
+        .decls = &.{.{
+            .property = "outline-style",
+            .value = "double",
+        }},
+    },
+    .{
+        .name = "isolate",
+        .decls = &.{.{
+            .property = "isolation",
+            .value = "isolate",
+        }},
+    },
+    .{
+        .name = "ring-inset",
+        .decls = &.{.{
+            .property = "--tw-ring-inset",
+            .value = "inset",
+        }},
+    },
 
     // ── Sizing shortcuts ────────────────────────────────────────────────────
-    .{ .name = "size-full", .decls = &.{
-        .{ .property = "width", .value = "100%" },
-        .{ .property = "height", .value = "100%" },
-    } },
-    .{ .name = "w-full", .decls = &.{.{ .property = "width", .value = "100%" }} },
-    .{ .name = "h-full", .decls = &.{.{ .property = "height", .value = "100%" }} },
+    .{
+        .name = "size-full",
+        .decls = &.{
+            .{
+                .property = "width",
+                .value = "100%",
+            },
+            .{
+                .property = "height",
+                .value = "100%",
+            },
+        },
+    },
+    .{
+        .name = "w-full",
+        .decls = &.{.{
+            .property = "width",
+            .value = "100%",
+        }},
+    },
+    .{
+        .name = "h-full",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100%",
+        }},
+    },
 
     // ── Width/height: viewport-units variants (property-dependent values) ──
-    .{ .name = "w-screen", .decls = &.{.{ .property = "width", .value = "100vw" }} },
-    .{ .name = "h-screen", .decls = &.{.{ .property = "height", .value = "100vh" }} },
-    .{ .name = "min-w-screen", .decls = &.{.{ .property = "min-width", .value = "100vw" }} },
-    .{ .name = "min-h-screen", .decls = &.{.{ .property = "min-height", .value = "100vh" }} },
-    .{ .name = "max-w-screen", .decls = &.{.{ .property = "max-width", .value = "100vw" }} },
-    .{ .name = "max-h-screen", .decls = &.{.{ .property = "max-height", .value = "100vh" }} },
-    .{ .name = "h-svh", .decls = &.{.{ .property = "height", .value = "100svh" }} },
-    .{ .name = "h-lvh", .decls = &.{.{ .property = "height", .value = "100lvh" }} },
-    .{ .name = "h-dvh", .decls = &.{.{ .property = "height", .value = "100dvh" }} },
+    .{
+        .name = "w-screen",
+        .decls = &.{.{
+            .property = "width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "h-screen",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "min-w-screen",
+        .decls = &.{.{
+            .property = "min-width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "min-h-screen",
+        .decls = &.{.{
+            .property = "min-height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "max-w-screen",
+        .decls = &.{.{
+            .property = "max-width",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "max-h-screen",
+        .decls = &.{.{
+            .property = "max-height",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "h-svh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "h-lvh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "h-dvh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "100dvh",
+        }},
+    },
 
     // ── Logical inline-size / block-size statics ───────────────────────────
-    .{ .name = "inline-screen", .decls = &.{.{ .property = "inline-size", .value = "100vw" }} },
-    .{ .name = "min-inline-screen", .decls = &.{.{ .property = "min-inline-size", .value = "100vw" }} },
-    .{ .name = "max-inline-screen", .decls = &.{.{ .property = "max-inline-size", .value = "100vw" }} },
-    .{ .name = "block-screen", .decls = &.{.{ .property = "block-size", .value = "100vh" }} },
-    .{ .name = "min-block-screen", .decls = &.{.{ .property = "min-block-size", .value = "100vh" }} },
-    .{ .name = "max-block-screen", .decls = &.{.{ .property = "max-block-size", .value = "100vh" }} },
-    .{ .name = "inline-svw", .decls = &.{.{ .property = "inline-size", .value = "100svw" }} },
-    .{ .name = "inline-lvw", .decls = &.{.{ .property = "inline-size", .value = "100lvw" }} },
-    .{ .name = "inline-dvw", .decls = &.{.{ .property = "inline-size", .value = "100dvw" }} },
-    .{ .name = "min-inline-svw", .decls = &.{.{ .property = "min-inline-size", .value = "100svw" }} },
-    .{ .name = "min-inline-lvw", .decls = &.{.{ .property = "min-inline-size", .value = "100lvw" }} },
-    .{ .name = "min-inline-dvw", .decls = &.{.{ .property = "min-inline-size", .value = "100dvw" }} },
-    .{ .name = "max-inline-svw", .decls = &.{.{ .property = "max-inline-size", .value = "100svw" }} },
-    .{ .name = "max-inline-lvw", .decls = &.{.{ .property = "max-inline-size", .value = "100lvw" }} },
-    .{ .name = "max-inline-dvw", .decls = &.{.{ .property = "max-inline-size", .value = "100dvw" }} },
-    .{ .name = "block-svh", .decls = &.{.{ .property = "block-size", .value = "100svh" }} },
-    .{ .name = "block-lvh", .decls = &.{.{ .property = "block-size", .value = "100lvh" }} },
-    .{ .name = "block-dvh", .decls = &.{.{ .property = "block-size", .value = "100dvh" }} },
-    .{ .name = "min-block-svh", .decls = &.{.{ .property = "min-block-size", .value = "100svh" }} },
-    .{ .name = "min-block-lvh", .decls = &.{.{ .property = "min-block-size", .value = "100lvh" }} },
-    .{ .name = "min-block-dvh", .decls = &.{.{ .property = "min-block-size", .value = "100dvh" }} },
-    .{ .name = "max-block-svh", .decls = &.{.{ .property = "max-block-size", .value = "100svh" }} },
-    .{ .name = "max-block-lvh", .decls = &.{.{ .property = "max-block-size", .value = "100lvh" }} },
-    .{ .name = "max-block-dvh", .decls = &.{.{ .property = "max-block-size", .value = "100dvh" }} },
-    .{ .name = "block-lh", .decls = &.{.{ .property = "block-size", .value = "1lh" }} },
-    .{ .name = "min-block-lh", .decls = &.{.{ .property = "min-block-size", .value = "1lh" }} },
-    .{ .name = "max-block-lh", .decls = &.{.{ .property = "max-block-size", .value = "1lh" }} },
+    .{
+        .name = "inline-screen",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "min-inline-screen",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "max-inline-screen",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100vw",
+        }},
+    },
+    .{
+        .name = "block-screen",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "min-block-screen",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "max-block-screen",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100vh",
+        }},
+    },
+    .{
+        .name = "inline-svw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "inline-lvw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "inline-dvw",
+        .decls = &.{.{
+            .property = "inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "min-inline-svw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "min-inline-lvw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "min-inline-dvw",
+        .decls = &.{.{
+            .property = "min-inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "max-inline-svw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100svw",
+        }},
+    },
+    .{
+        .name = "max-inline-lvw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100lvw",
+        }},
+    },
+    .{
+        .name = "max-inline-dvw",
+        .decls = &.{.{
+            .property = "max-inline-size",
+            .value = "100dvw",
+        }},
+    },
+    .{
+        .name = "block-svh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "block-lvh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "block-dvh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "min-block-svh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "min-block-lvh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "min-block-dvh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "max-block-svh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100svh",
+        }},
+    },
+    .{
+        .name = "max-block-lvh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100lvh",
+        }},
+    },
+    .{
+        .name = "max-block-dvh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "100dvh",
+        }},
+    },
+    .{
+        .name = "block-lh",
+        .decls = &.{.{
+            .property = "block-size",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "min-block-lh",
+        .decls = &.{.{
+            .property = "min-block-size",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "max-block-lh",
+        .decls = &.{.{
+            .property = "max-block-size",
+            .value = "1lh",
+        }},
+    },
 
     // ── Order shortcuts ─────────────────────────────────────────────────────
-    .{ .name = "order-first", .decls = &.{.{ .property = "order", .value = "-9999" }} },
-    .{ .name = "order-last", .decls = &.{.{ .property = "order", .value = "9999" }} },
-    .{ .name = "order-none", .decls = &.{.{ .property = "order", .value = "0" }} },
+    .{
+        .name = "order-first",
+        .decls = &.{.{
+            .property = "order",
+            .value = "-9999",
+        }},
+    },
+    .{
+        .name = "order-last",
+        .decls = &.{.{
+            .property = "order",
+            .value = "9999",
+        }},
+    },
+    .{
+        .name = "order-none",
+        .decls = &.{.{
+            .property = "order",
+            .value = "0",
+        }},
+    },
 
     // ── GPU compositing hint ────────────────────────────────────────────────
-    .{ .name = "transform-gpu", .decls = &.{.{ .property = "transform", .value = "translateZ(0)" }} },
-    .{ .name = "transform-none", .decls = &.{.{ .property = "transform", .value = "none" }} },
-    .{ .name = "transform-cpu", .decls = &.{.{ .property = "transform", .value = "var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)" }} },
+    .{
+        .name = "transform-gpu",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "translateZ(0)",
+        }},
+    },
+    .{
+        .name = "transform-none",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "transform-cpu",
+        .decls = &.{.{
+            .property = "transform",
+            .value = "var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)",
+        }},
+    },
 
     // ── Transform style + box ───────────────────────────────────────────────
-    .{ .name = "transform-flat", .decls = &.{.{ .property = "transform-style", .value = "flat" }} },
-    .{ .name = "transform-3d", .decls = &.{.{ .property = "transform-style", .value = "preserve-3d" }} },
-    .{ .name = "transform-content", .decls = &.{.{ .property = "transform-box", .value = "content-box" }} },
-    .{ .name = "transform-border", .decls = &.{.{ .property = "transform-box", .value = "border-box" }} },
-    .{ .name = "transform-fill", .decls = &.{.{ .property = "transform-box", .value = "fill-box" }} },
-    .{ .name = "transform-stroke", .decls = &.{.{ .property = "transform-box", .value = "stroke-box" }} },
-    .{ .name = "transform-view", .decls = &.{.{ .property = "transform-box", .value = "view-box" }} },
+    .{
+        .name = "transform-flat",
+        .decls = &.{.{
+            .property = "transform-style",
+            .value = "flat",
+        }},
+    },
+    .{
+        .name = "transform-3d",
+        .decls = &.{.{
+            .property = "transform-style",
+            .value = "preserve-3d",
+        }},
+    },
+    .{
+        .name = "transform-content",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "content-box",
+        }},
+    },
+    .{
+        .name = "transform-border",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "border-box",
+        }},
+    },
+    .{
+        .name = "transform-fill",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "fill-box",
+        }},
+    },
+    .{
+        .name = "transform-stroke",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "stroke-box",
+        }},
+    },
+    .{
+        .name = "transform-view",
+        .decls = &.{.{
+            .property = "transform-box",
+            .value = "view-box",
+        }},
+    },
 
     // ── Transform 3D + per-axis statics ─────────────────────────────────────
-    .{ .name = "translate-none", .decls = &.{.{ .property = "translate", .value = "none" }} },
-    .{ .name = "translate-3d", .decls = &.{.{ .property = "translate", .value = "var(--tw-translate-x, 0) var(--tw-translate-y, 0) var(--tw-translate-z, 0)" }} },
-    .{ .name = "scale-none", .decls = &.{.{ .property = "scale", .value = "none" }} },
-    .{ .name = "scale-3d", .decls = &.{.{ .property = "scale", .value = "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)" }} },
-    .{ .name = "rotate-none", .decls = &.{.{ .property = "rotate", .value = "none" }} },
+    .{
+        .name = "translate-none",
+        .decls = &.{.{
+            .property = "translate",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "translate-3d",
+        .decls = &.{.{
+            .property = "translate",
+            .value = "var(--tw-translate-x, 0) var(--tw-translate-y, 0) var(--tw-translate-z, 0)",
+        }},
+    },
+    .{
+        .name = "scale-none",
+        .decls = &.{.{
+            .property = "scale",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "scale-3d",
+        .decls = &.{.{
+            .property = "scale",
+            .value = "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)",
+        }},
+    },
+    .{
+        .name = "rotate-none",
+        .decls = &.{.{
+            .property = "rotate",
+            .value = "none",
+        }},
+    },
 
     // ── Backface visibility ─────────────────────────────────────────────────
-    .{ .name = "backface-visible", .decls = &.{.{ .property = "backface-visibility", .value = "visible" }} },
-    .{ .name = "backface-hidden", .decls = &.{.{ .property = "backface-visibility", .value = "hidden" }} },
+    .{
+        .name = "backface-visible",
+        .decls = &.{.{
+            .property = "backface-visibility",
+            .value = "visible",
+        }},
+    },
+    .{
+        .name = "backface-hidden",
+        .decls = &.{.{
+            .property = "backface-visibility",
+            .value = "hidden",
+        }},
+    },
 
     // ── Aspect ratio shortcuts ──────────────────────────────────────────────
-    .{ .name = "aspect-square", .decls = &.{.{ .property = "aspect-ratio", .value = "1 / 1" }} },
-    .{ .name = "aspect-video", .decls = &.{.{ .property = "aspect-ratio", .value = "16 / 9" }} },
-    .{ .name = "aspect-auto", .decls = &.{.{ .property = "aspect-ratio", .value = "auto" }} },
+    .{
+        .name = "aspect-square",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "1 / 1",
+        }},
+    },
+    .{
+        .name = "aspect-video",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "16 / 9",
+        }},
+    },
+    .{
+        .name = "aspect-auto",
+        .decls = &.{.{
+            .property = "aspect-ratio",
+            .value = "auto",
+        }},
+    },
 
     // ── Tables ──────────────────────────────────────────────────────────────
-    .{ .name = "table-auto", .decls = &.{.{ .property = "table-layout", .value = "auto" }} },
-    .{ .name = "table-fixed", .decls = &.{.{ .property = "table-layout", .value = "fixed" }} },
-    .{ .name = "caption-top", .decls = &.{.{ .property = "caption-side", .value = "top" }} },
-    .{ .name = "caption-bottom", .decls = &.{.{ .property = "caption-side", .value = "bottom" }} },
-    .{ .name = "border-collapse", .decls = &.{.{ .property = "border-collapse", .value = "collapse" }} },
-    .{ .name = "border-separate", .decls = &.{.{ .property = "border-collapse", .value = "separate" }} },
+    .{
+        .name = "table-auto",
+        .decls = &.{.{
+            .property = "table-layout",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "table-fixed",
+        .decls = &.{.{
+            .property = "table-layout",
+            .value = "fixed",
+        }},
+    },
+    .{
+        .name = "caption-top",
+        .decls = &.{.{
+            .property = "caption-side",
+            .value = "top",
+        }},
+    },
+    .{
+        .name = "caption-bottom",
+        .decls = &.{.{
+            .property = "caption-side",
+            .value = "bottom",
+        }},
+    },
+    .{
+        .name = "border-collapse",
+        .decls = &.{.{
+            .property = "border-collapse",
+            .value = "collapse",
+        }},
+    },
+    .{
+        .name = "border-separate",
+        .decls = &.{.{
+            .property = "border-collapse",
+            .value = "separate",
+        }},
+    },
 
     // ── Forms ───────────────────────────────────────────────────────────────
-    .{ .name = "appearance-none", .decls = &.{.{ .property = "appearance", .value = "none" }} },
-    .{ .name = "appearance-auto", .decls = &.{.{ .property = "appearance", .value = "auto" }} },
-    .{ .name = "scheme-normal", .decls = &.{.{ .property = "color-scheme", .value = "normal" }} },
-    .{ .name = "scheme-dark", .decls = &.{.{ .property = "color-scheme", .value = "dark" }} },
-    .{ .name = "scheme-light", .decls = &.{.{ .property = "color-scheme", .value = "light" }} },
-    .{ .name = "scheme-light-dark", .decls = &.{.{ .property = "color-scheme", .value = "light dark" }} },
-    .{ .name = "scheme-only-dark", .decls = &.{.{ .property = "color-scheme", .value = "only dark" }} },
-    .{ .name = "scheme-only-light", .decls = &.{.{ .property = "color-scheme", .value = "only light" }} },
+    .{
+        .name = "appearance-none",
+        .decls = &.{.{
+            .property = "appearance",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "appearance-auto",
+        .decls = &.{.{
+            .property = "appearance",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "scheme-normal",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "normal",
+        }},
+    },
+    .{
+        .name = "scheme-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "dark",
+        }},
+    },
+    .{
+        .name = "scheme-light",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "light",
+        }},
+    },
+    .{
+        .name = "scheme-light-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "light dark",
+        }},
+    },
+    .{
+        .name = "scheme-only-dark",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "only dark",
+        }},
+    },
+    .{
+        .name = "scheme-only-light",
+        .decls = &.{.{
+            .property = "color-scheme",
+            .value = "only light",
+        }},
+    },
 
     // ── Color extras ────────────────────────────────────────────────────────
-    .{ .name = "accent-auto", .decls = &.{.{ .property = "accent-color", .value = "auto" }} },
-    .{ .name = "fill-none", .decls = &.{.{ .property = "fill", .value = "none" }} },
-    .{ .name = "stroke-none", .decls = &.{.{ .property = "stroke", .value = "none" }} },
+    .{
+        .name = "accent-auto",
+        .decls = &.{.{
+            .property = "accent-color",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "fill-none",
+        .decls = &.{.{
+            .property = "fill",
+            .value = "none",
+        }},
+    },
+    .{
+        .name = "stroke-none",
+        .decls = &.{.{
+            .property = "stroke",
+            .value = "none",
+        }},
+    },
 
     // ── Sizing — line-height units ──────────────────────────────────────────
-    .{ .name = "h-lh", .decls = &.{.{ .property = "height", .value = "1lh" }} },
-    .{ .name = "min-h-lh", .decls = &.{.{ .property = "min-height", .value = "1lh" }} },
-    .{ .name = "max-h-lh", .decls = &.{.{ .property = "max-height", .value = "1lh" }} },
+    .{
+        .name = "h-lh",
+        .decls = &.{.{
+            .property = "height",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "min-h-lh",
+        .decls = &.{.{
+            .property = "min-height",
+            .value = "1lh",
+        }},
+    },
+    .{
+        .name = "max-h-lh",
+        .decls = &.{.{
+            .property = "max-height",
+            .value = "1lh",
+        }},
+    },
 
     // ── Grid column shortcuts ───────────────────────────────────────────────
-    .{ .name = "col-auto", .decls = &.{.{ .property = "grid-column", .value = "auto" }} },
-    .{ .name = "col-span-full", .decls = &.{.{ .property = "grid-column", .value = "1 / -1" }} },
-    .{ .name = "col-start-auto", .decls = &.{.{ .property = "grid-column-start", .value = "auto" }} },
-    .{ .name = "col-end-auto", .decls = &.{.{ .property = "grid-column-end", .value = "auto" }} },
+    .{
+        .name = "col-auto",
+        .decls = &.{.{
+            .property = "grid-column",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "col-span-full",
+        .decls = &.{.{
+            .property = "grid-column",
+            .value = "1 / -1",
+        }},
+    },
+    .{
+        .name = "col-start-auto",
+        .decls = &.{.{
+            .property = "grid-column-start",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "col-end-auto",
+        .decls = &.{.{
+            .property = "grid-column-end",
+            .value = "auto",
+        }},
+    },
 
     // ── Grid row shortcuts ──────────────────────────────────────────────────
-    .{ .name = "row-auto", .decls = &.{.{ .property = "grid-row", .value = "auto" }} },
-    .{ .name = "row-span-full", .decls = &.{.{ .property = "grid-row", .value = "1 / -1" }} },
-    .{ .name = "row-start-auto", .decls = &.{.{ .property = "grid-row-start", .value = "auto" }} },
-    .{ .name = "row-end-auto", .decls = &.{.{ .property = "grid-row-end", .value = "auto" }} },
+    .{
+        .name = "row-auto",
+        .decls = &.{.{
+            .property = "grid-row",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "row-span-full",
+        .decls = &.{.{
+            .property = "grid-row",
+            .value = "1 / -1",
+        }},
+    },
+    .{
+        .name = "row-start-auto",
+        .decls = &.{.{
+            .property = "grid-row-start",
+            .value = "auto",
+        }},
+    },
+    .{
+        .name = "row-end-auto",
+        .decls = &.{.{
+            .property = "grid-row-end",
+            .value = "auto",
+        }},
+    },
 
     // ── Tracking (letter-spacing) presets ──────────────────────────────────
-    .{ .name = "tracking-tight", .decls = &.{.{ .property = "letter-spacing", .value = "-0.025em" }} },
-    .{ .name = "tracking-tighter", .decls = &.{.{ .property = "letter-spacing", .value = "-0.05em" }} },
-    .{ .name = "tracking-normal", .decls = &.{.{ .property = "letter-spacing", .value = "0em" }} },
-    .{ .name = "tracking-wide", .decls = &.{.{ .property = "letter-spacing", .value = "0.025em" }} },
-    .{ .name = "tracking-wider", .decls = &.{.{ .property = "letter-spacing", .value = "0.05em" }} },
+    .{
+        .name = "tracking-tight",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "-0.025em",
+        }},
+    },
+    .{
+        .name = "tracking-tighter",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "-0.05em",
+        }},
+    },
+    .{
+        .name = "tracking-normal",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0em",
+        }},
+    },
+    .{
+        .name = "tracking-wide",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0.025em",
+        }},
+    },
+    .{
+        .name = "tracking-wider",
+        .decls = &.{.{
+            .property = "letter-spacing",
+            .value = "0.05em",
+        }},
+    },
 };
 
 /// Maps a root prefix (e.g. `p`, `mx`, `gap-x`, `min-w`) to one or more CSS
@@ -2121,85 +6338,295 @@ const SpacingDispatchEntry = struct {
 
 const SPACING_DISPATCH = [_]SpacingDispatchEntry{
     // ── Padding ─────────────────────────────────────────────────────────────
-    .{ .root = "p", .props = &.{"padding"} },
-    .{ .root = "pt", .props = &.{"padding-top"} },
-    .{ .root = "pr", .props = &.{"padding-right"} },
-    .{ .root = "pb", .props = &.{"padding-bottom"} },
-    .{ .root = "pl", .props = &.{"padding-left"} },
-    .{ .root = "px", .props = &.{ "padding-left", "padding-right" } },
-    .{ .root = "py", .props = &.{ "padding-top", "padding-bottom" } },
-    .{ .root = "ps", .props = &.{"padding-inline-start"} },
-    .{ .root = "pe", .props = &.{"padding-inline-end"} },
-    .{ .root = "pbs", .props = &.{"padding-block-start"} },
-    .{ .root = "pbe", .props = &.{"padding-block-end"} },
+    .{
+        .root = "p",
+        .props = &.{"padding"},
+    },
+    .{
+        .root = "pt",
+        .props = &.{"padding-top"},
+    },
+    .{
+        .root = "pr",
+        .props = &.{"padding-right"},
+    },
+    .{
+        .root = "pb",
+        .props = &.{"padding-bottom"},
+    },
+    .{
+        .root = "pl",
+        .props = &.{"padding-left"},
+    },
+    .{
+        .root = "px",
+        .props = &.{ "padding-left", "padding-right" },
+    },
+    .{
+        .root = "py",
+        .props = &.{ "padding-top", "padding-bottom" },
+    },
+    .{
+        .root = "ps",
+        .props = &.{"padding-inline-start"},
+    },
+    .{
+        .root = "pe",
+        .props = &.{"padding-inline-end"},
+    },
+    .{
+        .root = "pbs",
+        .props = &.{"padding-block-start"},
+    },
+    .{
+        .root = "pbe",
+        .props = &.{"padding-block-end"},
+    },
     // ── Margin ──────────────────────────────────────────────────────────────
-    .{ .root = "m", .props = &.{"margin"} },
-    .{ .root = "mt", .props = &.{"margin-top"} },
-    .{ .root = "mr", .props = &.{"margin-right"} },
-    .{ .root = "mb", .props = &.{"margin-bottom"} },
-    .{ .root = "ml", .props = &.{"margin-left"} },
-    .{ .root = "mx", .props = &.{ "margin-left", "margin-right" } },
-    .{ .root = "my", .props = &.{ "margin-top", "margin-bottom" } },
-    .{ .root = "ms", .props = &.{"margin-inline-start"} },
-    .{ .root = "me", .props = &.{"margin-inline-end"} },
-    .{ .root = "mbs", .props = &.{"margin-block-start"} },
-    .{ .root = "mbe", .props = &.{"margin-block-end"} },
+    .{
+        .root = "m",
+        .props = &.{"margin"},
+    },
+    .{
+        .root = "mt",
+        .props = &.{"margin-top"},
+    },
+    .{
+        .root = "mr",
+        .props = &.{"margin-right"},
+    },
+    .{
+        .root = "mb",
+        .props = &.{"margin-bottom"},
+    },
+    .{
+        .root = "ml",
+        .props = &.{"margin-left"},
+    },
+    .{
+        .root = "mx",
+        .props = &.{ "margin-left", "margin-right" },
+    },
+    .{
+        .root = "my",
+        .props = &.{ "margin-top", "margin-bottom" },
+    },
+    .{
+        .root = "ms",
+        .props = &.{"margin-inline-start"},
+    },
+    .{
+        .root = "me",
+        .props = &.{"margin-inline-end"},
+    },
+    .{
+        .root = "mbs",
+        .props = &.{"margin-block-start"},
+    },
+    .{
+        .root = "mbe",
+        .props = &.{"margin-block-end"},
+    },
     // ── Gap ─────────────────────────────────────────────────────────────────
-    .{ .root = "gap", .props = &.{"gap"} },
-    .{ .root = "gap-x", .props = &.{"column-gap"} },
-    .{ .root = "gap-y", .props = &.{"row-gap"} },
+    .{
+        .root = "gap",
+        .props = &.{"gap"},
+    },
+    .{
+        .root = "gap-x",
+        .props = &.{"column-gap"},
+    },
+    .{
+        .root = "gap-y",
+        .props = &.{"row-gap"},
+    },
     // ── Width / height ──────────────────────────────────────────────────────
-    .{ .root = "w", .props = &.{"width"} },
-    .{ .root = "h", .props = &.{"height"} },
-    .{ .root = "min-w", .props = &.{"min-width"} },
-    .{ .root = "min-h", .props = &.{"min-height"} },
-    .{ .root = "max-w", .props = &.{"max-width"} },
-    .{ .root = "max-h", .props = &.{"max-height"} },
+    .{
+        .root = "w",
+        .props = &.{"width"},
+    },
+    .{
+        .root = "h",
+        .props = &.{"height"},
+    },
+    .{
+        .root = "min-w",
+        .props = &.{"min-width"},
+    },
+    .{
+        .root = "min-h",
+        .props = &.{"min-height"},
+    },
+    .{
+        .root = "max-w",
+        .props = &.{"max-width"},
+    },
+    .{
+        .root = "max-h",
+        .props = &.{"max-height"},
+    },
     // ── Flex basis (spacing scale + container namespace) ───────────────────
-    .{ .root = "basis", .props = &.{"flex-basis"} },
+    .{
+        .root = "basis",
+        .props = &.{"flex-basis"},
+    },
     // ── Logical inline-size / block-size ───────────────────────────────────
-    .{ .root = "inline", .props = &.{"inline-size"} },
-    .{ .root = "block", .props = &.{"block-size"} },
-    .{ .root = "min-inline", .props = &.{"min-inline-size"} },
-    .{ .root = "min-block", .props = &.{"min-block-size"} },
-    .{ .root = "max-inline", .props = &.{"max-inline-size"} },
-    .{ .root = "max-block", .props = &.{"max-block-size"} },
+    .{
+        .root = "inline",
+        .props = &.{"inline-size"},
+    },
+    .{
+        .root = "block",
+        .props = &.{"block-size"},
+    },
+    .{
+        .root = "min-inline",
+        .props = &.{"min-inline-size"},
+    },
+    .{
+        .root = "min-block",
+        .props = &.{"min-block-size"},
+    },
+    .{
+        .root = "max-inline",
+        .props = &.{"max-inline-size"},
+    },
+    .{
+        .root = "max-block",
+        .props = &.{"max-block-size"},
+    },
     // ── Inset sides (`top`/`right`/`bottom`/`left` as standalone roots) ────
-    .{ .root = "top", .props = &.{"top"} },
-    .{ .root = "right", .props = &.{"right"} },
-    .{ .root = "bottom", .props = &.{"bottom"} },
-    .{ .root = "left", .props = &.{"left"} },
-    .{ .root = "start", .props = &.{"inset-inline-start"} },
-    .{ .root = "end", .props = &.{"inset-inline-end"} },
-    .{ .root = "inset-s", .props = &.{"inset-inline-start"} },
-    .{ .root = "inset-e", .props = &.{"inset-inline-end"} },
-    .{ .root = "inset-bs", .props = &.{"inset-block-start"} },
-    .{ .root = "inset-be", .props = &.{"inset-block-end"} },
+    .{
+        .root = "top",
+        .props = &.{"top"},
+    },
+    .{
+        .root = "right",
+        .props = &.{"right"},
+    },
+    .{
+        .root = "bottom",
+        .props = &.{"bottom"},
+    },
+    .{
+        .root = "left",
+        .props = &.{"left"},
+    },
+    .{
+        .root = "start",
+        .props = &.{"inset-inline-start"},
+    },
+    .{
+        .root = "end",
+        .props = &.{"inset-inline-end"},
+    },
+    .{
+        .root = "inset-s",
+        .props = &.{"inset-inline-start"},
+    },
+    .{
+        .root = "inset-e",
+        .props = &.{"inset-inline-end"},
+    },
+    .{
+        .root = "inset-bs",
+        .props = &.{"inset-block-start"},
+    },
+    .{
+        .root = "inset-be",
+        .props = &.{"inset-block-end"},
+    },
     // (translate-x/y/z handled by resolveTranslateAxis below — sets the
     //  per-axis var AND the composed `translate:` declaration.)
     // ── Scroll padding / margin (mirror padding/margin) ─────────────────────
-    .{ .root = "scroll-p", .props = &.{"scroll-padding"} },
-    .{ .root = "scroll-pt", .props = &.{"scroll-padding-top"} },
-    .{ .root = "scroll-pr", .props = &.{"scroll-padding-right"} },
-    .{ .root = "scroll-pb", .props = &.{"scroll-padding-bottom"} },
-    .{ .root = "scroll-pl", .props = &.{"scroll-padding-left"} },
-    .{ .root = "scroll-px", .props = &.{ "scroll-padding-left", "scroll-padding-right" } },
-    .{ .root = "scroll-py", .props = &.{ "scroll-padding-top", "scroll-padding-bottom" } },
-    .{ .root = "scroll-m", .props = &.{"scroll-margin"} },
-    .{ .root = "scroll-mt", .props = &.{"scroll-margin-top"} },
-    .{ .root = "scroll-mr", .props = &.{"scroll-margin-right"} },
-    .{ .root = "scroll-mb", .props = &.{"scroll-margin-bottom"} },
-    .{ .root = "scroll-ml", .props = &.{"scroll-margin-left"} },
-    .{ .root = "scroll-mx", .props = &.{ "scroll-margin-left", "scroll-margin-right" } },
-    .{ .root = "scroll-my", .props = &.{ "scroll-margin-top", "scroll-margin-bottom" } },
-    .{ .root = "scroll-ms", .props = &.{"scroll-margin-inline-start"} },
-    .{ .root = "scroll-me", .props = &.{"scroll-margin-inline-end"} },
-    .{ .root = "scroll-mbs", .props = &.{"scroll-margin-block-start"} },
-    .{ .root = "scroll-mbe", .props = &.{"scroll-margin-block-end"} },
-    .{ .root = "scroll-ps", .props = &.{"scroll-padding-inline-start"} },
-    .{ .root = "scroll-pe", .props = &.{"scroll-padding-inline-end"} },
-    .{ .root = "scroll-pbs", .props = &.{"scroll-padding-block-start"} },
-    .{ .root = "scroll-pbe", .props = &.{"scroll-padding-block-end"} },
+    .{
+        .root = "scroll-p",
+        .props = &.{"scroll-padding"},
+    },
+    .{
+        .root = "scroll-pt",
+        .props = &.{"scroll-padding-top"},
+    },
+    .{
+        .root = "scroll-pr",
+        .props = &.{"scroll-padding-right"},
+    },
+    .{
+        .root = "scroll-pb",
+        .props = &.{"scroll-padding-bottom"},
+    },
+    .{
+        .root = "scroll-pl",
+        .props = &.{"scroll-padding-left"},
+    },
+    .{
+        .root = "scroll-px",
+        .props = &.{ "scroll-padding-left", "scroll-padding-right" },
+    },
+    .{
+        .root = "scroll-py",
+        .props = &.{ "scroll-padding-top", "scroll-padding-bottom" },
+    },
+    .{
+        .root = "scroll-m",
+        .props = &.{"scroll-margin"},
+    },
+    .{
+        .root = "scroll-mt",
+        .props = &.{"scroll-margin-top"},
+    },
+    .{
+        .root = "scroll-mr",
+        .props = &.{"scroll-margin-right"},
+    },
+    .{
+        .root = "scroll-mb",
+        .props = &.{"scroll-margin-bottom"},
+    },
+    .{
+        .root = "scroll-ml",
+        .props = &.{"scroll-margin-left"},
+    },
+    .{
+        .root = "scroll-mx",
+        .props = &.{ "scroll-margin-left", "scroll-margin-right" },
+    },
+    .{
+        .root = "scroll-my",
+        .props = &.{ "scroll-margin-top", "scroll-margin-bottom" },
+    },
+    .{
+        .root = "scroll-ms",
+        .props = &.{"scroll-margin-inline-start"},
+    },
+    .{
+        .root = "scroll-me",
+        .props = &.{"scroll-margin-inline-end"},
+    },
+    .{
+        .root = "scroll-mbs",
+        .props = &.{"scroll-margin-block-start"},
+    },
+    .{
+        .root = "scroll-mbe",
+        .props = &.{"scroll-margin-block-end"},
+    },
+    .{
+        .root = "scroll-ps",
+        .props = &.{"scroll-padding-inline-start"},
+    },
+    .{
+        .root = "scroll-pe",
+        .props = &.{"scroll-padding-inline-end"},
+    },
+    .{
+        .root = "scroll-pbs",
+        .props = &.{"scroll-padding-block-start"},
+    },
+    .{
+        .root = "scroll-pbe",
+        .props = &.{"scroll-padding-block-end"},
+    },
 };
 
 /// Whether `name` is a known static utility (needs no theme to resolve).
@@ -2240,9 +6667,14 @@ fn cloneDecls(
     }
     while (i < decls.len) : (i += 1) {
         const dup = try allocator.dupe(u8, decls[i].value);
-        out[i] = .{ .property = decls[i].property, .value = dup };
+        out[i] = .{
+            .property = decls[i].property,
+            .value = dup,
+        };
     }
-    return .{ .declarations = out };
+    return .{
+        .declarations = out,
+    };
 }
 
 // ── Functional utilities ────────────────────────────────────────────────────
@@ -2639,16 +7071,26 @@ fn resolveFunctional(
                         errdefer allocator.free(css_value);
                         const decls = try allocator.alloc(Declaration, 1);
                         errdefer allocator.free(decls);
-                        decls[0] = .{ .property = "flex", .value = css_value };
-                        return .{ .declarations = decls };
+                        decls[0] = .{
+                            .property = "flex",
+                            .value = css_value,
+                        };
+                        return .{
+                            .declarations = decls,
+                        };
                     }
                     if (isInteger(n.value) and f.modifier == null) {
                         const css_value = try allocator.dupe(u8, n.value);
                         errdefer allocator.free(css_value);
                         const decls = try allocator.alloc(Declaration, 1);
                         errdefer allocator.free(decls);
-                        decls[0] = .{ .property = "flex", .value = css_value };
-                        return .{ .declarations = decls };
+                        decls[0] = .{
+                            .property = "flex",
+                            .value = css_value,
+                        };
+                        return .{
+                            .declarations = decls,
+                        };
                     }
                 },
             }
@@ -2743,23 +7185,74 @@ fn resolveFunctional(
     // Theme-driven: each maps to a single CSS property and shares one
     // resolution path covering theme colors, special CSS keywords, arbitrary
     // values, and the `/<opacity>` modifier (rendered via `color-mix`).
-    const color_mappings = [_]struct { root: []const u8, property: []const u8 }{
-        .{ .root = "bg", .property = "background-color" },
-        .{ .root = "text", .property = "color" },
-        .{ .root = "border", .property = "border-color" },
-        .{ .root = "border-t", .property = "border-top-color" },
-        .{ .root = "border-r", .property = "border-right-color" },
-        .{ .root = "border-b", .property = "border-bottom-color" },
-        .{ .root = "border-l", .property = "border-left-color" },
-        .{ .root = "border-s", .property = "border-inline-start-color" },
-        .{ .root = "border-e", .property = "border-inline-end-color" },
-        .{ .root = "ring", .property = "--tw-ring-color" },
-        .{ .root = "decoration", .property = "text-decoration-color" },
-        .{ .root = "outline", .property = "outline-color" },
-        .{ .root = "accent", .property = "accent-color" },
-        .{ .root = "caret", .property = "caret-color" },
-        .{ .root = "fill", .property = "fill" },
-        .{ .root = "stroke", .property = "stroke" },
+    const color_mappings = [_]struct {
+        root: []const u8,
+        property: []const u8,
+    }{
+        .{
+            .root = "bg",
+            .property = "background-color",
+        },
+        .{
+            .root = "text",
+            .property = "color",
+        },
+        .{
+            .root = "border",
+            .property = "border-color",
+        },
+        .{
+            .root = "border-t",
+            .property = "border-top-color",
+        },
+        .{
+            .root = "border-r",
+            .property = "border-right-color",
+        },
+        .{
+            .root = "border-b",
+            .property = "border-bottom-color",
+        },
+        .{
+            .root = "border-l",
+            .property = "border-left-color",
+        },
+        .{
+            .root = "border-s",
+            .property = "border-inline-start-color",
+        },
+        .{
+            .root = "border-e",
+            .property = "border-inline-end-color",
+        },
+        .{
+            .root = "ring",
+            .property = "--tw-ring-color",
+        },
+        .{
+            .root = "decoration",
+            .property = "text-decoration-color",
+        },
+        .{
+            .root = "outline",
+            .property = "outline-color",
+        },
+        .{
+            .root = "accent",
+            .property = "accent-color",
+        },
+        .{
+            .root = "caret",
+            .property = "caret-color",
+        },
+        .{
+            .root = "fill",
+            .property = "fill",
+        },
+        .{
+            .root = "stroke",
+            .property = "stroke",
+        },
     };
     inline for (color_mappings) |cm| {
         if (std.mem.eql(u8, root, cm.root) and !negative) {
@@ -2831,8 +7324,13 @@ fn resolveArbitraryProperty(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = final_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = final_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// CSS properties whose values are colors. Used to decide whether a `/<n>`
@@ -2898,8 +7396,13 @@ fn resolveSpacingDecl(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Negate a CSS value by wrapping in `calc(N * -1)` (preserves units / vars).
@@ -2951,10 +7454,15 @@ fn resolveSpacingPairSigned(
                 while (fj < fi) : (fj += 1) allocator.free(decls[fj].value);
             }
             while (fi < properties.len) : (fi += 1) {
-                decls[fi] = .{ .property = properties[fi], .value = try allocator.dupe(u8, final_value) };
+                decls[fi] = .{
+                    .property = properties[fi],
+                    .value = try allocator.dupe(u8, final_value),
+                };
             }
             allocator.free(final_value);
-            return .{ .declarations = decls };
+            return .{
+                .declarations = decls,
+            };
         }
         // Modifier present but not a numeric/numeric pair: bail out — these
         // utilities don't accept arbitrary modifiers (color modifiers go
@@ -3017,10 +7525,15 @@ fn resolveSpacingPairSigned(
     }
     while (i < properties.len) : (i += 1) {
         // Each property gets its own copy so freeResolvedUtility can free per-decl.
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, final_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, final_value),
+        };
     }
     allocator.free(final_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `divide-x-N` / `divide-y-N` — between-children border via selector
@@ -3052,7 +7565,10 @@ fn resolveDivideAxis(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
     return .{
         .declarations = decls,
         .selector_suffix = try allocator.dupe(u8, " > :not(:last-child)"),
@@ -3083,7 +7599,10 @@ fn resolveDivideColor(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "border-color", .value = final };
+    decls[0] = .{
+        .property = "border-color",
+        .value = final,
+    };
     return .{
         .declarations = decls,
         .selector_suffix = try allocator.dupe(u8, " > :not(:last-child)"),
@@ -3108,8 +7627,13 @@ fn resolveOpacity(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "opacity", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "opacity",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ring-N` — ring width. Numeric → `Npx`. Arbitrary passes through. Returns
@@ -3144,7 +7668,9 @@ fn resolveRingWidth(
         .value = try allocator.dupe(u8, "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)"),
     };
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `space-x-N` / `space-y-N` — child spacing. Emits a single declaration
@@ -3219,7 +7745,9 @@ fn resolveSpanLonghand(
         .property = property,
         .value = try std.fmt.allocPrint(allocator, "span {s} / span {s}", .{ span_n, span_n }),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `grid-cols-{N|subgrid|arbitrary}`, `grid-rows-{N|subgrid|arbitrary}`.
@@ -3244,8 +7772,13 @@ fn resolveGridTrack(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = track_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = track_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn resolveZIndex(
@@ -3281,8 +7814,13 @@ fn resolvePxLonghand(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `outline-N` emits both width and style — without an explicit style the
@@ -3303,9 +7841,17 @@ fn resolveOutlineWidth(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "outline-style", .value = try allocator.dupe(u8, "solid") };
-    decls[1] = .{ .property = "outline-width", .value = width_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "outline-style",
+        .value = try allocator.dupe(u8, "solid"),
+    };
+    decls[1] = .{
+        .property = "outline-width",
+        .value = width_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Generic integer-valued single-property longhand (`order-N`, `col-start-N`,
@@ -3337,8 +7883,13 @@ fn resolveIntegerLonghand(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `aspect-W/H`, `aspect-N`, `aspect-[arbitrary]`. Named values use the
@@ -3375,8 +7926,13 @@ fn resolveAspect(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "aspect-ratio", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "aspect-ratio",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `<root>-N` → `filter: <fn_name>(N<unit>)`. Bare value (`grayscale`, `invert`,
@@ -3453,7 +8009,9 @@ fn resolveFilterFnImpl(
         .value = try std.fmt.allocPrint(allocator, "{s}({s})", .{ fn_name, inner }),
     };
     allocator.free(inner);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `animate-{name|none|arbitrary}`. Theme `--animate-{name}` looks up an
@@ -3479,8 +8037,13 @@ fn resolveAnimate(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "animation", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "animation",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `backdrop-blur-{theme/none/arbitrary}` — emits backdrop-filter blur.
@@ -3511,7 +8074,9 @@ fn resolveBackdropBlur(
         .value = try std.fmt.allocPrint(allocator, "blur({s})", .{blur_value}),
     };
     allocator.free(blur_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `drop-shadow-{theme/arbitrary}` — emits filter:drop-shadow(...).
@@ -3538,7 +8103,9 @@ fn resolveDropShadow(
         .value = try std.fmt.allocPrint(allocator, "drop-shadow({s})", .{shadow_value}),
     };
     allocator.free(shadow_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ring-offset-N` (width) or `ring-offset-{color}`. Falls through if value
@@ -3557,8 +8124,13 @@ fn resolveRingOffset(
             if (std.mem.endsWith(u8, a.value, "px") or std.mem.endsWith(u8, a.value, "rem") or std.mem.endsWith(u8, a.value, "em")) {
                 const decls = try allocator.alloc(Declaration, 1);
                 errdefer allocator.free(decls);
-                decls[0] = .{ .property = "--tw-ring-offset-width", .value = try allocator.dupe(u8, a.value) };
-                return .{ .declarations = decls };
+                decls[0] = .{
+                    .property = "--tw-ring-offset-width",
+                    .value = try allocator.dupe(u8, a.value),
+                };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
         .named => |n| {
@@ -3569,7 +8141,9 @@ fn resolveRingOffset(
                     .property = "--tw-ring-offset-width",
                     .value = try std.fmt.allocPrint(allocator, "{s}px", .{n.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
     }
@@ -3594,7 +8168,9 @@ fn resolveInsetRing(
                     .property = "box-shadow",
                     .value = try std.fmt.allocPrint(allocator, "inset 0 0 0 {s} var(--tw-inset-ring-color, currentColor)", .{a.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
         .named => |n| {
@@ -3605,7 +8181,9 @@ fn resolveInsetRing(
                     .property = "box-shadow",
                     .value = try std.fmt.allocPrint(allocator, "inset 0 0 0 {s}px var(--tw-inset-ring-color, currentColor)", .{n.value}),
                 };
-                return .{ .declarations = decls };
+                return .{
+                    .declarations = decls,
+                };
             }
         },
     }
@@ -3647,26 +8225,53 @@ fn resolveTranslate(
         .both => emit: {
             const decls = try allocator.alloc(Declaration, 3);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-translate-x", .value = try allocator.dupe(u8, final) };
-            decls[1] = .{ .property = "--tw-translate-y", .value = try allocator.dupe(u8, final) };
-            decls[2] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_2axis) };
+            decls[0] = .{
+                .property = "--tw-translate-x",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[1] = .{
+                .property = "--tw-translate-y",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[2] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_2axis),
+            };
             allocator.free(final);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x, .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
             const prop = if (axis == .x) "--tw-translate-x" else "--tw-translate-y";
-            decls[0] = .{ .property = prop, .value = final };
-            decls[1] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_2axis) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = prop,
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_2axis),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-translate-z", .value = final };
-            decls[1] = .{ .property = "translate", .value = try allocator.dupe(u8, composed_3axis) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = "--tw-translate-z",
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "translate",
+                .value = try allocator.dupe(u8, composed_3axis),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
     };
 }
@@ -3733,26 +8338,53 @@ fn resolveScale(
         .both => emit: {
             const decls = try allocator.alloc(Declaration, 3);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-scale-x", .value = try allocator.dupe(u8, final) };
-            decls[1] = .{ .property = "--tw-scale-y", .value = try allocator.dupe(u8, final) };
-            decls[2] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_2) };
+            decls[0] = .{
+                .property = "--tw-scale-x",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[1] = .{
+                .property = "--tw-scale-y",
+                .value = try allocator.dupe(u8, final),
+            };
+            decls[2] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_2),
+            };
             allocator.free(final);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x, .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
             const prop = if (axis == .x) "--tw-scale-x" else "--tw-scale-y";
-            decls[0] = .{ .property = prop, .value = final };
-            decls[1] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_2) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = prop,
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_2),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => emit: {
             const decls = try allocator.alloc(Declaration, 2);
             errdefer allocator.free(decls);
-            decls[0] = .{ .property = "--tw-scale-z", .value = final };
-            decls[1] = .{ .property = "scale", .value = try allocator.dupe(u8, composed_3) };
-            break :emit .{ .declarations = decls };
+            decls[0] = .{
+                .property = "--tw-scale-z",
+                .value = final,
+            };
+            decls[1] = .{
+                .property = "scale",
+                .value = try allocator.dupe(u8, composed_3),
+            };
+            break :emit .{
+                .declarations = decls,
+            };
         },
     };
 }
@@ -3780,8 +8412,13 @@ fn resolveRotate(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "rotate", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "rotate",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `rotate-x-N` / `rotate-y-N` / `rotate-z-N` — sets per-axis `--tw-rotate-*`
@@ -3819,7 +8456,9 @@ fn resolveRotateAxis(
         .value = try std.fmt.allocPrint(allocator, "{s}({s})", .{ fn_name, angle }),
     };
     allocator.free(angle);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `skew-N`, `skew-x-N`, `skew-y-N`. Same shape as scale.
@@ -3856,9 +8495,14 @@ fn resolveSkew(
                 .property = "--tw-skew-y",
                 .value = try std.fmt.allocPrint(allocator, "skewY({s})", .{angle}),
             };
-            decls[2] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[2] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .x => emit: {
             const decls = try allocator.alloc(Declaration, 2);
@@ -3867,9 +8511,14 @@ fn resolveSkew(
                 .property = "--tw-skew-x",
                 .value = try std.fmt.allocPrint(allocator, "skewX({s})", .{angle}),
             };
-            decls[1] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[1] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .y => emit: {
             const decls = try allocator.alloc(Declaration, 2);
@@ -3878,9 +8527,14 @@ fn resolveSkew(
                 .property = "--tw-skew-y",
                 .value = try std.fmt.allocPrint(allocator, "skewY({s})", .{angle}),
             };
-            decls[1] = .{ .property = "transform", .value = try allocator.dupe(u8, composed) };
+            decls[1] = .{
+                .property = "transform",
+                .value = try allocator.dupe(u8, composed),
+            };
             allocator.free(angle);
-            break :emit .{ .declarations = decls };
+            break :emit .{
+                .declarations = decls,
+            };
         },
         .z => null,
     };
@@ -3920,8 +8574,13 @@ fn resolveTransformOrigin(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "transform-origin", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "transform-origin",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `perspective-N` / `perspective-[arb]` / `perspective-{theme}`. `none` static.
@@ -3944,8 +8603,13 @@ fn resolvePerspective(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "perspective", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "perspective",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `border-spacing-{N|x-N|y-N}`. Sets `--tw-border-spacing-x/y` and the
@@ -3979,21 +8643,39 @@ fn resolveBorderSpacing(
     }
     switch (axis) {
         .x => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, css_value) };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, "0") };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, "0"),
+            };
             i += 1;
         },
         .y => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, "0") };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, "0"),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, css_value) };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
         },
         .both => {
-            decls[0] = .{ .property = "--tw-border-spacing-x", .value = try allocator.dupe(u8, css_value) };
+            decls[0] = .{
+                .property = "--tw-border-spacing-x",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
-            decls[1] = .{ .property = "--tw-border-spacing-y", .value = try allocator.dupe(u8, css_value) };
+            decls[1] = .{
+                .property = "--tw-border-spacing-y",
+                .value = try allocator.dupe(u8, css_value),
+            };
             i += 1;
         },
     }
@@ -4003,7 +8685,9 @@ fn resolveBorderSpacing(
     };
     i += 1;
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Generic helper: arbitrary value or theme-namespace lookup → single decl.
@@ -4033,8 +8717,13 @@ fn resolveArbitraryOrTheme(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `columns-N` — integer becomes raw integer; `auto`/3xs/2xs/xs/sm/…/7xl
@@ -4061,8 +8750,13 @@ fn resolveColumns(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "columns", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "columns",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `line-clamp-N` / `line-clamp-[arb]`. Emits the 4-decl webkit-box pattern.
@@ -4085,11 +8779,25 @@ fn resolveLineClamp(
     errdefer allocator.free(lc_value);
     const decls = try allocator.alloc(Declaration, 4);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "overflow", .value = try allocator.dupe(u8, "hidden") };
-    decls[1] = .{ .property = "display", .value = try allocator.dupe(u8, "-webkit-box") };
-    decls[2] = .{ .property = "-webkit-box-orient", .value = try allocator.dupe(u8, "vertical") };
-    decls[3] = .{ .property = "-webkit-line-clamp", .value = lc_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "overflow",
+        .value = try allocator.dupe(u8, "hidden"),
+    };
+    decls[1] = .{
+        .property = "display",
+        .value = try allocator.dupe(u8, "-webkit-box"),
+    };
+    decls[2] = .{
+        .property = "-webkit-box-orient",
+        .value = try allocator.dupe(u8, "vertical"),
+    };
+    decls[3] = .{
+        .property = "-webkit-line-clamp",
+        .value = lc_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `tracking-N` / `-tracking-N` — letter-spacing. Theme: `--tracking-{name}`.
@@ -4117,8 +8825,13 @@ fn resolveTracking(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "letter-spacing", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "letter-spacing",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `leading-N` (line-height standalone). N → `calc(var(--spacing) * N)`,
@@ -4143,8 +8856,13 @@ fn resolveLeading(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "line-height", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "line-height",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `decoration-N` (thickness): integer → Npx, arbitrary verbatim. Falls
@@ -4165,8 +8883,13 @@ fn resolveDecorationThickness(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "text-decoration-thickness", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "text-decoration-thickness",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `content-[arb]` / `content-{theme}` — sets `--tw-content` and `content`.
@@ -4188,9 +8911,17 @@ fn resolveContent(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-content", .value = css_value };
-    decls[1] = .{ .property = "content", .value = try allocator.dupe(u8, "var(--tw-content)") };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "--tw-content",
+        .value = css_value,
+    };
+    decls[1] = .{
+        .property = "content",
+        .value = try allocator.dupe(u8, "var(--tw-content)"),
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `shadow-{size}` — theme-driven via `--shadow-{size}` tokens. Emits the
@@ -4218,7 +8949,10 @@ fn resolveShadow(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-shadow", .value = shadow_value };
+    decls[0] = .{
+        .property = "--tw-shadow",
+        .value = shadow_value,
+    };
     decls[1] = .{
         .property = "box-shadow",
         .value = try allocator.dupe(
@@ -4226,7 +8960,9 @@ fn resolveShadow(
             "var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)",
         ),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `blur-{size}` — `filter: blur(<value>)`. Theme tokens at `--blur-{size}`,
@@ -4256,8 +8992,13 @@ fn resolveBlur(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "filter", .value = blur_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "filter",
+        .value = blur_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn resolveFontFamily(
@@ -4280,7 +9021,9 @@ fn resolveFontFamily(
         .property = "font-family",
         .value = try std.fmt.allocPrint(allocator, "var(--font-{s})", .{family_name}),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `text-<size>` (text-xs, text-3xl, …) — resolves via theme `--text-<size>`.
@@ -4356,9 +9099,14 @@ fn resolveTextSize(
         .value = font_size,
     };
     if (line_height) |lh| {
-        decls[1] = .{ .property = "line-height", .value = lh };
+        decls[1] = .{
+            .property = "line-height",
+            .value = lh,
+        };
     }
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Disambiguate `text-[…]`, which can mean either font-size or text color.
@@ -4411,20 +9159,49 @@ fn resolveArbitraryBackground(
 
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn backgroundPropertyOf(a: candidate.ArbitraryUtilityValue) ?[]const u8 {
     if (a.data_type) |data_type| {
-        const hinted = [_]struct { hint: []const u8, property: []const u8 }{
-            .{ .hint = "url", .property = "background-image" },
-            .{ .hint = "image", .property = "background-image" },
-            .{ .hint = "length", .property = "background-size" },
-            .{ .hint = "size", .property = "background-size" },
-            .{ .hint = "bg-size", .property = "background-size" },
-            .{ .hint = "position", .property = "background-position" },
-            .{ .hint = "bg-position", .property = "background-position" },
+        const hinted = [_]struct {
+            hint: []const u8,
+            property: []const u8,
+        }{
+            .{
+                .hint = "url",
+                .property = "background-image",
+            },
+            .{
+                .hint = "image",
+                .property = "background-image",
+            },
+            .{
+                .hint = "length",
+                .property = "background-size",
+            },
+            .{
+                .hint = "size",
+                .property = "background-size",
+            },
+            .{
+                .hint = "bg-size",
+                .property = "background-size",
+            },
+            .{
+                .hint = "position",
+                .property = "background-position",
+            },
+            .{
+                .hint = "bg-position",
+                .property = "background-position",
+            },
         };
         for (hinted) |entry| {
             if (std.mem.eql(u8, data_type, entry.hint)) return entry.property;
@@ -4578,8 +9355,13 @@ fn resolveColorProperty(
         allocator.free(final);
         allocator.free(decls);
     }
-    decls[0] = .{ .property = property, .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Gradients (gap kinds #2, #3, #4) ────────────────────────────────────────
@@ -4624,7 +9406,9 @@ fn resolveBgLinearDirection(
         .property = "background-image",
         .value = try allocator.dupe(u8, "linear-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-linear-{angle}` (degrees) — e.g. `bg-linear-45`. The candidate parser
@@ -4647,12 +9431,17 @@ fn resolveBgLinearAngle(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-gradient-position", .value = angle_value };
+    decls[0] = .{
+        .property = "--tw-gradient-position",
+        .value = angle_value,
+    };
     decls[1] = .{
         .property = "background-image",
         .value = try allocator.dupe(u8, "linear-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-conic-{angle | arbitrary}` — emits a conic-gradient with a from-angle.
@@ -4673,12 +9462,17 @@ fn resolveBgConic(
 
     const decls = try allocator.alloc(Declaration, 2);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-gradient-position", .value = position };
+    decls[0] = .{
+        .property = "--tw-gradient-position",
+        .value = position,
+    };
     decls[1] = .{
         .property = "background-image",
         .value = try allocator.dupe(u8, "conic-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `bg-radial-{arbitrary | --var}` — only arbitrary forms accepted (named
@@ -4701,7 +9495,9 @@ fn resolveBgRadial(
         .property = "background-image",
         .value = try allocator.dupe(u8, "radial-gradient(var(--tw-gradient-stops, var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-to, transparent)))"),
     };
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `from-<color>`, `to-<color>`, `via-<color>`, `from-<percent>`, `to-<percent>`, etc.
@@ -4760,12 +9556,17 @@ fn emitGradientStopValueOwned(
     if (stop == .via) {
         const decls = try allocator.alloc(Declaration, 2);
         errdefer allocator.free(decls);
-        decls[0] = .{ .property = "--tw-gradient-via", .value = val };
+        decls[0] = .{
+            .property = "--tw-gradient-via",
+            .value = val,
+        };
         decls[1] = .{
             .property = "--tw-gradient-stops",
             .value = try allocator.dupe(u8, "var(--tw-gradient-position), var(--tw-gradient-from, transparent), var(--tw-gradient-via), var(--tw-gradient-to, transparent)"),
         };
-        return .{ .declarations = decls };
+        return .{
+            .declarations = decls,
+        };
     }
     const property: []const u8 = switch (stop) {
         .from => "--tw-gradient-from",
@@ -4774,8 +9575,13 @@ fn emitGradientStopValueOwned(
     };
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = val };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = val,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 fn emitGradientStopPosition(
@@ -4790,8 +9596,13 @@ fn emitGradientStopPosition(
     };
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = try allocator.dupe(u8, pct) };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = try allocator.dupe(u8, pct),
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Transition timing ───────────────────────────────────────────────────────
@@ -4824,8 +9635,13 @@ fn resolveTimingMs(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = property, .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = property,
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `ease-{key|arb}` — sets `transition-timing-function`. Named keys for the
@@ -4850,8 +9666,13 @@ fn resolveEasing(
     errdefer allocator.free(css_value);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "transition-timing-function", .value = css_value };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "transition-timing-function",
+        .value = css_value,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// `shadow-{color}` — sets `--tw-shadow-color` so a sibling `shadow-{size}`
@@ -4878,8 +9699,13 @@ fn resolveShadowColor(
     errdefer allocator.free(final);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
-    decls[0] = .{ .property = "--tw-shadow-color", .value = final };
-    return .{ .declarations = decls };
+    decls[0] = .{
+        .property = "--tw-shadow-color",
+        .value = final,
+    };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Border width ────────────────────────────────────────────────────────────
@@ -4933,10 +9759,15 @@ fn resolveBorderWidth(
         while (j < i) : (j += 1) allocator.free(decls[j].value);
     }
     while (i < properties.len) : (i += 1) {
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, css_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, css_value),
+        };
     }
     allocator.free(css_value);
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 /// Border utilities share roots between width and color. Explicit arbitrary
@@ -5043,10 +9874,15 @@ fn resolveBorderRadius(
     }
     while (i < properties.len) : (i += 1) {
         // Each longhand owns its own copy so freeResolvedUtility can free them.
-        decls[i] = .{ .property = properties[i], .value = try allocator.dupe(u8, css_value) };
+        decls[i] = .{
+            .property = properties[i],
+            .value = try allocator.dupe(u8, css_value),
+        };
     }
     allocator.free(css_value); // we duped per-longhand; release the shared copy
-    return .{ .declarations = decls };
+    return .{
+        .declarations = decls,
+    };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -5087,18 +9923,50 @@ fn isSpacingNumber(s: []const u8) bool {
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "oklch(0.637 0.237 25.331)" },
-    .{ .name = "color-gray-800", .value = "oklch(0.278 0.033 256.848)" },
-    .{ .name = "color-white", .value = "#fff" },
-    .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-    .{ .name = "radius-md", .value = "0.375rem" },
-    .{ .name = "radius-lg", .value = "0.5rem" },
-    .{ .name = "text-2xl", .value = "1.5rem" },
-    .{ .name = "text-2xl--line-height", .value = "calc(2 / 1.5)" },
-    .{ .name = "text-base", .value = "1rem" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "oklch(0.637 0.237 25.331)",
+        },
+        .{
+            .name = "color-gray-800",
+            .value = "oklch(0.278 0.033 256.848)",
+        },
+        .{
+            .name = "color-white",
+            .value = "#fff",
+        },
+        .{
+            .name = "font-sans",
+            .value = "Switzer, system-ui, sans-serif",
+        },
+        .{
+            .name = "radius-md",
+            .value = "0.375rem",
+        },
+        .{
+            .name = "radius-lg",
+            .value = "0.5rem",
+        },
+        .{
+            .name = "text-2xl",
+            .value = "1.5rem",
+        },
+        .{
+            .name = "text-2xl--line-height",
+            .value = "calc(2 / 1.5)",
+        },
+        .{
+            .name = "text-base",
+            .value = "1rem",
+        },
+    },
+};
 
 fn parseAndResolve(allocator: std.mem.Allocator, input: []const u8) !?ResolvedUtility {
     return parseAndResolveWithTheme(allocator, test_theme, input);
@@ -5211,7 +10079,29 @@ pub fn applyVariants(
     variants: []const Variant,
     base_class: []const u8,
 ) VariantError!WrappedRule {
-    var selector = try escapeClassSelector(allocator, base_class);
+    const selector = try escapeClassSelector(allocator, base_class);
+
+    return applyVariantsTo(allocator, t, variants, selector, null);
+}
+
+/// The class a `group-*` or `peer-*` variant points at (`group`, `group/button`, `peer`),
+/// as the name the page writes it by; null keeps the class as it is.
+pub const Markers = struct {
+    context: *const anyopaque,
+    name: *const fn (context: *const anyopaque, class: []const u8) ?[]const u8,
+};
+
+/// Apply parsed variants to `base_selector` (owned by `allocator`, taken over), the
+/// selector the rule is written for: `.k`, or `:is(.k,.b1)` for a class that stacks name
+/// too. `markers` renames the classes compound variants point at.
+pub fn applyVariantsTo(
+    allocator: std.mem.Allocator,
+    t: Theme,
+    variants: []const Variant,
+    base_selector: []u8,
+    markers: ?Markers,
+) VariantError!WrappedRule {
+    var selector = base_selector;
     errdefer allocator.free(selector);
 
     var at_rules = std.array_list.Managed(AtRule).init(allocator);
@@ -5221,7 +10111,7 @@ pub fn applyVariants(
     }
 
     for (variants) |v| {
-        try applyOne(allocator, t, v, &selector, &at_rules);
+        try applyOne(allocator, t, v, &selector, &at_rules, markers);
     }
 
     try pseudoElementLast(allocator, &selector);
@@ -5233,8 +10123,8 @@ pub fn applyVariants(
 }
 
 const pseudo_elements = [_][]const u8{
-    "::before",      "::after",   "::placeholder",             "::selection",
-    "::marker",      "::backdrop", "::file-selector-button",
+    "::before", "::after",    "::placeholder",          "::selection",
+    "::marker", "::backdrop", "::file-selector-button",
 };
 
 /// A pseudo-element must end its selector: `has-[…]:after:x` applies `::after` before
@@ -5261,11 +10151,21 @@ fn applyOne(
     variant: Variant,
     selector: *[]u8,
     at_rules: *std.array_list.Managed(AtRule),
+    markers: ?Markers,
 ) VariantError!void {
     switch (variant) {
         .static_v => |s| try applyStatic(allocator, t, s.root, selector, at_rules),
         .functional => |f| try applyFunctional(allocator, t, f.root, f.value, selector, at_rules),
-        .compound => |c| try applyCompound(allocator, t, c.root, c.modifier, c.variant.*, selector, at_rules),
+        .compound => |c| try applyCompound(
+            allocator,
+            t,
+            c.root,
+            c.modifier,
+            c.variant.*,
+            selector,
+            at_rules,
+            markers,
+        ),
         .arbitrary => |a| try applyArbitrary(allocator, a.selector, a.relative, selector, at_rules),
     }
 }
@@ -5285,52 +10185,192 @@ const StaticVariant = struct {
 
 const STATIC_VARIANTS = [_]StaticVariant{
     // ── Pseudo-classes ──────────────────────────────────────────────────────
-    .{ .name = "hover", .suffix = ":hover" },
-    .{ .name = "focus", .suffix = ":focus" },
-    .{ .name = "focus-visible", .suffix = ":focus-visible" },
-    .{ .name = "focus-within", .suffix = ":focus-within" },
-    .{ .name = "active", .suffix = ":active" },
-    .{ .name = "visited", .suffix = ":visited" },
-    .{ .name = "target", .suffix = ":target" },
-    .{ .name = "disabled", .suffix = ":disabled" },
-    .{ .name = "enabled", .suffix = ":enabled" },
-    .{ .name = "checked", .suffix = ":checked" },
-    .{ .name = "indeterminate", .suffix = ":indeterminate" },
-    .{ .name = "default", .suffix = ":default" },
-    .{ .name = "required", .suffix = ":required" },
-    .{ .name = "valid", .suffix = ":valid" },
-    .{ .name = "invalid", .suffix = ":invalid" },
-    .{ .name = "placeholder-shown", .suffix = ":placeholder-shown" },
-    .{ .name = "read-only", .suffix = ":read-only" },
-    .{ .name = "open", .suffix = "[open]" },
+    .{
+        .name = "hover",
+        .suffix = ":hover",
+    },
+    .{
+        .name = "focus",
+        .suffix = ":focus",
+    },
+    .{
+        .name = "focus-visible",
+        .suffix = ":focus-visible",
+    },
+    .{
+        .name = "focus-within",
+        .suffix = ":focus-within",
+    },
+    .{
+        .name = "active",
+        .suffix = ":active",
+    },
+    .{
+        .name = "visited",
+        .suffix = ":visited",
+    },
+    .{
+        .name = "target",
+        .suffix = ":target",
+    },
+    .{
+        .name = "disabled",
+        .suffix = ":disabled",
+    },
+    .{
+        .name = "enabled",
+        .suffix = ":enabled",
+    },
+    .{
+        .name = "checked",
+        .suffix = ":checked",
+    },
+    .{
+        .name = "indeterminate",
+        .suffix = ":indeterminate",
+    },
+    .{
+        .name = "default",
+        .suffix = ":default",
+    },
+    .{
+        .name = "required",
+        .suffix = ":required",
+    },
+    .{
+        .name = "valid",
+        .suffix = ":valid",
+    },
+    .{
+        .name = "invalid",
+        .suffix = ":invalid",
+    },
+    .{
+        .name = "placeholder-shown",
+        .suffix = ":placeholder-shown",
+    },
+    .{
+        .name = "read-only",
+        .suffix = ":read-only",
+    },
+    .{
+        .name = "open",
+        .suffix = "[open]",
+    },
 
     // ── Structural ──────────────────────────────────────────────────────────
-    .{ .name = "first", .suffix = ":first-child" },
-    .{ .name = "last", .suffix = ":last-child" },
-    .{ .name = "only", .suffix = ":only-child" },
-    .{ .name = "odd", .suffix = ":nth-child(odd)" },
-    .{ .name = "even", .suffix = ":nth-child(even)" },
-    .{ .name = "first-of-type", .suffix = ":first-of-type" },
-    .{ .name = "last-of-type", .suffix = ":last-of-type" },
-    .{ .name = "only-of-type", .suffix = ":only-of-type" },
-    .{ .name = "empty", .suffix = ":empty" },
+    .{
+        .name = "first",
+        .suffix = ":first-child",
+    },
+    .{
+        .name = "last",
+        .suffix = ":last-child",
+    },
+    .{
+        .name = "only",
+        .suffix = ":only-child",
+    },
+    .{
+        .name = "odd",
+        .suffix = ":nth-child(odd)",
+    },
+    .{
+        .name = "even",
+        .suffix = ":nth-child(even)",
+    },
+    .{
+        .name = "first-of-type",
+        .suffix = ":first-of-type",
+    },
+    .{
+        .name = "last-of-type",
+        .suffix = ":last-of-type",
+    },
+    .{
+        .name = "only-of-type",
+        .suffix = ":only-of-type",
+    },
+    .{
+        .name = "empty",
+        .suffix = ":empty",
+    },
 
     // ── Pseudo-elements ─────────────────────────────────────────────────────
-    .{ .name = "before", .suffix = "::before" },
-    .{ .name = "after", .suffix = "::after" },
-    .{ .name = "placeholder", .suffix = "::placeholder" },
-    .{ .name = "selection", .suffix = "::selection" },
-    .{ .name = "marker", .suffix = "::marker" },
-    .{ .name = "file", .suffix = "::file-selector-button" },
-    .{ .name = "backdrop", .suffix = "::backdrop" },
+    .{
+        .name = "before",
+        .suffix = "::before",
+    },
+    .{
+        .name = "after",
+        .suffix = "::after",
+    },
+    .{
+        .name = "placeholder",
+        .suffix = "::placeholder",
+    },
+    .{
+        .name = "selection",
+        .suffix = "::selection",
+    },
+    .{
+        .name = "marker",
+        .suffix = "::marker",
+    },
+    .{
+        .name = "first-letter",
+        .suffix = "::first-letter",
+    },
+    .{
+        .name = "first-line",
+        .suffix = "::first-line",
+    },
+    .{
+        .name = "file",
+        .suffix = "::file-selector-button",
+    },
+    .{
+        .name = "backdrop",
+        .suffix = "::backdrop",
+    },
 
     // ── Color scheme + media ────────────────────────────────────────────────
-    .{ .name = "dark", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-color-scheme: dark)" },
-    .{ .name = "light", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-color-scheme: light)" },
-    .{ .name = "motion-reduce", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-reduced-motion: reduce)" },
-    .{ .name = "motion-safe", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(prefers-reduced-motion: no-preference)" },
-    .{ .name = "print", .suffix = "", .at_rule_name = "media", .at_rule_condition = "print" },
-    .{ .name = "forced-colors", .suffix = "", .at_rule_name = "media", .at_rule_condition = "(forced-colors: active)" },
+    .{
+        .name = "dark",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-color-scheme: dark)",
+    },
+    .{
+        .name = "light",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-color-scheme: light)",
+    },
+    .{
+        .name = "motion-reduce",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-reduced-motion: reduce)",
+    },
+    .{
+        .name = "motion-safe",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(prefers-reduced-motion: no-preference)",
+    },
+    .{
+        .name = "print",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "print",
+    },
+    .{
+        .name = "forced-colors",
+        .suffix = "",
+        .at_rule_name = "media",
+        .at_rule_condition = "(forced-colors: active)",
+    },
 };
 
 fn applyStatic(
@@ -5368,7 +10408,10 @@ fn applyContainerQuery(
     // `@container` (no value) — bare at-rule.
     if (std.mem.eql(u8, name, "@container")) {
         const cond = try allocator.dupe(u8, "");
-        try at_rules.append(.{ .name = "container", .condition = cond });
+        try at_rules.append(.{
+            .name = "container",
+            .condition = cond,
+        });
         return;
     }
 
@@ -5390,7 +10433,10 @@ fn applyContainerQuery(
             try std.fmt.allocPrint(allocator, "(width < {s})", .{inner})
         else
             try std.fmt.allocPrint(allocator, "({s})", .{inner});
-        try at_rules.append(.{ .name = "container", .condition = cond });
+        try at_rules.append(.{
+            .name = "container",
+            .condition = cond,
+        });
         return;
     }
 
@@ -5403,7 +10449,10 @@ fn applyContainerQuery(
         try std.fmt.allocPrint(allocator, "(width < {s})", .{value})
     else
         try std.fmt.allocPrint(allocator, "(width >= {s})", .{value});
-    try at_rules.append(.{ .name = "container", .condition = cond });
+    try at_rules.append(.{
+        .name = "container",
+        .condition = cond,
+    });
 }
 
 /// Try the static variant table; returns true on match, false if name unknown.
@@ -5419,7 +10468,10 @@ fn tryApplyStaticName(
         if (std.mem.eql(u8, name, sv.name)) {
             if (sv.at_rule_name.len > 0) {
                 const cond = try allocator.dupe(u8, sv.at_rule_condition);
-                try at_rules.append(.{ .name = sv.at_rule_name, .condition = cond });
+                try at_rules.append(.{
+                    .name = sv.at_rule_name,
+                    .condition = cond,
+                });
                 return true;
             }
             const new_sel = try insertSelectorSuffix(allocator, selector.*, sv.suffix);
@@ -5567,7 +10619,10 @@ fn applyFunctional(
             .named => |n| n,
         };
         const cond = try std.fmt.allocPrint(allocator, "({s})", .{val_str});
-        try at_rules.append(.{ .name = "supports", .condition = cond });
+        try at_rules.append(.{
+            .name = "supports",
+            .condition = cond,
+        });
         return;
     }
 
@@ -5593,7 +10648,9 @@ fn applyFunctional(
             return applyMaxBreakpoint(
                 allocator,
                 t,
-                .{ .named = key },
+                .{
+                    .named = key,
+                },
                 at_rules,
             );
         }
@@ -5622,7 +10679,10 @@ fn applyBreakpointBare(
     const value = theme.lookup(t, token_name) orelse return VariantError.UnknownVariant;
 
     const cond = try std.fmt.allocPrint(allocator, "(min-width: {s})", .{value});
-    try at_rules.append(.{ .name = "media", .condition = cond });
+    try at_rules.append(.{
+        .name = "media",
+        .condition = cond,
+    });
 }
 
 fn applyMaxBreakpoint(
@@ -5645,7 +10705,10 @@ fn applyMaxBreakpoint(
         "(max-width: calc({s} - 0.02px))",
         .{value},
     );
-    try at_rules.append(.{ .name = "media", .condition = cond });
+    try at_rules.append(.{
+        .name = "media",
+        .condition = cond,
+    });
 }
 
 // ── Compound variants ───────────────────────────────────────────────────────
@@ -5658,6 +10721,7 @@ fn applyCompound(
     inner: Variant,
     selector: *[]u8,
     at_rules: *std.array_list.Managed(AtRule),
+    markers: ?Markers,
 ) VariantError!void {
     // Resolve the inner variant first into a temporary "&"-anchored sub-selector.
     var sub_selector = try allocator.dupe(u8, "&");
@@ -5668,12 +10732,15 @@ fn applyCompound(
         sub_at_rules.deinit();
     }
 
-    try applyOne(allocator, t, inner, &sub_selector, &sub_at_rules);
+    try applyOne(allocator, t, inner, &sub_selector, &sub_at_rules, markers);
 
     // Hoist the inner variant's at-rules onto our outer at-rule list.
     for (sub_at_rules.items) |ar| {
         const dup = try allocator.dupe(u8, ar.condition);
-        try at_rules.append(.{ .name = ar.name, .condition = dup });
+        try at_rules.append(.{
+            .name = ar.name,
+            .condition = dup,
+        });
     }
 
     // The "suffix" is whatever the inner variant added after `&`. For
@@ -5730,10 +10797,16 @@ fn applyCompound(
     // like Switch stop reacting to `:checked`.
     const combinator: []const u8 = if (std.mem.eql(u8, root, "peer")) " ~ " else " ";
 
-    const escaped_root = if (modifier) |m| switch (m) {
-        .named => |n| try std.fmt.allocPrint(allocator, ".{s}\\/{s}", .{ root, n }),
+    const marker = if (modifier) |m| switch (m) {
+        .named => |n| try std.fmt.allocPrint(allocator, "{s}/{s}", .{ root, n }),
         .arbitrary => return VariantError.UnknownVariant,
-    } else try std.fmt.allocPrint(allocator, ".{s}", .{root});
+    } else try allocator.dupe(u8, root);
+    defer allocator.free(marker);
+    const named = if (markers) |table| table.name(table.context, marker) else null;
+    const escaped_root = if (named) |name|
+        try std.fmt.allocPrint(allocator, ".{s}", .{name})
+    else
+        try escapeClassSelector(allocator, marker);
     defer allocator.free(escaped_root);
 
     const new_sel = try std.fmt.allocPrint(
@@ -5816,7 +10889,10 @@ fn parseArbitraryAtRule(
         allocator.free(cond_owned);
         return VariantError.UnknownVariant;
     };
-    try at_rules.append(.{ .name = name_const, .condition = cond_owned });
+    try at_rules.append(.{
+        .name = name_const,
+        .condition = cond_owned,
+    });
 }
 
 fn isAllowedArbitraryAtRule(name: []const u8) bool {
@@ -5903,17 +10979,44 @@ pub fn escapeClassSelector(allocator: std.mem.Allocator, class: []const u8) Vari
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "breakpoint-sm", .value = "40rem" },
-    .{ .name = "breakpoint-md", .value = "48rem" },
-    .{ .name = "breakpoint-lg", .value = "64rem" },
-    .{ .name = "breakpoint-gallery-canvas", .value = "54rem" },
-    .{ .name = "container-xs", .value = "20rem" },
-    .{ .name = "container-sm", .value = "24rem" },
-    .{ .name = "container-md", .value = "28rem" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "breakpoint-sm",
+            .value = "40rem",
+        },
+        .{
+            .name = "breakpoint-md",
+            .value = "48rem",
+        },
+        .{
+            .name = "breakpoint-lg",
+            .value = "64rem",
+        },
+        .{
+            .name = "breakpoint-gallery-canvas",
+            .value = "54rem",
+        },
+        .{
+            .name = "container-xs",
+            .value = "20rem",
+        },
+        .{
+            .name = "container-sm",
+            .value = "24rem",
+        },
+        .{
+            .name = "container-md",
+            .value = "28rem",
+        },
+    },
+};
 
-fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct { sel: []u8, ats: []AtRule, base: []const u8 } {
+fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct {
+    sel: []u8,
+    ats: []AtRule,
+    base: []const u8,
+} {
     const cands = try candidate.parseCandidate(allocator, input);
     defer candidate.freeCandidates(allocator, cands);
     // Take the first functional or static-c candidate for testing.
@@ -5921,11 +11024,19 @@ fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct { sel:
         switch (c) {
             .static_c => |s| {
                 const wr = try applyVariants(allocator, test_theme, s.variants, s.root);
-                return .{ .sel = wr.selector, .ats = wr.at_rules, .base = s.root };
+                return .{
+                    .sel = wr.selector,
+                    .ats = wr.at_rules,
+                    .base = s.root,
+                };
             },
             .functional => |f| {
                 const wr = try applyVariants(allocator, test_theme, f.variants, f.root);
-                return .{ .sel = wr.selector, .ats = wr.at_rules, .base = f.root };
+                return .{
+                    .sel = wr.selector,
+                    .ats = wr.at_rules,
+                    .base = f.root,
+                };
             },
             else => continue,
         }
@@ -5976,7 +11087,9 @@ pub fn sortClasses(
     theme_css: []const u8,
 ) SortError![]u8 {
     _ = theme_css; // Legacy sorting API; compilation uses the resolved token theme below.
-    return sortClassesWithTheme(allocator, input, .{ .tokens = &.{} });
+    return sortClassesWithTheme(allocator, input, .{
+        .tokens = &.{},
+    });
 }
 
 pub fn sortClassesWithTheme(
@@ -6205,7 +11318,10 @@ fn candidateRoot(c: candidate.Candidate) []const u8 {
 /// Map a utility root to its property bucket index. Lower = earlier in cascade.
 /// The bucket numbers implement the JIT's cascade order for known properties.
 /// Extend them as class coverage grows.
-const PropertyBucket = struct { root: []const u8, bucket: u32 };
+const PropertyBucket = struct {
+    root: []const u8,
+    bucket: u32,
+};
 
 const ARBITRARY_PROPERTY_BUCKET: u32 = 5000;
 
@@ -6216,144 +11332,492 @@ const UNKNOWN_UTILITY_BUCKET: u32 = 4000;
 
 const PROPERTY_BUCKETS = [_]PropertyBucket{
     // ── Layout / position (very early in cascade) ──
-    .{ .root = "static", .bucket = 10 },
-    .{ .root = "relative", .bucket = 10 },
-    .{ .root = "absolute", .bucket = 10 },
-    .{ .root = "fixed", .bucket = 10 },
-    .{ .root = "sticky", .bucket = 10 },
-    .{ .root = "isolate", .bucket = 11 },
-    .{ .root = "z", .bucket = 12 },
-    .{ .root = "inset", .bucket = 13 },
-    .{ .root = "top", .bucket = 14 },
-    .{ .root = "right", .bucket = 14 },
-    .{ .root = "bottom", .bucket = 14 },
-    .{ .root = "left", .bucket = 14 },
+    .{
+        .root = "static",
+        .bucket = 10,
+    },
+    .{
+        .root = "relative",
+        .bucket = 10,
+    },
+    .{
+        .root = "absolute",
+        .bucket = 10,
+    },
+    .{
+        .root = "fixed",
+        .bucket = 10,
+    },
+    .{
+        .root = "sticky",
+        .bucket = 10,
+    },
+    .{
+        .root = "isolate",
+        .bucket = 11,
+    },
+    .{
+        .root = "z",
+        .bucket = 12,
+    },
+    .{
+        .root = "inset",
+        .bucket = 13,
+    },
+    .{
+        .root = "top",
+        .bucket = 14,
+    },
+    .{
+        .root = "right",
+        .bucket = 14,
+    },
+    .{
+        .root = "bottom",
+        .bucket = 14,
+    },
+    .{
+        .root = "left",
+        .bucket = 14,
+    },
 
     // ── Display / box ──
-    .{ .root = "block", .bucket = 20 },
-    .{ .root = "inline", .bucket = 20 },
-    .{ .root = "inline-block", .bucket = 20 },
-    .{ .root = "flex", .bucket = 20 },
-    .{ .root = "inline-flex", .bucket = 20 },
-    .{ .root = "grid", .bucket = 20 },
-    .{ .root = "inline-grid", .bucket = 20 },
-    .{ .root = "hidden", .bucket = 20 },
-    .{ .root = "table", .bucket = 20 },
-    .{ .root = "inline-table", .bucket = 20 },
-    .{ .root = "table-caption", .bucket = 20 },
-    .{ .root = "table-cell", .bucket = 20 },
-    .{ .root = "table-column", .bucket = 20 },
-    .{ .root = "table-column-group", .bucket = 20 },
-    .{ .root = "table-footer-group", .bucket = 20 },
-    .{ .root = "table-header-group", .bucket = 20 },
-    .{ .root = "table-row", .bucket = 20 },
-    .{ .root = "table-row-group", .bucket = 20 },
-    .{ .root = "contents", .bucket = 20 },
-    .{ .root = "flow-root", .bucket = 20 },
-    .{ .root = "list-item", .bucket = 20 },
-    .{ .root = "table-auto", .bucket = 24 },
-    .{ .root = "table-fixed", .bucket = 24 },
-    .{ .root = "caption-top", .bucket = 25 },
-    .{ .root = "caption-bottom", .bucket = 25 },
-    .{ .root = "border-collapse", .bucket = 26 },
-    .{ .root = "border-separate", .bucket = 26 },
-    .{ .root = "overflow", .bucket = 22 },
-    .{ .root = "overflow-hidden", .bucket = 22 },
-    .{ .root = "overflow-auto", .bucket = 22 },
-    .{ .root = "overflow-visible", .bucket = 22 },
+    .{
+        .root = "block",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-block",
+        .bucket = 20,
+    },
+    .{
+        .root = "flex",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-flex",
+        .bucket = 20,
+    },
+    .{
+        .root = "grid",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-grid",
+        .bucket = 20,
+    },
+    .{
+        .root = "hidden",
+        .bucket = 20,
+    },
+    .{
+        .root = "table",
+        .bucket = 20,
+    },
+    .{
+        .root = "inline-table",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-caption",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-cell",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-column",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-column-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-footer-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-header-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-row",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-row-group",
+        .bucket = 20,
+    },
+    .{
+        .root = "contents",
+        .bucket = 20,
+    },
+    .{
+        .root = "flow-root",
+        .bucket = 20,
+    },
+    .{
+        .root = "list-item",
+        .bucket = 20,
+    },
+    .{
+        .root = "table-auto",
+        .bucket = 24,
+    },
+    .{
+        .root = "table-fixed",
+        .bucket = 24,
+    },
+    .{
+        .root = "caption-top",
+        .bucket = 25,
+    },
+    .{
+        .root = "caption-bottom",
+        .bucket = 25,
+    },
+    .{
+        .root = "border-collapse",
+        .bucket = 26,
+    },
+    .{
+        .root = "border-separate",
+        .bucket = 26,
+    },
+    .{
+        .root = "overflow",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-hidden",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-auto",
+        .bucket = 22,
+    },
+    .{
+        .root = "overflow-visible",
+        .bucket = 22,
+    },
 
     // ── Sizing ──
-    .{ .root = "size", .bucket = 30 },
-    .{ .root = "w", .bucket = 31 },
-    .{ .root = "h", .bucket = 32 },
-    .{ .root = "max-w", .bucket = 33 },
-    .{ .root = "max-h", .bucket = 34 },
-    .{ .root = "min-w", .bucket = 35 },
-    .{ .root = "min-h", .bucket = 36 },
+    .{
+        .root = "size",
+        .bucket = 30,
+    },
+    .{
+        .root = "w",
+        .bucket = 31,
+    },
+    .{
+        .root = "h",
+        .bucket = 32,
+    },
+    .{
+        .root = "max-w",
+        .bucket = 33,
+    },
+    .{
+        .root = "max-h",
+        .bucket = 34,
+    },
+    .{
+        .root = "min-w",
+        .bucket = 35,
+    },
+    .{
+        .root = "min-h",
+        .bucket = 36,
+    },
 
     // ── Grid ──
-    .{ .root = "grid-cols", .bucket = 40 },
-    .{ .root = "col-span", .bucket = 41 },
-    .{ .root = "grid-rows", .bucket = 42 },
-    .{ .root = "row-span", .bucket = 43 },
-    .{ .root = "gap", .bucket = 44 },
-    .{ .root = "gap-x", .bucket = 45 },
-    .{ .root = "gap-y", .bucket = 46 },
+    .{
+        .root = "grid-cols",
+        .bucket = 40,
+    },
+    .{
+        .root = "col-span",
+        .bucket = 41,
+    },
+    .{
+        .root = "grid-rows",
+        .bucket = 42,
+    },
+    .{
+        .root = "row-span",
+        .bucket = 43,
+    },
+    .{
+        .root = "gap",
+        .bucket = 44,
+    },
+    .{
+        .root = "gap-x",
+        .bucket = 45,
+    },
+    .{
+        .root = "gap-y",
+        .bucket = 46,
+    },
 
     // ── Flex ──
-    .{ .root = "flex-row", .bucket = 50 },
-    .{ .root = "flex-col", .bucket = 50 },
-    .{ .root = "flex-wrap", .bucket = 51 },
-    .{ .root = "items-center", .bucket = 52 },
-    .{ .root = "items-start", .bucket = 52 },
-    .{ .root = "items-end", .bucket = 52 },
-    .{ .root = "justify-center", .bucket = 53 },
-    .{ .root = "justify-start", .bucket = 53 },
-    .{ .root = "justify-between", .bucket = 53 },
-    .{ .root = "justify-end", .bucket = 53 },
-    .{ .root = "self-center", .bucket = 54 },
+    .{
+        .root = "flex-row",
+        .bucket = 50,
+    },
+    .{
+        .root = "flex-col",
+        .bucket = 50,
+    },
+    .{
+        .root = "flex-wrap",
+        .bucket = 51,
+    },
+    .{
+        .root = "items-center",
+        .bucket = 52,
+    },
+    .{
+        .root = "items-start",
+        .bucket = 52,
+    },
+    .{
+        .root = "items-end",
+        .bucket = 52,
+    },
+    .{
+        .root = "justify-center",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-start",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-between",
+        .bucket = 53,
+    },
+    .{
+        .root = "justify-end",
+        .bucket = 53,
+    },
+    .{
+        .root = "self-center",
+        .bucket = 54,
+    },
 
     // ── Padding (cascade-affecting; shorthand-then-axis-then-side) ──
-    .{ .root = "p", .bucket = 100 },
-    .{ .root = "px", .bucket = 101 },
-    .{ .root = "py", .bucket = 102 },
-    .{ .root = "pt", .bucket = 103 },
-    .{ .root = "pr", .bucket = 104 },
-    .{ .root = "pb", .bucket = 105 },
-    .{ .root = "pl", .bucket = 106 },
+    .{
+        .root = "p",
+        .bucket = 100,
+    },
+    .{
+        .root = "px",
+        .bucket = 101,
+    },
+    .{
+        .root = "py",
+        .bucket = 102,
+    },
+    .{
+        .root = "pt",
+        .bucket = 103,
+    },
+    .{
+        .root = "pr",
+        .bucket = 104,
+    },
+    .{
+        .root = "pb",
+        .bucket = 105,
+    },
+    .{
+        .root = "pl",
+        .bucket = 106,
+    },
 
     // ── Margin ──
-    .{ .root = "m", .bucket = 110 },
-    .{ .root = "mx", .bucket = 111 },
-    .{ .root = "my", .bucket = 112 },
-    .{ .root = "mt", .bucket = 113 },
-    .{ .root = "mr", .bucket = 114 },
-    .{ .root = "mb", .bucket = 115 },
-    .{ .root = "ml", .bucket = 116 },
+    .{
+        .root = "m",
+        .bucket = 110,
+    },
+    .{
+        .root = "mx",
+        .bucket = 111,
+    },
+    .{
+        .root = "my",
+        .bucket = 112,
+    },
+    .{
+        .root = "mt",
+        .bucket = 113,
+    },
+    .{
+        .root = "mr",
+        .bucket = 114,
+    },
+    .{
+        .root = "mb",
+        .bucket = 115,
+    },
+    .{
+        .root = "ml",
+        .bucket = 116,
+    },
 
     // ── Background (before padding/border) ──
-    .{ .root = "bg", .bucket = 80 },
-    .{ .root = "bg-linear-to", .bucket = 81 },
-    .{ .root = "from", .bucket = 82 },
-    .{ .root = "via", .bucket = 83 },
-    .{ .root = "to", .bucket = 84 },
+    .{
+        .root = "bg",
+        .bucket = 80,
+    },
+    .{
+        .root = "bg-linear-to",
+        .bucket = 81,
+    },
+    .{
+        .root = "from",
+        .bucket = 82,
+    },
+    .{
+        .root = "via",
+        .bucket = 83,
+    },
+    .{
+        .root = "to",
+        .bucket = 84,
+    },
 
     // ── Border ──
-    .{ .root = "border", .bucket = 200 },
-    .{ .root = "border-x", .bucket = 201 },
-    .{ .root = "border-y", .bucket = 202 },
-    .{ .root = "border-t", .bucket = 203 },
-    .{ .root = "border-r", .bucket = 204 },
-    .{ .root = "border-b", .bucket = 205 },
-    .{ .root = "border-l", .bucket = 206 },
-    .{ .root = "rounded", .bucket = 220 },
-    .{ .root = "ring", .bucket = 230 },
-    .{ .root = "ring-inset", .bucket = 231 },
+    .{
+        .root = "border",
+        .bucket = 200,
+    },
+    .{
+        .root = "border-x",
+        .bucket = 201,
+    },
+    .{
+        .root = "border-y",
+        .bucket = 202,
+    },
+    .{
+        .root = "border-t",
+        .bucket = 203,
+    },
+    .{
+        .root = "border-r",
+        .bucket = 204,
+    },
+    .{
+        .root = "border-b",
+        .bucket = 205,
+    },
+    .{
+        .root = "border-l",
+        .bucket = 206,
+    },
+    .{
+        .root = "rounded",
+        .bucket = 220,
+    },
+    .{
+        .root = "ring",
+        .bucket = 230,
+    },
+    .{
+        .root = "ring-inset",
+        .bucket = 231,
+    },
 
     // ── Typography ──
-    .{ .root = "text", .bucket = 300 },
-    .{ .root = "text-balance", .bucket = 301 },
-    .{ .root = "text-pretty", .bucket = 301 },
-    .{ .root = "text-wrap", .bucket = 301 },
-    .{ .root = "text-nowrap", .bucket = 301 },
-    .{ .root = "text-left", .bucket = 302 },
-    .{ .root = "text-center", .bucket = 302 },
-    .{ .root = "text-right", .bucket = 302 },
-    .{ .root = "font", .bucket = 310 },
-    .{ .root = "tracking", .bucket = 320 },
-    .{ .root = "leading", .bucket = 330 },
-    .{ .root = "antialiased", .bucket = 340 },
-    .{ .root = "subpixel-antialiased", .bucket = 340 },
+    .{
+        .root = "text",
+        .bucket = 300,
+    },
+    .{
+        .root = "text-balance",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-pretty",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-wrap",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-nowrap",
+        .bucket = 301,
+    },
+    .{
+        .root = "text-left",
+        .bucket = 302,
+    },
+    .{
+        .root = "text-center",
+        .bucket = 302,
+    },
+    .{
+        .root = "text-right",
+        .bucket = 302,
+    },
+    .{
+        .root = "font",
+        .bucket = 310,
+    },
+    .{
+        .root = "tracking",
+        .bucket = 320,
+    },
+    .{
+        .root = "leading",
+        .bucket = 330,
+    },
+    .{
+        .root = "antialiased",
+        .bucket = 340,
+    },
+    .{
+        .root = "subpixel-antialiased",
+        .bucket = 340,
+    },
 
     // ── Effects ──
-    .{ .root = "opacity", .bucket = 400 },
-    .{ .root = "shadow", .bucket = 410 },
+    .{
+        .root = "opacity",
+        .bucket = 400,
+    },
+    .{
+        .root = "shadow",
+        .bucket = 410,
+    },
 
     // ── Transition ──
-    .{ .root = "transition", .bucket = 500 },
-    .{ .root = "transition-colors", .bucket = 500 },
-    .{ .root = "transition-opacity", .bucket = 500 },
-    .{ .root = "duration", .bucket = 510 },
+    .{
+        .root = "transition",
+        .bucket = 500,
+    },
+    .{
+        .root = "transition-colors",
+        .bucket = 500,
+    },
+    .{
+        .root = "transition-opacity",
+        .bucket = 500,
+    },
+    .{
+        .root = "duration",
+        .bucket = 510,
+    },
 };
 
 fn bucketForRoot(root: []const u8) ?u32 {
@@ -6401,13 +11865,16 @@ const theme = amalgam.theme_mod;
 
 const Theme = theme.Theme;
 
-const Entry = struct {
+/// One class as a merge sees it: the scope it applies in (its variants and `!`) and the
+/// CSS properties it owns. `resolved` is false for a class no utility answers.
+pub const Entry = struct {
     raw: []const u8,
     scope: u64 = 0,
     properties: std.ArrayList(u64) = .empty,
     removed: bool = false,
+    resolved: bool = false,
 
-    fn deinit(self: *Entry, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: *Entry, allocator: std.mem.Allocator) void {
         self.properties.deinit(allocator);
     }
 };
@@ -6484,8 +11951,12 @@ pub fn writeClassGroups(
     try writer.writeByte('}');
 }
 
-fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const u8) !Entry {
-    var entry = Entry{ .raw = raw, .scope = scopeHash(raw) };
+/// The class `raw` resolved into its scope and properties; owned by `allocator`.
+pub fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const u8) !Entry {
+    var entry = Entry{
+        .raw = raw,
+        .scope = scopeHash(raw),
+    };
     errdefer entry.deinit(allocator);
 
     const candidates = try candidate.parseCandidate(allocator, raw);
@@ -6495,6 +11966,7 @@ fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const 
         const resolved = try utilities.resolveCandidate(allocator, active_theme, cand);
         if (resolved == null) continue;
         defer utilities.freeResolvedUtility(allocator, resolved.?);
+        entry.resolved = true;
 
         const namespace: []const u8 = switch (cand) {
             // Tailwind deliberately keeps arbitrary properties independent
@@ -6597,21 +12069,1179 @@ fn ownsAll(incoming: []const u64, existing: []const u64) bool {
     return true;
 }
 
-const test_theme: Theme = .{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "red" },
-    .{ .name = "color-blue-500", .value = "blue" },
-    .{ .name = "text-sm", .value = "0.875rem" },
-    .{ .name = "text-sm--line-height", .value = "1.25rem" },
-    .{ .name = "text-lg", .value = "1.125rem" },
-    .{ .name = "text-lg--line-height", .value = "1.75rem" },
-    .{ .name = "radius", .value = "0.25rem" },
-} };
+const test_theme: Theme = .{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "red",
+        },
+        .{
+            .name = "color-blue-500",
+            .value = "blue",
+        },
+        .{
+            .name = "text-sm",
+            .value = "0.875rem",
+        },
+        .{
+            .name = "text-sm--line-height",
+            .value = "1.25rem",
+        },
+        .{
+            .name = "text-lg",
+            .value = "1.125rem",
+        },
+        .{
+            .name = "text-lg--line-height",
+            .value = "1.75rem",
+        },
+        .{
+            .name = "radius",
+            .value = "0.25rem",
+        },
+    },
+};
 
 fn expectMerge(input: []const u8, expected: []const u8) !void {
     const merged = try mergeClasses(std.testing.allocator, test_theme, &.{input});
     defer std.testing.allocator.free(merged);
     try std.testing.expectEqualStrings(expected, merged);
+}
+
+};
+
+pub const book_mod = struct {
+//! The class book: every declaration a sheet holds, in one context, with its short name (an
+//! atom), and every class as the atoms it is made of. Built once, when a sheet is built (the
+//! admin's at build, an app's at its load); read by every render with no allocation.
+//!
+//! A page writes a class as its atoms' names: `size-4` is two (`width`, `height`), `px-4`
+//! one. Identical declarations share a name across classes, so the sheet holds each once.
+//! A merge is per atom: a later atom in the same context removes an earlier one of the same
+//! property, or of a longhand it covers (`p-2` after `px-4`). A marker (`group/x`) keeps a
+//! name of its own; a class the book does not hold (styled by hand-written CSS) is written
+//! as it is and never conflicts.
+const std = @import("std");
+const compile = amalgam.compile_mod;
+const sort = amalgam.sort_mod;
+const theme = amalgam.theme_mod;
+
+const Theme = theme.Theme;
+
+/// Classes one attribute may hold after its parts are split.
+pub const classes_max = 256;
+/// Atoms one attribute may hold: its classes' declarations.
+pub const atoms_max = classes_max * 8;
+
+/// An atom's CSS, kept in a book just built for the sheet; empty in an embedded one.
+pub const Rule = struct {
+    at_rules: []const []const u8,
+    selector: []const u8,
+    important: bool,
+    property: []const u8,
+    value: []const u8,
+    /// The first class holding it, for the Debug sheet's comment.
+    class: []const u8,
+};
+
+pub const Book = struct {
+    /// Each class, by id.
+    classes: []const []const u8,
+    /// A marker's name (`group/x`); empty for a class made of atoms.
+    marker_names: []const []const u8,
+    /// The atoms of class `id` are `class_atoms[atom_starts[id]..atom_starts[id + 1]]`.
+    atom_starts: []const u32,
+    class_atoms: []const u32,
+    /// Open addressing over the class texts: a slot holds an id plus one; 0 is empty.
+    class_slots: []const u32,
+    /// Each atom's name, by id, in the sheet's cascade order.
+    atom_names: []const []const u8,
+    /// Each atom's context (at-rules, selector, importance) and property, as dense ids.
+    atom_scopes: []const u16,
+    atom_properties: []const u16,
+    /// The longhands property `p` covers are `covers[cover_starts[p]..cover_starts[p + 1]]`.
+    cover_starts: []const u32,
+    covers: []const u16,
+    rules: []const Rule = &.{},
+
+    pub fn class_id(book: *const Book, class: []const u8) ?u32 {
+        std.debug.assert(book.class_slots.len == 0 or std.math.isPowerOfTwo(book.class_slots.len));
+
+        if (book.class_slots.len == 0) {
+            return null;
+        }
+
+        const mask = book.class_slots.len - 1;
+        var slot: usize = @intCast(std.hash.Wyhash.hash(0, class) & mask);
+
+        for (0..book.class_slots.len) |_| {
+            const held = book.class_slots[slot];
+
+            if (held == 0) {
+                return null;
+            }
+
+            if (std.mem.eql(u8, book.classes[held - 1], class)) {
+                return held - 1;
+            }
+
+            slot = (slot + 1) & mask;
+        }
+
+        return null;
+    }
+
+    pub fn atoms_of(book: *const Book, id: u32) []const u32 {
+        std.debug.assert(id < book.classes.len);
+
+        return book.class_atoms[book.atom_starts[id]..book.atom_starts[id + 1]];
+    }
+
+    /// Whether property `short` covers `long` (`padding` covers `padding-left`).
+    pub fn covered(book: *const Book, short: u16, long: u16) bool {
+        if (short + 1 >= book.cover_starts.len) return false;
+
+        const longhands = book.covers[book.cover_starts[short]..book.cover_starts[short + 1]];
+
+        return std.mem.indexOfScalar(u16, longhands, long) != null;
+    }
+
+    /// A marker's name, when `class` is a marker the book holds.
+    pub fn name_of(book: *const Book, class: []const u8) ?[]const u8 {
+        const id = book.class_id(class) orelse return null;
+        const name = book.marker_names[id];
+
+        return if (name.len > 0) name else null;
+    }
+
+    /// `class` as a page writes it, alone: its atoms' names or its marker's, else itself.
+    pub fn write_class(book: *const Book, writer: *std.Io.Writer, class: []const u8) !void {
+        const id = book.class_id(class) orelse return escape(writer, class);
+
+        if (book.marker_names[id].len > 0) {
+            return writer.writeAll(book.marker_names[id]);
+        }
+
+        for (book.atoms_of(id), 0..) |atom, at| {
+            if (at > 0) try writer.writeByte(' ');
+            try writer.writeAll(book.atom_names[atom]);
+        }
+    }
+};
+
+pub const MergeError = error{TooManyClasses};
+
+/// One attribute's classes after a merge: the atoms that survive, the markers, and the
+/// classes the book does not hold, each in the order they came.
+pub const Merged = struct {
+    atoms: [atoms_max]u32 = undefined,
+    atoms_len: u32 = 0,
+    markers: [classes_max]u32 = undefined,
+    markers_len: u32 = 0,
+    raw: [classes_max][]const u8 = undefined,
+    raw_len: u32 = 0,
+};
+
+/// `parts` (base, then variants, then the caller's own, each whitespace-separated) merged.
+pub fn merge(book: *const Book, parts: []const []const u8, merged: *Merged) MergeError!void {
+    std.debug.assert(merged.atoms_len == 0);
+    std.debug.assert(merged.raw_len == 0);
+
+    var removed: [atoms_max]bool = undefined;
+
+    for (parts) |part| {
+        var tokens = std.mem.tokenizeAny(u8, part, " \t\r\n");
+
+        while (tokens.next()) |raw| {
+            const id = book.class_id(raw) orelse {
+                if (merged.raw_len == classes_max) return error.TooManyClasses;
+                merged.raw[merged.raw_len] = raw;
+                merged.raw_len += 1;
+                continue;
+            };
+
+            if (book.marker_names[id].len > 0) {
+                if (std.mem.indexOfScalar(u32, merged.markers[0..merged.markers_len], id) != null) continue;
+                if (merged.markers_len == classes_max) return error.TooManyClasses;
+                merged.markers[merged.markers_len] = id;
+                merged.markers_len += 1;
+                continue;
+            }
+
+            for (book.atoms_of(id)) |atom| {
+                try add_atom(book, merged, &removed, atom);
+            }
+        }
+    }
+
+    var kept: u32 = 0;
+
+    for (merged.atoms[0..merged.atoms_len], removed[0..merged.atoms_len]) |atom, gone| {
+        if (!gone) {
+            merged.atoms[kept] = atom;
+            kept += 1;
+        }
+    }
+
+    merged.atoms_len = kept;
+}
+
+/// `atom` after the ones held: it removes each earlier one it overrides, and is held once.
+fn add_atom(book: *const Book, merged: *Merged, removed: *[atoms_max]bool, atom: u32) MergeError!void {
+    const scope = book.atom_scopes[atom];
+    const property = book.atom_properties[atom];
+
+    for (merged.atoms[0..merged.atoms_len], removed[0..merged.atoms_len]) |earlier, *gone| {
+        if (gone.*) continue;
+
+        // The same declaration again: it is there already.
+        if (earlier == atom) return;
+
+        if (book.atom_scopes[earlier] != scope) continue;
+
+        const other = book.atom_properties[earlier];
+
+        if (other == property or book.covered(property, other)) {
+            gone.* = true;
+        }
+    }
+
+    if (merged.atoms_len == atoms_max) return error.TooManyClasses;
+
+    merged.atoms[merged.atoms_len] = atom;
+    removed[merged.atoms_len] = false;
+    merged.atoms_len += 1;
+}
+
+/// `parts` merged and written as the page sends them: the surviving atoms' names, the
+/// markers' names, then the classes the book does not hold, escaped for an attribute value.
+pub fn write(book: *const Book, writer: *std.Io.Writer, parts: []const []const u8) !void {
+    var merged: Merged = .{};
+
+    try merge(book, parts, &merged);
+    try write_merged(book, writer, &merged);
+}
+
+pub fn write_merged(book: *const Book, writer: *std.Io.Writer, merged: *const Merged) !void {
+    std.debug.assert(merged.atoms_len <= atoms_max);
+
+    var first = true;
+
+    for (merged.atoms[0..merged.atoms_len]) |atom| {
+        if (!first) try writer.writeByte(' ');
+        try writer.writeAll(book.atom_names[atom]);
+        first = false;
+    }
+
+    for (merged.markers[0..merged.markers_len]) |id| {
+        if (!first) try writer.writeByte(' ');
+        try writer.writeAll(book.marker_names[id]);
+        first = false;
+    }
+
+    for (merged.raw[0..merged.raw_len]) |raw| {
+        if (!first) try writer.writeByte(' ');
+        try escape(writer, raw);
+        first = false;
+    }
+}
+
+/// `parts` merged into a class list owned by `allocator`.
+pub fn text(book: *const Book, allocator: std.mem.Allocator, parts: []const []const u8) ![]u8 {
+    var merged: Merged = .{};
+
+    try merge(book, parts, &merged);
+
+    var counting: std.Io.Writer.Discarding = .init(&.{});
+
+    try write_merged(book, &counting.writer, &merged);
+
+    const out = try allocator.alloc(u8, @intCast(counting.fullCount()));
+    var fixed: std.Io.Writer = .fixed(out);
+
+    write_merged(book, &fixed, &merged) catch unreachable;
+    std.debug.assert(fixed.end == out.len);
+
+    return out;
+}
+
+fn escape(writer: *std.Io.Writer, value: []const u8) !void {
+    for (value) |char| {
+        switch (char) {
+            '&' => try writer.writeAll("&amp;"),
+            '<' => try writer.writeAll("&lt;"),
+            '>' => try writer.writeAll("&gt;"),
+            '"' => try writer.writeAll("&quot;"),
+            '\'' => try writer.writeAll("&#39;"),
+            else => try writer.writeByte(char),
+        }
+    }
+}
+
+// ── Building ────────────────────────────────────────────────────────────────
+
+pub const Input = struct {
+    /// Every class the sheet's sources name; repeats count towards shorter names.
+    classes: []const []const u8,
+    /// Classes a page writes as they are that are not in `classes` (hand-written CSS, a
+    /// site's own): no name may be one of them.
+    reserved: []const []const u8 = &.{},
+};
+
+pub const BuildError = error{ OutOfMemory, TooManyClasses, NotImplemented };
+
+/// The book for `input`, with the rules its sheet is written from, owned by `arena`; the
+/// resolver's temporaries go to `gpa`.
+pub fn build(gpa: std.mem.Allocator, arena: std.mem.Allocator, t: Theme, input: Input) BuildError!Book {
+    var counts: std.StringArrayHashMapUnmanaged(u32) = .empty;
+    defer counts.deinit(gpa);
+    var taken: std.StringHashMapUnmanaged(void) = .empty;
+    defer taken.deinit(gpa);
+
+    for (input.classes) |class| {
+        try count(gpa, &counts, class);
+    }
+
+    for (input.reserved) |class| {
+        try taken.put(gpa, class, {});
+    }
+
+    // Only classes a utility answers are in the book; the rest stay as they are, so no
+    // name may be one of them.
+    var held: std.ArrayList([]const u8) = .empty;
+    defer held.deinit(gpa);
+    var made: std.StringHashMapUnmanaged(compile.ClassAtoms) = .empty;
+    defer made.deinit(gpa);
+
+    for (counts.keys()) |class| {
+        try taken.put(gpa, class, {});
+
+        // A named group or peer (`group/row`) is a marker compound variants point at.
+        if (is_marker(class)) {
+            try made.put(gpa, class, .marker);
+            try held.append(gpa, class);
+            continue;
+        }
+
+        const atoms = compile.classAtoms(gpa, arena, t, class) catch |err| switch (err) {
+            error.OutOfMemory => return error.OutOfMemory,
+            else => continue,
+        } orelse continue;
+
+        try made.put(gpa, class, atoms);
+        try held.append(gpa, class);
+    }
+
+    const order = try cascade_order(gpa, t, held.items);
+    defer gpa.free(order);
+
+    const len: u32 = @intCast(order.len);
+    const classes = try arena.alloc([]const u8, len);
+    const marker_names = try arena.alloc([]const u8, len);
+    const atom_starts = try arena.alloc(u32, len + 1);
+    var class_atoms: std.ArrayList(u32) = .empty;
+    var atom_ids: std.StringArrayHashMapUnmanaged(u32) = .empty;
+    defer atom_ids.deinit(gpa);
+    var rules: std.ArrayList(Rule) = .empty;
+    var atom_uses: std.ArrayList(u32) = .empty;
+    defer atom_uses.deinit(gpa);
+    var scope_ids: std.StringHashMapUnmanaged(u16) = .empty;
+    defer scope_ids.deinit(gpa);
+    var property_ids: std.StringArrayHashMapUnmanaged(u16) = .empty;
+    defer property_ids.deinit(gpa);
+    var scopes: std.ArrayList(u16) = .empty;
+    var properties: std.ArrayList(u16) = .empty;
+
+    // Atoms take the cascade order of the first class holding them.
+    for (order, 0..) |at, id| {
+        const class = held.items[at];
+        const uses = counts.get(class).?;
+
+        classes[id] = class;
+        marker_names[id] = "";
+        atom_starts[id] = @intCast(class_atoms.items.len);
+
+        const atoms = switch (made.get(class).?) {
+            .marker => {
+                marker_names[id] = "\x00";
+                continue;
+            },
+            .atoms => |list| list,
+        };
+
+        for (atoms) |atom| {
+            const key = try atom_key(arena, atom);
+            const slot = try atom_ids.getOrPut(gpa, key);
+
+            if (slot.found_existing) {
+                atom_uses.items[slot.value_ptr.*] += uses;
+            } else {
+                slot.value_ptr.* = @intCast(rules.items.len);
+                try atom_uses.append(gpa, uses);
+                try rules.append(arena, .{
+                    .at_rules = atom.at_rules,
+                    .selector = atom.selector,
+                    .important = atom.important,
+                    .property = atom.property,
+                    .value = atom.value,
+                    .class = class,
+                });
+                try scopes.append(arena, try dense(gpa, &scope_ids, key[0 .. key.len - atom_tail_len(atom)]));
+                try properties.append(arena, try dense_property(gpa, &property_ids, atom.property));
+            }
+
+            // A class lists an atom once.
+            if (std.mem.indexOfScalar(u32, class_atoms.items[atom_starts[id]..], slot.value_ptr.*) == null) {
+                try class_atoms.append(arena, slot.value_ptr.*);
+            }
+        }
+    }
+
+    atom_starts[len] = @intCast(class_atoms.items.len);
+
+    var book: Book = .{
+        .classes = classes,
+        .marker_names = marker_names,
+        .atom_starts = atom_starts,
+        .class_atoms = class_atoms.items,
+        .class_slots = try class_table(arena, classes),
+        .atom_names = &.{},
+        .atom_scopes = scopes.items,
+        .atom_properties = properties.items,
+        .cover_starts = &.{},
+        .covers = &.{},
+        .rules = rules.items,
+    };
+
+    try cover_table(arena, &book, property_ids.keys());
+    try name_all(gpa, arena, &book, &counts, atom_uses.items, &taken);
+
+    return book;
+}
+
+fn is_marker(class: []const u8) bool {
+    for ([_][]const u8{ "group/", "peer/" }) |prefix| {
+        if (std.mem.startsWith(u8, class, prefix) and class.len > prefix.len) return true;
+    }
+
+    return false;
+}
+
+/// What an atom is: its context, then its declaration. Two atoms with one key are one.
+fn atom_key(arena: std.mem.Allocator, atom: compile.Atom) ![]const u8 {
+    var key: std.ArrayList(u8) = .empty;
+
+    for (atom.at_rules) |at_rule| {
+        try key.appendSlice(arena, at_rule);
+        try key.append(arena, '\x01');
+    }
+
+    try key.appendSlice(arena, atom.selector);
+    try key.appendSlice(arena, if (atom.important) "\x01!" else "\x01");
+    try key.append(arena, '\x01');
+    try key.appendSlice(arena, atom.property);
+    try key.append(arena, ':');
+    try key.appendSlice(arena, atom.value);
+
+    return key.items;
+}
+
+/// The declaration's part of `atom_key`: what follows the context.
+fn atom_tail_len(atom: compile.Atom) usize {
+    return 1 + atom.property.len + 1 + atom.value.len;
+}
+
+fn count(gpa: std.mem.Allocator, counts: *std.StringArrayHashMapUnmanaged(u32), class: []const u8) !void {
+    std.debug.assert(class.len > 0);
+
+    const slot = try counts.getOrPut(gpa, class);
+
+    slot.value_ptr.* = if (slot.found_existing) slot.value_ptr.* + 1 else 1;
+}
+
+fn dense(gpa: std.mem.Allocator, ids: *std.StringHashMapUnmanaged(u16), key: []const u8) !u16 {
+    const slot = try ids.getOrPut(gpa, key);
+
+    if (!slot.found_existing) {
+        if (ids.count() > std.math.maxInt(u16)) return error.TooManyClasses;
+        slot.value_ptr.* = @intCast(ids.count() - 1);
+    }
+
+    return slot.value_ptr.*;
+}
+
+fn dense_property(gpa: std.mem.Allocator, ids: *std.StringArrayHashMapUnmanaged(u16), property: []const u8) !u16 {
+    const slot = try ids.getOrPut(gpa, property);
+
+    if (!slot.found_existing) {
+        if (ids.count() > std.math.maxInt(u16)) return error.TooManyClasses;
+        slot.value_ptr.* = @intCast(ids.count() - 1);
+    }
+
+    return slot.value_ptr.*;
+}
+
+/// The classes' indices in the sheet's cascade order (the order `compile` writes rules in).
+fn cascade_order(gpa: std.mem.Allocator, t: Theme, classes: []const []const u8) ![]u32 {
+    var index: std.StringHashMapUnmanaged(u32) = .empty;
+    defer index.deinit(gpa);
+    var joined: std.ArrayList(u8) = .empty;
+    defer joined.deinit(gpa);
+
+    for (classes, 0..) |class, at| {
+        try index.put(gpa, class, @intCast(at));
+
+        if (at > 0) try joined.append(gpa, ' ');
+        try joined.appendSlice(gpa, class);
+    }
+
+    const sorted = sort.sortClassesWithTheme(gpa, joined.items, t) catch |err| switch (err) {
+        error.OutOfMemory => return error.OutOfMemory,
+        error.NotImplemented => return error.NotImplemented,
+    };
+    defer gpa.free(sorted);
+
+    const order = try gpa.alloc(u32, classes.len);
+    var len: usize = 0;
+    var tokens = std.mem.tokenizeScalar(u8, sorted, ' ');
+
+    while (tokens.next()) |class| {
+        const at = index.get(class) orelse continue;
+
+        order[len] = at;
+        len += 1;
+    }
+
+    std.debug.assert(len == classes.len);
+
+    return order;
+}
+
+fn class_table(arena: std.mem.Allocator, classes: []const []const u8) ![]u32 {
+    const slots = try arena.alloc(u32, table_len(classes.len));
+
+    @memset(slots, 0);
+
+    for (classes, 0..) |class, id| {
+        const mask = slots.len - 1;
+        var slot: usize = @intCast(std.hash.Wyhash.hash(0, class) & mask);
+
+        while (slots[slot] != 0) slot = (slot + 1) & mask;
+
+        slots[slot] = @intCast(id + 1);
+    }
+
+    return slots;
+}
+
+/// Twice the entries, a power of two, so probes stay short.
+fn table_len(entries: usize) usize {
+    return std.math.ceilPowerOfTwoAssert(usize, @max(entries * 2, 2));
+}
+
+/// Which of `properties` (by dense id) each covers.
+fn cover_table(arena: std.mem.Allocator, book: *Book, properties: []const []const u8) !void {
+    const starts = try arena.alloc(u32, properties.len + 1);
+    var covers: std.ArrayList(u16) = .empty;
+
+    for (properties, 0..) |short, id| {
+        starts[id] = @intCast(covers.items.len);
+
+        for (properties, 0..) |long, other| {
+            if (other != id and shorthand_covers(short, long)) {
+                try covers.append(arena, @intCast(other));
+            }
+        }
+    }
+
+    starts[properties.len] = @intCast(covers.items.len);
+    book.cover_starts = starts;
+    book.covers = covers.items;
+}
+
+/// Whether setting `short` sets `long` too: `padding` sets `padding-left`, `padding-inline`
+/// sets `padding-left` and `padding-right`, `border-radius` each corner.
+pub fn shorthand_covers(short: []const u8, long: []const u8) bool {
+    const Family = struct { short: []const u8, longs: []const []const u8 };
+    const sides = [_][]const u8{
+        "-top",         "-right",     "-bottom",       "-left",
+        "-inline",      "-block",     "-inline-start", "-inline-end",
+        "-block-start", "-block-end",
+    };
+    const families = [_][]const u8{ "padding", "margin", "scroll-margin", "scroll-padding" };
+
+    for (families) |family| {
+        if (std.mem.eql(u8, short, family)) {
+            for (sides) |side| if (suffixed(long, family, side)) return true;
+            return false;
+        }
+
+        if (suffixed(short, family, "-inline")) {
+            return suffixed(long, family, "-left") or suffixed(long, family, "-right") or
+                suffixed(long, family, "-inline-start") or suffixed(long, family, "-inline-end");
+        }
+
+        if (suffixed(short, family, "-block")) {
+            return suffixed(long, family, "-top") or suffixed(long, family, "-bottom") or
+                suffixed(long, family, "-block-start") or suffixed(long, family, "-block-end");
+        }
+    }
+
+    const explicit = [_]Family{
+        .{ .short = "inset", .longs = &.{ "top", "right", "bottom", "left", "inset-inline", "inset-block", "inset-inline-start", "inset-inline-end", "inset-block-start", "inset-block-end" } },
+        .{ .short = "inset-inline", .longs = &.{ "left", "right", "inset-inline-start", "inset-inline-end" } },
+        .{ .short = "inset-block", .longs = &.{ "top", "bottom", "inset-block-start", "inset-block-end" } },
+        .{ .short = "border-radius", .longs = &.{ "border-top-left-radius", "border-top-right-radius", "border-bottom-right-radius", "border-bottom-left-radius", "border-start-start-radius", "border-start-end-radius", "border-end-start-radius", "border-end-end-radius" } },
+        .{ .short = "gap", .longs = &.{ "row-gap", "column-gap" } },
+        .{ .short = "overflow", .longs = &.{ "overflow-x", "overflow-y" } },
+        .{ .short = "overscroll-behavior", .longs = &.{ "overscroll-behavior-x", "overscroll-behavior-y" } },
+        .{ .short = "place-content", .longs = &.{ "align-content", "justify-content" } },
+        .{ .short = "place-items", .longs = &.{ "align-items", "justify-items" } },
+        .{ .short = "place-self", .longs = &.{ "align-self", "justify-self" } },
+        .{ .short = "flex", .longs = &.{ "flex-grow", "flex-shrink", "flex-basis" } },
+        .{ .short = "grid-column", .longs = &.{ "grid-column-start", "grid-column-end" } },
+        .{ .short = "grid-row", .longs = &.{ "grid-row-start", "grid-row-end" } },
+    };
+
+    for (explicit) |family| {
+        if (!std.mem.eql(u8, short, family.short)) continue;
+        for (family.longs) |known| if (std.mem.eql(u8, long, known)) return true;
+        return false;
+    }
+
+    // `border-width` sets each side's width; `border-inline-width` the inline sides'.
+    for ([_][]const u8{ "-width", "-color", "-style" }) |part| {
+        if (!std.mem.endsWith(u8, short, part) or !std.mem.endsWith(u8, long, part)) continue;
+        if (!std.mem.startsWith(u8, short, "border") or !std.mem.startsWith(u8, long, "border-")) continue;
+
+        const short_side = short["border".len .. short.len - part.len];
+        const long_side = long["border".len .. long.len - part.len];
+
+        if (short_side.len == 0) return long_side.len > 0;
+        if (std.mem.eql(u8, short_side, "-inline")) {
+            return std.mem.eql(u8, long_side, "-left") or std.mem.eql(u8, long_side, "-right") or
+                std.mem.eql(u8, long_side, "-inline-start") or std.mem.eql(u8, long_side, "-inline-end");
+        }
+        if (std.mem.eql(u8, short_side, "-block")) {
+            return std.mem.eql(u8, long_side, "-top") or std.mem.eql(u8, long_side, "-bottom") or
+                std.mem.eql(u8, long_side, "-block-start") or std.mem.eql(u8, long_side, "-block-end");
+        }
+    }
+
+    return false;
+}
+
+fn suffixed(word: []const u8, prefix: []const u8, suffix: []const u8) bool {
+    return word.len == prefix.len + suffix.len and std.mem.startsWith(u8, word, prefix) and
+        std.mem.endsWith(u8, word, suffix);
+}
+
+/// Names for every atom and marker, the most used shortest, none of them `taken`.
+fn name_all(
+    gpa: std.mem.Allocator,
+    arena: std.mem.Allocator,
+    book: *Book,
+    counts: *const std.StringArrayHashMapUnmanaged(u32),
+    atom_uses: []const u32,
+    taken: *const std.StringHashMapUnmanaged(void),
+) !void {
+    const Item = struct {
+        uses: u32,
+        /// Atoms first by id, then classes (markers) by id.
+        index: u32,
+    };
+    const atom_len: u32 = @intCast(atom_uses.len);
+    var items: std.ArrayList(Item) = .empty;
+    defer items.deinit(gpa);
+
+    for (atom_uses, 0..) |uses, atom| {
+        try items.append(gpa, .{
+            .uses = uses,
+            .index = @intCast(atom),
+        });
+    }
+
+    for (book.classes, 0..) |class, id| {
+        if (book.marker_names[id].len == 0) continue;
+        try items.append(gpa, .{
+            .uses = counts.get(class) orelse 1,
+            .index = atom_len + @as(u32, @intCast(id)),
+        });
+    }
+
+    std.mem.sort(Item, items.items, {}, struct {
+        fn more(_: void, a: Item, b: Item) bool {
+            if (a.uses != b.uses) return a.uses > b.uses;
+            return a.index < b.index;
+        }
+    }.more);
+
+    const atom_names = try arena.alloc([]const u8, atom_len);
+    const marker_names: [][]const u8 = @constCast(book.marker_names);
+    var next: u64 = 0;
+
+    for (items.items) |item| {
+        const name = try fresh_name(arena, &next, taken);
+
+        if (item.index < atom_len) {
+            atom_names[item.index] = name;
+        } else {
+            marker_names[item.index - atom_len] = name;
+        }
+    }
+
+    book.atom_names = atom_names;
+}
+
+const first_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const rest_chars = first_chars ++ "0123456789_";
+
+/// The `next`th name in the sequence a, b, … Z, aa, ab, …, skipping any that is `taken`.
+fn fresh_name(
+    arena: std.mem.Allocator,
+    next: *u64,
+    taken: *const std.StringHashMapUnmanaged(void),
+) ![]const u8 {
+    while (true) {
+        var buffer: [16]u8 = undefined;
+        const name = spelled(next.*, &buffer);
+
+        next.* += 1;
+
+        if (!taken.contains(name)) {
+            return arena.dupe(u8, name);
+        }
+    }
+}
+
+fn spelled(index: u64, buffer: *[16]u8) []const u8 {
+    var rest = index;
+    var span: u64 = first_chars.len;
+    var len: usize = 1;
+
+    while (rest >= span) {
+        rest -= span;
+        span *= rest_chars.len;
+        len += 1;
+    }
+
+    std.debug.assert(len <= buffer.len);
+
+    var at = len;
+
+    while (at > 1) {
+        at -= 1;
+        buffer[at] = rest_chars[@intCast(rest % rest_chars.len)];
+        rest /= rest_chars.len;
+    }
+
+    buffer[0] = first_chars[@intCast(rest)];
+
+    return buffer[0..len];
+}
+
+/// Each `.class` a stylesheet selects (hand-written CSS a page's classes may meet): what a
+/// book's `reserved` takes, so no name is one of them.
+pub fn selectedClasses(
+    allocator: std.mem.Allocator,
+    css: []const u8,
+    out: *std.ArrayList([]const u8),
+) error{OutOfMemory}!void {
+    var at: usize = 0;
+
+    while (std.mem.indexOfScalarPos(u8, css, at, '.')) |dot| {
+        var end = dot + 1;
+
+        while (end < css.len and (std.ascii.isAlphanumeric(css[end]) or css[end] == '-' or css[end] == '_')) {
+            end += 1;
+        }
+
+        if (end > dot + 1 and !std.ascii.isDigit(css[dot + 1])) {
+            try out.append(allocator, css[dot + 1 .. end]);
+        }
+
+        at = end;
+    }
+}
+
+/// The book as the browser module a page imports before its stores, which installs it in
+/// PublrJS's merge (`useClassBook`), imported from `merge_path`.
+pub fn writeScript(book: *const Book, writer: *std.Io.Writer, merge_path: []const u8) !void {
+    try writer.print("import {{ useClassBook }} from \"{s}\";\nuseClassBook(", .{merge_path});
+    try writeJson(book, writer);
+    try writer.writeAll(");\n");
+}
+
+/// `html` with every `class` attribute's names read back as Tailwind: each element's atoms
+/// as the fewest classes holding exactly them, markers as their classes, the rest as they
+/// are. What a page says, for a person, an agent or a test.
+pub fn decode(book: *const Book, allocator: std.mem.Allocator, html: []const u8) ![]u8 {
+    var names: std.StringHashMapUnmanaged(Named) = .empty;
+    defer names.deinit(allocator);
+
+    for (book.atom_names, 0..) |name, atom| try names.put(allocator, name, .{ .atom = @intCast(atom) });
+    for (book.marker_names, 0..) |name, id| {
+        if (name.len > 0) try names.put(allocator, name, .{ .marker = @intCast(id) });
+    }
+
+    var out: std.ArrayList(u8) = .empty;
+    errdefer out.deinit(allocator);
+    const opening = "class=\"";
+    var rest = html;
+
+    while (std.mem.indexOf(u8, rest, opening)) |at| {
+        const value_start = at + opening.len;
+        const value_end = std.mem.indexOfScalarPos(u8, rest, value_start, '"') orelse break;
+
+        try out.appendSlice(allocator, rest[0..value_start]);
+        try decode_value(book, allocator, &names, rest[value_start..value_end], &out);
+        try out.append(allocator, '"');
+        rest = rest[value_end + 1 ..];
+    }
+
+    try out.appendSlice(allocator, rest);
+
+    return out.toOwnedSlice(allocator);
+}
+
+const Named = union(enum) {
+    atom: u32,
+    marker: u32,
+};
+
+fn decode_value(
+    book: *const Book,
+    allocator: std.mem.Allocator,
+    names: *const std.StringHashMapUnmanaged(Named),
+    value: []const u8,
+    out: *std.ArrayList(u8),
+) !void {
+    var atoms: std.ArrayList(u32) = .empty;
+    defer atoms.deinit(allocator);
+    var words: std.ArrayList([]const u8) = .empty;
+    defer words.deinit(allocator);
+    var tokens = std.mem.tokenizeScalar(u8, value, ' ');
+
+    while (tokens.next()) |name| {
+        const named = names.get(name) orelse {
+            try words.append(allocator, name);
+            continue;
+        };
+
+        switch (named) {
+            .atom => |atom| try atoms.append(allocator, atom),
+            .marker => |id| try words.append(allocator, book.classes[id]),
+        }
+    }
+
+    // The classes whose atoms are all here, those holding the most first, each taken
+    // while it holds an atom not yet read.
+    var candidates: std.ArrayList(u32) = .empty;
+    defer candidates.deinit(allocator);
+
+    for (book.classes, 0..) |_, id| {
+        const held = book.atoms_of(@intCast(id));
+        if (held.len == 0) continue;
+        for (held) |atom| {
+            if (std.mem.indexOfScalar(u32, atoms.items, atom) == null) break;
+        } else try candidates.append(allocator, @intCast(id));
+    }
+
+    std.mem.sort(u32, candidates.items, book, struct {
+        fn more(b: *const Book, x: u32, y: u32) bool {
+            const a = b.atoms_of(x).len;
+            const c = b.atoms_of(y).len;
+            return if (a != c) a > c else x < y;
+        }
+    }.more);
+
+    var read = try allocator.alloc(bool, atoms.items.len);
+    defer allocator.free(read);
+    @memset(read, false);
+    var chosen: std.ArrayList(u32) = .empty;
+    defer chosen.deinit(allocator);
+
+    for (candidates.items) |id| {
+        var adds = false;
+        for (book.atoms_of(id)) |atom| {
+            const at = std.mem.indexOfScalar(u32, atoms.items, atom).?;
+            if (!read[at]) adds = true;
+        }
+        if (!adds) continue;
+        for (book.atoms_of(id)) |atom| read[std.mem.indexOfScalar(u32, atoms.items, atom).?] = true;
+        try chosen.append(allocator, id);
+    }
+
+    // An atom left over (its class's other atoms overridden: `text-4xl leading-tight`) is
+    // read as the smallest class holding it.
+    for (atoms.items, read) |atom, *done| {
+        if (done.*) continue;
+
+        var best: ?u32 = null;
+
+        for (0..book.classes.len) |id| {
+            const held = book.atoms_of(@intCast(id));
+            if (std.mem.indexOfScalar(u32, held, atom) == null) continue;
+            if (best == null or held.len < book.atoms_of(best.?).len) best = @intCast(id);
+        }
+
+        const id = best orelse continue;
+
+        done.* = true;
+        if (std.mem.indexOfScalar(u32, chosen.items, id) == null) try chosen.append(allocator, id);
+    }
+
+    // In the sheet's (cascade) order, as Tailwind writes them.
+    std.mem.sort(u32, chosen.items, {}, std.sort.asc(u32));
+
+    var first = true;
+
+    for (chosen.items) |id| {
+        if (!first) try out.append(allocator, ' ');
+        try out.appendSlice(allocator, book.classes[id]);
+        first = false;
+    }
+
+    for (atoms.items, read) |atom, done| {
+        if (done) continue;
+        if (!first) try out.append(allocator, ' ');
+        try out.appendSlice(allocator, book.atom_names[atom]);
+        first = false;
+    }
+
+    for (words.items) |word| {
+        if (!first) try out.append(allocator, ' ');
+        try out.appendSlice(allocator, word);
+        first = false;
+    }
+}
+
+/// The book as `writeJson` wrote it, owned by `arena`.
+pub fn fromJson(arena: std.mem.Allocator, json: []const u8) !Book {
+    const Data = struct {
+        classes: []const std.json.Value,
+        atoms: []const std.json.Value,
+        covers: []const std.json.Value,
+    };
+    const data = try std.json.parseFromSliceLeaky(Data, arena, json, .{});
+    const len = data.classes.len;
+    const classes = try arena.alloc([]const u8, len);
+    const marker_names = try arena.alloc([]const u8, len);
+    const atom_starts = try arena.alloc(u32, len + 1);
+    var class_atoms: std.ArrayList(u32) = .empty;
+
+    for (data.classes, 0..) |row, id| {
+        const fields = row.array.items;
+
+        classes[id] = fields[0].string;
+        marker_names[id] = fields[1].string;
+        atom_starts[id] = @intCast(class_atoms.items.len);
+
+        for (fields[2].array.items) |atom| try class_atoms.append(arena, @intCast(atom.integer));
+    }
+
+    atom_starts[len] = @intCast(class_atoms.items.len);
+
+    const atom_names = try arena.alloc([]const u8, data.atoms.len);
+    const atom_scopes = try arena.alloc(u16, data.atoms.len);
+    const atom_properties = try arena.alloc(u16, data.atoms.len);
+    var property_count: usize = 0;
+
+    for (data.atoms, 0..) |row, atom| {
+        const fields = row.array.items;
+
+        atom_names[atom] = fields[0].string;
+        atom_scopes[atom] = @intCast(fields[1].integer);
+        atom_properties[atom] = @intCast(fields[2].integer);
+        property_count = @max(property_count, atom_properties[atom] + 1);
+    }
+
+    const cover_starts = try arena.alloc(u32, property_count + 1);
+    var covers: std.ArrayList(u16) = .empty;
+    var listed: std.AutoHashMapUnmanaged(u16, []const std.json.Value) = .empty;
+
+    for (data.covers) |row| {
+        const fields = row.array.items;
+        try listed.put(arena, @intCast(fields[0].integer), fields[1].array.items);
+    }
+
+    for (0..property_count) |property| {
+        cover_starts[property] = @intCast(covers.items.len);
+        if (listed.get(@intCast(property))) |longs| {
+            for (longs) |long| try covers.append(arena, @intCast(long.integer));
+        }
+    }
+
+    cover_starts[property_count] = @intCast(covers.items.len);
+
+    return .{
+        .classes = classes,
+        .marker_names = marker_names,
+        .atom_starts = atom_starts,
+        .class_atoms = class_atoms.items,
+        .class_slots = try class_table(arena, classes),
+        .atom_names = atom_names,
+        .atom_scopes = atom_scopes,
+        .atom_properties = atom_properties,
+        .cover_starts = cover_starts,
+        .covers = covers.items,
+    };
+}
+
+// ── Sources ─────────────────────────────────────────────────────────────────
+
+/// The book as Zig declarations a module embeds (`book.zig`'s fields, by name), so a build
+/// carries it with no work at startup.
+pub fn writeZig(book: *const Book, writer: *std.Io.Writer) !void {
+    try writer.writeAll("//! Written by the Publr JIT: the class book of one sheet.\n");
+    try write_strings(writer, "classes", book.classes);
+    try write_strings(writer, "marker_names", book.marker_names);
+    try write_numbers(u32, writer, "atom_starts", book.atom_starts);
+    try write_numbers(u32, writer, "class_atoms", book.class_atoms);
+    try write_numbers(u32, writer, "class_slots", book.class_slots);
+    try write_strings(writer, "atom_names", book.atom_names);
+    try write_numbers(u16, writer, "atom_scopes", book.atom_scopes);
+    try write_numbers(u16, writer, "atom_properties", book.atom_properties);
+    try write_numbers(u32, writer, "cover_starts", book.cover_starts);
+    try write_numbers(u16, writer, "covers", book.covers);
+}
+
+fn write_strings(writer: *std.Io.Writer, name: []const u8, values: []const []const u8) !void {
+    try writer.print("pub const {s} = [_][]const u8{{\n", .{name});
+
+    for (values) |value| {
+        try writer.writeAll("    \"");
+        try std.zig.stringEscape(value, writer);
+        try writer.writeAll("\",\n");
+    }
+
+    try writer.writeAll("};\n");
+}
+
+fn write_numbers(comptime T: type, writer: *std.Io.Writer, name: []const u8, values: []const T) !void {
+    try writer.print("pub const {s} = [_]{s}{{", .{ name, @typeName(T) });
+
+    for (values, 0..) |value, at| {
+        if (at % 16 == 0) try writer.writeAll("\n   ");
+        try writer.print(" {d},", .{value});
+    }
+
+    try writer.writeAll("\n};\n");
+}
+
+/// The book as JSON for the browser's merge: `{"classes":[[class,marker,[atom…]]…],
+/// "atoms":[[name,scope,property]…],"covers":[[property,[longhand…]]…]}`.
+pub fn writeJson(book: *const Book, writer: *std.Io.Writer) !void {
+    try writer.writeAll("{\"classes\":[");
+
+    for (book.classes, 0..) |class, id| {
+        if (id > 0) try writer.writeByte(',');
+        try writer.writeByte('[');
+        try std.json.Stringify.encodeJsonString(class, .{}, writer);
+        try writer.writeByte(',');
+        try std.json.Stringify.encodeJsonString(book.marker_names[id], .{}, writer);
+        try writer.writeAll(",[");
+
+        for (book.atoms_of(@intCast(id)), 0..) |atom, at| {
+            if (at > 0) try writer.writeByte(',');
+            try writer.print("{d}", .{atom});
+        }
+
+        try writer.writeAll("]]");
+    }
+
+    try writer.writeAll("],\"atoms\":[");
+
+    for (book.atom_names, 0..) |name, atom| {
+        if (atom > 0) try writer.writeByte(',');
+        try writer.writeByte('[');
+        try std.json.Stringify.encodeJsonString(name, .{}, writer);
+        try writer.print(",{d},{d}]", .{ book.atom_scopes[atom], book.atom_properties[atom] });
+    }
+
+    try writer.writeAll("],\"covers\":[");
+
+    var first = true;
+
+    for (0..book.cover_starts.len -| 1) |property| {
+        const longs = book.covers[book.cover_starts[property]..book.cover_starts[property + 1]];
+        if (longs.len == 0) continue;
+        if (!first) try writer.writeByte(',');
+        first = false;
+        try writer.print("[{d},[", .{property});
+        for (longs, 0..) |long, at| {
+            if (at > 0) try writer.writeByte(',');
+            try writer.print("{d}", .{long});
+        }
+        try writer.writeAll("]]");
+    }
+
+    try writer.writeAll("]}");
+}
+
+// ── Tests ───────────────────────────────────────────────────────────────────
+
+const test_theme: Theme = .{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "red",
+        },
+        .{
+            .name = "color-blue-500",
+            .value = "blue",
+        },
+        .{
+            .name = "radius-md",
+            .value = "0.375rem",
+        },
+        .{
+            .name = "radius-lg",
+            .value = "0.5rem",
+        },
+    },
+};
+
+fn test_book(arena: std.mem.Allocator, input: Input) !Book {
+    return build(std.testing.allocator, arena, test_theme, input);
+}
+
+/// The names `parts` are written as, sorted.
+fn written(book: *const Book, arena: std.mem.Allocator, parts: []const []const u8) ![]const u8 {
+    const out = try text(book, arena, parts);
+    var names: std.ArrayList([]const u8) = .empty;
+    var tokens = std.mem.tokenizeScalar(u8, out, ' ');
+
+    while (tokens.next()) |name| try names.append(arena, name);
+
+    std.mem.sort([]const u8, names.items, {}, struct {
+        fn less(_: void, a: []const u8, b: []const u8) bool {
+            return std.mem.lessThan(u8, a, b);
+        }
+    }.less);
+
+    return std.mem.join(arena, " ", names.items);
+}
+
+fn all_classes(arena: std.mem.Allocator, cases: []const [2][]const u8) ![]const []const u8 {
+    var classes: std.ArrayList([]const u8) = .empty;
+
+    for (cases) |case| {
+        for (case) |side| {
+            var tokens = std.mem.tokenizeScalar(u8, side, ' ');
+            while (tokens.next()) |class| try classes.append(arena, class);
+        }
+    }
+
+    return classes.items;
 }
 
 };
@@ -6648,6 +13278,7 @@ const theme = amalgam.theme_mod;
 const utilities = amalgam.utilities_mod;
 const variants = amalgam.variants_mod;
 const sort = amalgam.sort_mod;
+const class_book = amalgam.book_mod;
 
 pub const CompileError = error{
     OutOfMemory,
@@ -6725,7 +13356,6 @@ pub fn compile(
 ) CompileError![]u8 {
     const nl: []const u8 = if (options.minify) "" else "\n";
     const sp: []const u8 = if (options.minify) "" else " ";
-    const ind2: []const u8 = if (options.minify) "" else "  ";
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
@@ -6748,6 +13378,227 @@ pub fn compile(
     }
     try utility_block.print("}}{s}", .{nl});
 
+    return finish(allocator, t, &utility_block, options);
+}
+
+/// The sheet for `book` (as `build` made it, with its rules): one rule per atom, `.k{…}`,
+/// in the book's cascade order, atoms under the same at-rules in one block. Debug sheets name
+/// each atom's first class in a comment.
+pub fn compileBook(
+    allocator: std.mem.Allocator,
+    t: theme.Theme,
+    book: *const class_book.Book,
+    options: Options,
+) CompileError![]u8 {
+    std.debug.assert(book.rules.len == book.atom_names.len);
+
+    const nl: []const u8 = if (options.minify) "" else "\n";
+    const sp: []const u8 = if (options.minify) "" else " ";
+    const ind: []const u8 = if (options.minify) "" else "  ";
+    var utility_block = std.array_list.Managed(u8).init(allocator);
+    defer utility_block.deinit();
+
+    try utility_block.print("@layer utilities{s}{{{s}", .{ sp, nl });
+
+    var open: []const []const u8 = &.{};
+
+    for (book.rules, 0..) |rule, id| {
+        if (!same_at_rules(open, rule.at_rules)) {
+            for (open) |_| try utility_block.print("{s}}}{s}", .{ ind, nl });
+            for (rule.at_rules) |at_rule| try utility_block.print("{s}{s}{s}{{{s}", .{ ind, at_rule, sp, nl });
+            open = rule.at_rules;
+        }
+
+        if (!options.minify) {
+            try utility_block.appendSlice("  /* ");
+            for (rule.class, 0..) |char, at| {
+                // A class never closes the comment it is named in.
+                if (char == '/' and at > 0 and rule.class[at - 1] == '*') {
+                    try utility_block.append(' ');
+                }
+                try utility_block.append(char);
+            }
+            try utility_block.appendSlice(" */\n");
+        }
+
+        try utility_block.appendSlice(ind);
+        try write_selector(&utility_block, book, rule.selector, book.atom_names[id]);
+        try utility_block.print("{s}{{{s}{s}:{s}{s}{s}}}{s}", .{
+            sp,
+            sp,
+            rule.property,
+            sp,
+            rule.value,
+            if (rule.important) " !important" else "",
+            nl,
+        });
+    }
+
+    for (open) |_| try utility_block.print("{s}}}{s}", .{ ind, nl });
+    try utility_block.print("}}{s}", .{nl});
+
+    return finish(allocator, t, &utility_block, options);
+}
+
+fn same_at_rules(a: []const []const u8, b: []const []const u8) bool {
+    if (a.len != b.len) return false;
+
+    for (a, b) |left, right| {
+        if (!std.mem.eql(u8, left, right)) return false;
+    }
+
+    return true;
+}
+
+/// `selector` with the atom's name in its slot and each marker (`\x02group/x\x03`) by its
+/// name.
+fn write_selector(
+    out: *std.array_list.Managed(u8),
+    book: *const class_book.Book,
+    selector: []const u8,
+    name: []const u8,
+) CompileError!void {
+    var at: usize = 0;
+
+    while (at < selector.len) {
+        if (std.mem.startsWith(u8, selector[at..], name_slot)) {
+            try out.append('.');
+            try out.appendSlice(name);
+            at += name_slot.len;
+            continue;
+        }
+
+        if (selector[at] == marker_open) {
+            const close = std.mem.indexOfScalarPos(u8, selector, at, marker_close) orelse selector.len;
+            const marker = selector[at + 1 .. close];
+
+            try out.appendSlice(book.name_of(marker) orelse marker);
+            at = close + 1;
+            continue;
+        }
+
+        try out.append(selector[at]);
+        at += 1;
+    }
+}
+
+/// Where an atom's name goes in its selector.
+pub const name_slot = ".\x00";
+/// A marker class in a selector (`group-hover:` points at it), named when the sheet is.
+pub const marker_open: u8 = 0x02;
+pub const marker_close: u8 = 0x03;
+
+/// One declaration of a class in one context: what a short name stands for.
+pub const Atom = struct {
+    /// The at-rules around it, outer first (`@media (min-width:48rem)`).
+    at_rules: []const []const u8,
+    /// Its selector, `name_slot` where the name goes, with what follows it
+    /// (`.\x00:hover`, `\x02group/x\x03:hover .\x00`, `.\x00 > :not(:last-child)`).
+    selector: []const u8,
+    important: bool,
+    property: []const u8,
+    value: []const u8,
+};
+
+/// What a class is made of.
+pub const ClassAtoms = union(enum) {
+    /// A marker (`group`, `group/x`, `peer`): no declarations, compound variants point at it.
+    marker,
+    atoms: []const Atom,
+};
+
+/// `class_name` as its atoms, owned by `arena`; null when no utility answers it.
+pub fn classAtoms(
+    gpa: std.mem.Allocator,
+    arena: std.mem.Allocator,
+    t: theme.Theme,
+    class_name: []const u8,
+) CompileError!?ClassAtoms {
+    const cands = candidate.parseCandidate(gpa, class_name) catch |err| switch (err) {
+        error.OutOfMemory => return CompileError.OutOfMemory,
+    };
+    defer candidate.freeCandidates(gpa, cands);
+
+    for (cands) |c| {
+        const resolved = utilities.resolveCandidate(gpa, t, c) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+        } orelse continue;
+        defer utilities.freeResolvedUtility(gpa, resolved);
+
+        if (resolved.declarations.len == 0) return .marker;
+
+        const cand_variants = switch (c) {
+            .static_c => |static_candidate| static_candidate.variants,
+            .functional => |functional| functional.variants,
+            .arbitrary => |arbitrary| arbitrary.variants,
+        };
+        const base = try gpa.dupe(u8, name_slot);
+        const slots: MarkerSlots = .{
+            .arena = arena,
+        };
+        const markers: variants.Markers = .{
+            .context = &slots,
+            .name = marker_slot,
+        };
+        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, markers) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+            error.UnknownVariant => return null,
+        };
+        defer variants.freeWrappedRule(gpa, wrapped);
+
+        const at_rules = try arena.alloc([]const u8, wrapped.at_rules.len);
+
+        for (wrapped.at_rules, at_rules) |at_rule, *text| {
+            text.* = try std.fmt.allocPrint(arena, "@{s} {s}", .{ at_rule.name, at_rule.condition });
+        }
+
+        const selector = try std.mem.concat(arena, u8, &.{
+            wrapped.selector,
+            resolved.selector_suffix orelse "",
+        });
+        const atoms = try arena.alloc(Atom, resolved.declarations.len);
+
+        for (resolved.declarations, atoms) |declaration, *atom| {
+            atom.* = .{
+                .at_rules = at_rules,
+                .selector = selector,
+                .important = resolved.important,
+                .property = try arena.dupe(u8, declaration.property),
+                .value = try arena.dupe(u8, declaration.value),
+            };
+        }
+
+        return .{
+            .atoms = atoms,
+        };
+    }
+
+    return null;
+}
+
+/// Compound variants name a marker by its class (`\x02group/x\x03`), held until the sheet
+/// names it.
+const MarkerSlots = struct {
+    arena: std.mem.Allocator,
+};
+
+fn marker_slot(context: *const anyopaque, class: []const u8) ?[]const u8 {
+    const slots: *const MarkerSlots = @ptrCast(@alignCast(context));
+
+    return std.fmt.allocPrint(slots.arena, "{c}{s}{c}", .{ marker_open, class, marker_close }) catch null;
+}
+
+/// `:root` with only the tokens the rules use, then the rules.
+fn finish(
+    allocator: std.mem.Allocator,
+    t: theme.Theme,
+    utility_block: *std.array_list.Managed(u8),
+    options: Options,
+) CompileError![]u8 {
+    const nl: []const u8 = if (options.minify) "" else "\n";
+    const sp: []const u8 = if (options.minify) "" else " ";
+    const ind2: []const u8 = if (options.minify) "" else "  ";
+
     // 3. Tree-shake the theme: collect var(--*) references in utility output,
     //    then transitively expand to include any theme tokens those tokens
     //    reference (e.g., `--default-font-family` includes `--font-sans`).
@@ -6760,7 +13611,10 @@ pub fn compile(
         changed = false;
         for (t.tokens) |tok| {
             if (used_tokens.contains(tok.name)) {
-                var iter = VarRefIterator{ .input = tok.value, .pos = 0 };
+                var iter = VarRefIterator{
+                    .input = tok.value,
+                    .pos = 0,
+                };
                 while (iter.next()) |name| {
                     const result = try used_tokens.getOrPut(name);
                     if (!result.found_existing) changed = true;
@@ -6817,7 +13671,10 @@ const VarRefIterator = struct {
 };
 
 fn collectVarRefs(input: []const u8, set: *std.StringHashMap(void)) !void {
-    var iter = VarRefIterator{ .input = input, .pos = 0 };
+    var iter = VarRefIterator{
+        .input = input,
+        .pos = 0,
+    };
     while (iter.next()) |name| {
         _ = try set.getOrPut(name);
     }
@@ -6877,7 +13734,11 @@ fn emitClassRule(
             .functional => |f| f.variants,
             .arbitrary => |a| a.variants,
         };
-        const wrapped = variants.applyVariants(allocator, t, cand_variants, class_name) catch |err| switch (err) {
+        const base = variants.escapeClassSelector(allocator, class_name) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+            error.UnknownVariant => return,
+        };
+        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, null) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return, // skip silently — unsupported variant
         };
@@ -6922,12 +13783,26 @@ fn emitClassRule(
 
 const tst = std.testing;
 
-const test_theme = theme.Theme{ .tokens = &.{
-    .{ .name = "spacing", .value = "0.25rem" },
-    .{ .name = "color-red-500", .value = "oklch(0.637 0.237 25.331)" },
-    .{ .name = "breakpoint-md", .value = "48rem" },
-    .{ .name = "font-sans", .value = "Switzer, system-ui, sans-serif" },
-} };
+const test_theme = theme.Theme{
+    .tokens = &.{
+        .{
+            .name = "spacing",
+            .value = "0.25rem",
+        },
+        .{
+            .name = "color-red-500",
+            .value = "oklch(0.637 0.237 25.331)",
+        },
+        .{
+            .name = "breakpoint-md",
+            .value = "48rem",
+        },
+        .{
+            .name = "font-sans",
+            .value = "Switzer, system-ui, sans-serif",
+        },
+    },
+};
 
 };
 
@@ -7611,6 +14486,9 @@ pub const api = struct {
     pub const SortError = amalgam.sort_mod.SortError;
     pub const mergeClasses = amalgam.class_merge_mod.mergeClasses;
     pub const writeClassGroups = amalgam.class_merge_mod.writeClassGroups;
+    pub const Book = amalgam.book_mod.Book;
+    pub const book = amalgam.book_mod;
+    pub const compileBook = amalgam.compile_mod.compileBook;
     pub const default_theme: Theme = amalgam.embedded_default_theme;
 };
 
@@ -7659,6 +14537,12 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
+    // `decode --book=<book.json> <page.html>`: the page with its names read back.
+    if (std.mem.eql(u8, args[1], "decode")) {
+        try runDecode(io, allocator, args);
+        return;
+    }
+
     // Parse flags. `compile-classes` is accepted as an alias for the default
     // mode (used by the visual-regression harness).
     var arg_index: usize = 1;
@@ -7669,6 +14553,13 @@ pub fn main(init: std.process.Init) !void {
     if (std.mem.eql(u8, args[1], "resolve-classes")) {
         arg_index = 2;
         output = .groups;
+    }
+    // `book` names every declaration, and writes the sheet under those
+    // names with the book itself, as Zig and as JSON (`--zig=`, `--json=`).
+    var book_paths: BookPaths = .{};
+    if (std.mem.eql(u8, args[1], "book")) {
+        arg_index = 2;
+        output = .book;
     }
 
     // `--prepend=<file>` may be passed several times; each is copied verbatim ahead of the
@@ -7714,6 +14605,10 @@ pub fn main(init: std.process.Init) !void {
             try theme_paths.append(args[arg_index]);
         } else if (std.mem.startsWith(u8, a, "--theme=")) {
             try theme_paths.append(a["--theme=".len..]);
+        } else if (std.mem.startsWith(u8, a, "--zig=")) {
+            book_paths.zig = a["--zig=".len..];
+        } else if (std.mem.startsWith(u8, a, "--json=")) {
+            book_paths.json = a["--json=".len..];
         } else if (std.mem.eql(u8, a, "--minify")) {
             minify = true;
         } else if (std.mem.eql(u8, a, "--no-minify")) {
@@ -7727,13 +14622,18 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     }
 
-    try runCompile(io, allocator, manifest_paths.items, prepend_paths.items, theme_paths.items, minify, output);
+    try runCompile(io, allocator, manifest_paths.items, prepend_paths.items, theme_paths.items, minify, output, book_paths);
 }
 
-const Output = enum { css, groups };
+const Output = enum { css, groups, book };
+
+const BookPaths = struct {
+    zig: ?[]const u8 = null,
+    json: ?[]const u8 = null,
+};
 
 fn printUsage(io: std.Io) !void {
-    var stderr_buf: [768]u8 = undefined;
+    var stderr_buf: [1024]u8 = undefined;
     var stderr: std.Io.File.Writer = .init(.stderr(), io, &stderr_buf);
     try stderr.interface.writeAll("Usage:\n");
     try stderr.interface.writeAll("  jit [--theme=<theme.zon>] [--prepend=<file.css>] [--minify|--no-minify] <css_classes.txt>\n");
@@ -7747,6 +14647,10 @@ fn printUsage(io: std.Io) !void {
     try stderr.interface.writeAll("  jit resolve-classes [--theme=<theme.zon>] <css_classes.txt>\n");
     try stderr.interface.writeAll("    Emit the class-conflict groups as JSON ({class: [scope, [property…]]})\n");
     try stderr.interface.writeAll("    for run-time class merging without the resolver (PublrJS).\n");
+    try stderr.interface.writeAll("  jit book --zig=<out> --json=<out> <css_classes.txt>\n");
+    try stderr.interface.writeAll("    Name every declaration; the sheet under those names to stdout.\n");
+    try stderr.interface.writeAll("  jit decode --book=<book.json> <page.html>\n");
+    try stderr.interface.writeAll("    The page with its class names read back as Tailwind.\n");
     try stderr.interface.writeAll("  jit theme-from-css <input.css>\n");
     try stderr.interface.writeAll("    Convert CSS @theme blocks to theme.zon.\n");
     try stderr.interface.flush();
@@ -7765,6 +14669,7 @@ fn runCompile(
     theme_paths: []const []const u8,
     minify: bool,
     output: Output,
+    book_paths: BookPaths,
 ) !void {
     // Read every manifest, tokenize whitespace-separated, dedupe across all of
     // them. Buffers stay alive until the end of the function because `classes`
@@ -7840,7 +14745,12 @@ fn runCompile(
         return;
     }
 
-    const css = try jit.compile(allocator, merged_theme, classes.items, .{ .minify = minify });
+    const css = if (output == .book)
+        try writeBook(io, allocator, merged_theme, classes.items, prepend_paths, book_paths, minify)
+    else
+        try jit.compile(allocator, merged_theme, classes.items, .{
+            .minify = minify,
+        });
     defer allocator.free(css);
 
     for (prepend_paths) |p| {
@@ -7850,6 +14760,75 @@ fn runCompile(
         try stdout.interface.writeByte('\n');
     }
     try stdout.interface.writeAll(css);
+    try stdout.interface.flush();
+}
+
+/// The book over `classes`, written as Zig and JSON where asked; the
+/// sheet under its names is returned. No name is a class the prepended CSS selects.
+fn writeBook(
+    io: std.Io,
+    allocator: std.mem.Allocator,
+    theme: jit.Theme,
+    classes: []const []const u8,
+    prepend_paths: []const []const u8,
+    paths: BookPaths,
+    minify: bool,
+) ![]u8 {
+    var reserved: std.ArrayList([]const u8) = .empty;
+
+    for (prepend_paths) |path| {
+        const css = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(4 * 1024 * 1024));
+
+        try jit.book.selectedClasses(allocator, css, &reserved);
+    }
+
+    const book = try jit.book.build(allocator, allocator, theme, .{
+        .classes = classes,
+        .reserved = reserved.items,
+    });
+
+    if (paths.zig) |path| try writeOut(io, allocator, path, &book, .zig);
+    if (paths.json) |path| try writeOut(io, allocator, path, &book, .json);
+
+    return jit.compileBook(allocator, theme, &book, .{
+        .minify = minify,
+    });
+}
+
+fn writeOut(
+    io: std.Io,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    book: *const jit.Book,
+    form: enum { zig, json },
+) !void {
+    var out: std.Io.Writer.Allocating = .init(allocator);
+
+    switch (form) {
+        .zig => try jit.book.writeZig(book, &out.writer),
+        .json => try jit.book.writeJson(book, &out.writer),
+    }
+
+    try std.Io.Dir.cwd().writeFile(io, .{
+        .sub_path = path,
+        .data = out.written(),
+    });
+}
+
+fn runDecode(io: std.Io, allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
+    if (args.len < 4 or !std.mem.startsWith(u8, args[2], "--book=")) {
+        try printUsage(io);
+        std.process.exit(1);
+    }
+
+    const json = try std.Io.Dir.cwd().readFileAlloc(io, args[2]["--book=".len..], allocator, .limited(64 * 1024 * 1024));
+    const book = try jit.book.fromJson(allocator, json);
+    const page = try std.Io.Dir.cwd().readFileAlloc(io, args[3], allocator, .limited(64 * 1024 * 1024));
+    const decoded = try jit.book.decode(&book, allocator, page);
+    var stdout_buf: [16 * 1024]u8 = undefined;
+    var stdout: std.Io.File.Writer = .init(.stdout(), io, &stdout_buf);
+
+    try stdout.interface.writeAll(decoded);
     try stdout.interface.flush();
 }
 
@@ -7870,7 +14849,9 @@ fn runThemeFromCss(io: std.Io, allocator: std.mem.Allocator, args: []const [:0]c
     var warn_buffer: [4096]u8 = undefined;
     var warn_iface = std.Io.Writer.fixed(&warn_buffer);
 
-    const zon = try theme_from_css.convert(allocator, css, .{ .warn = &warn_iface });
+    const zon = try theme_from_css.convert(allocator, css, .{
+        .warn = &warn_iface,
+    });
     defer allocator.free(zon);
 
     var stdout_buf: [16 * 1024]u8 = undefined;

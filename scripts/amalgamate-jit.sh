@@ -50,6 +50,9 @@ emit_plain_namespace() {
         -e 's|const utilities = @import("utilities\.zig");|const utilities = amalgam.utilities_mod;|' \
         -e 's|const variants = @import("variants\.zig");|const variants = amalgam.variants_mod;|' \
         -e 's|const sort = @import("sort\.zig");|const sort = amalgam.sort_mod;|' \
+        -e 's|const class_merge = @import("class_merge\.zig");|const class_merge = amalgam.class_merge_mod;|' \
+        -e 's|const class_book = @import("book\.zig");|const class_book = amalgam.book_mod;|' \
+        -e 's|const compile = @import("compile\.zig");|const compile = amalgam.compile_mod;|' \
         "$file" | strip_tests
     echo "};"
     echo
@@ -70,6 +73,7 @@ emit_plain_namespace() {
     emit_plain_namespace variants_mod "$SRC/variants.zig"
     emit_plain_namespace sort_mod "$SRC/sort.zig"
     emit_plain_namespace class_merge_mod "$SRC/class_merge.zig"
+    emit_plain_namespace book_mod "$SRC/book.zig"
     emit_plain_namespace compile_mod "$SRC/compile.zig"
     emit_plain_namespace theme_from_css_mod "$SRC/theme_from_css.zig"
 
@@ -97,6 +101,9 @@ emit_plain_namespace() {
     echo "    pub const SortError = amalgam.sort_mod.SortError;"
     echo "    pub const mergeClasses = amalgam.class_merge_mod.mergeClasses;"
     echo "    pub const writeClassGroups = amalgam.class_merge_mod.writeClassGroups;"
+    echo "    pub const Book = amalgam.book_mod.Book;"
+    echo "    pub const book = amalgam.book_mod;"
+    echo "    pub const compileBook = amalgam.compile_mod.compileBook;"
     echo "    pub const default_theme: Theme = amalgam.embedded_default_theme;"
     echo "};"
     echo

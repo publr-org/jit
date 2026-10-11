@@ -12,13 +12,16 @@ const theme = @import("theme.zig");
 
 const Theme = theme.Theme;
 
-const Entry = struct {
+/// One class as a merge sees it: the scope it applies in (its variants and `!`) and the
+/// CSS properties it owns. `resolved` is false for a class no utility answers.
+pub const Entry = struct {
     raw: []const u8,
     scope: u64 = 0,
     properties: std.ArrayList(u64) = .empty,
     removed: bool = false,
+    resolved: bool = false,
 
-    fn deinit(self: *Entry, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: *Entry, allocator: std.mem.Allocator) void {
         self.properties.deinit(allocator);
     }
 };
@@ -95,7 +98,8 @@ pub fn writeClassGroups(
     try writer.writeByte('}');
 }
 
-fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const u8) !Entry {
+/// The class `raw` resolved into its scope and properties; owned by `allocator`.
+pub fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const u8) !Entry {
     var entry = Entry{
         .raw = raw,
         .scope = scopeHash(raw),
@@ -109,6 +113,7 @@ fn resolveEntry(allocator: std.mem.Allocator, active_theme: Theme, raw: []const 
         const resolved = try utilities.resolveCandidate(allocator, active_theme, cand);
         if (resolved == null) continue;
         defer utilities.freeResolvedUtility(allocator, resolved.?);
+        entry.resolved = true;
 
         const namespace: []const u8 = switch (cand) {
             // Tailwind deliberately keeps arbitrary properties independent

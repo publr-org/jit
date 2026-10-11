@@ -44,3 +44,9 @@ pub const sortClasses = sort_mod.sortClasses;
 pub const SortError = sort_mod.SortError;
 pub const mergeClasses = class_merge_mod.mergeClasses;
 pub const writeClassGroups = class_merge_mod.writeClassGroups;
+
+const book_mod = @import("book.zig");
+/// Every declaration's short name and every class as its declarations: see `book.zig`.
+pub const Book = book_mod.Book;
+pub const book = book_mod;
+pub const compileBook = compile_mod.compileBook;

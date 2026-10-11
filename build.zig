@@ -34,6 +34,7 @@ pub fn build(b: *std.Build) void {
         "src/sort.zig",
         "src/compile.zig",
         "src/class_merge.zig",
+        "src/book.zig",
     };
 
     for (test_roots) |root| {

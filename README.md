@@ -52,7 +52,8 @@ See [`SUPPORTED.md`](SUPPORTED.md) for the full surface, [`UNSUPPORTED.md`](UNSU
 | `src/theme.zig` | `Theme` schema, `extendTheme()` comptime merge, `lookup()`, `:root` emission. |
 | `src/sort.zig` | Cascade-aware sort. |
 | `src/theme_from_css.zig` | One-shot converter: CSS `@theme {}` block → `theme.zon`. |
-| `src/main.zig` | CLI: reads class manifest, emits CSS to stdout. Demo flow. |
+| `src/book.zig` | The class book: every declaration's short name (an atom), every class as its atoms, the merge by atom, and `decode`. |
+| `src/main.zig` | CLI: reads class manifest, emits CSS to stdout; `book` and `decode`. |
 | `default-theme.zon` | 419-token default theme (colors, spacing, breakpoints, fonts, radius, shadows, ease, durations, container sizes, text sizes). |
 
 ## Theme model
@@ -91,6 +92,11 @@ zig build                  # produces zig-out/bin/jit
 # Run on a class manifest
 ./zig-out/bin/jit <classes.txt>            # → CSS to stdout
 ./zig-out/bin/jit --prepend preflight.css <classes.txt>  # prepend preflight
+
+# Short names: one per declaration, the sheet under those names
+./zig-out/bin/jit book --zig=book.zig --json=book.json <classes.txt> > sheet.css
+# A page's names read back as Tailwind
+./zig-out/bin/jit decode --book=book.json page.html
 
 # One-shot @theme conversion (migration tool)
 ./zig-out/bin/jit theme-from-css <input.css>   # → theme.zon to stdout

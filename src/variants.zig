@@ -63,7 +63,29 @@ pub fn applyVariants(
     variants: []const Variant,
     base_class: []const u8,
 ) VariantError!WrappedRule {
-    var selector = try escapeClassSelector(allocator, base_class);
+    const selector = try escapeClassSelector(allocator, base_class);
+
+    return applyVariantsTo(allocator, t, variants, selector, null);
+}
+
+/// The class a `group-*` or `peer-*` variant points at (`group`, `group/button`, `peer`),
+/// as the name the page writes it by; null keeps the class as it is.
+pub const Markers = struct {
+    context: *const anyopaque,
+    name: *const fn (context: *const anyopaque, class: []const u8) ?[]const u8,
+};
+
+/// Apply parsed variants to `base_selector` (owned by `allocator`, taken over), the
+/// selector the rule is written for: `.k`, or `:is(.k,.b1)` for a class that stacks name
+/// too. `markers` renames the classes compound variants point at.
+pub fn applyVariantsTo(
+    allocator: std.mem.Allocator,
+    t: Theme,
+    variants: []const Variant,
+    base_selector: []u8,
+    markers: ?Markers,
+) VariantError!WrappedRule {
+    var selector = base_selector;
     errdefer allocator.free(selector);
 
     var at_rules = std.array_list.Managed(AtRule).init(allocator);
@@ -73,7 +95,7 @@ pub fn applyVariants(
     }
 
     for (variants) |v| {
-        try applyOne(allocator, t, v, &selector, &at_rules);
+        try applyOne(allocator, t, v, &selector, &at_rules, markers);
     }
 
     try pseudoElementLast(allocator, &selector);
@@ -113,11 +135,21 @@ fn applyOne(
     variant: Variant,
     selector: *[]u8,
     at_rules: *std.array_list.Managed(AtRule),
+    markers: ?Markers,
 ) VariantError!void {
     switch (variant) {
         .static_v => |s| try applyStatic(allocator, t, s.root, selector, at_rules),
         .functional => |f| try applyFunctional(allocator, t, f.root, f.value, selector, at_rules),
-        .compound => |c| try applyCompound(allocator, t, c.root, c.modifier, c.variant.*, selector, at_rules),
+        .compound => |c| try applyCompound(
+            allocator,
+            t,
+            c.root,
+            c.modifier,
+            c.variant.*,
+            selector,
+            at_rules,
+            markers,
+        ),
         .arbitrary => |a| try applyArbitrary(allocator, a.selector, a.relative, selector, at_rules),
     }
 }
@@ -268,6 +300,14 @@ const STATIC_VARIANTS = [_]StaticVariant{
     .{
         .name = "marker",
         .suffix = "::marker",
+    },
+    .{
+        .name = "first-letter",
+        .suffix = "::first-letter",
+    },
+    .{
+        .name = "first-line",
+        .suffix = "::first-line",
     },
     .{
         .name = "file",
@@ -665,6 +705,7 @@ fn applyCompound(
     inner: Variant,
     selector: *[]u8,
     at_rules: *std.array_list.Managed(AtRule),
+    markers: ?Markers,
 ) VariantError!void {
     // Resolve the inner variant first into a temporary "&"-anchored sub-selector.
     var sub_selector = try allocator.dupe(u8, "&");
@@ -675,7 +716,7 @@ fn applyCompound(
         sub_at_rules.deinit();
     }
 
-    try applyOne(allocator, t, inner, &sub_selector, &sub_at_rules);
+    try applyOne(allocator, t, inner, &sub_selector, &sub_at_rules, markers);
 
     // Hoist the inner variant's at-rules onto our outer at-rule list.
     for (sub_at_rules.items) |ar| {
@@ -740,10 +781,16 @@ fn applyCompound(
     // like Switch stop reacting to `:checked`.
     const combinator: []const u8 = if (std.mem.eql(u8, root, "peer")) " ~ " else " ";
 
-    const escaped_root = if (modifier) |m| switch (m) {
-        .named => |n| try std.fmt.allocPrint(allocator, ".{s}\\/{s}", .{ root, n }),
+    const marker = if (modifier) |m| switch (m) {
+        .named => |n| try std.fmt.allocPrint(allocator, "{s}/{s}", .{ root, n }),
         .arbitrary => return VariantError.UnknownVariant,
-    } else try std.fmt.allocPrint(allocator, ".{s}", .{root});
+    } else try allocator.dupe(u8, root);
+    defer allocator.free(marker);
+    const named = if (markers) |table| table.name(table.context, marker) else null;
+    const escaped_root = if (named) |name|
+        try std.fmt.allocPrint(allocator, ".{s}", .{name})
+    else
+        try escapeClassSelector(allocator, marker);
     defer allocator.free(escaped_root);
 
     const new_sel = try std.fmt.allocPrint(
@@ -1299,6 +1346,13 @@ test "before: + hover stacking — pseudo-element comes last in CSS selector" {
     defer tst.allocator.free(r.sel);
     defer tst.allocator.free(r.ats);
     try tst.expectEqualStrings(".flex:hover::before", r.sel);
+}
+
+test "first-letter: is a pseudo-element: a drop cap's float lands on the first letter" {
+    const r = try parseAndApply(tst.allocator, "first-letter:flex");
+    defer tst.allocator.free(r.sel);
+    defer tst.allocator.free(r.ats);
+    try tst.expectEqualStrings(".flex::first-letter", r.sel);
 }
 
 test "hover: + before stacking — same final order regardless of source order" {

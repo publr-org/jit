@@ -42,6 +42,12 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
+    // `decode --book=<book.json> <page.html>`: the page with its names read back.
+    if (std.mem.eql(u8, args[1], "decode")) {
+        try runDecode(io, allocator, args);
+        return;
+    }
+
     // Parse flags. `compile-classes` is accepted as an alias for the default
     // mode (used by the visual-regression harness).
     var arg_index: usize = 1;
@@ -52,6 +58,13 @@ pub fn main(init: std.process.Init) !void {
     if (std.mem.eql(u8, args[1], "resolve-classes")) {
         arg_index = 2;
         output = .groups;
+    }
+    // `book` names every declaration, and writes the sheet under those
+    // names with the book itself, as Zig and as JSON (`--zig=`, `--json=`).
+    var book_paths: BookPaths = .{};
+    if (std.mem.eql(u8, args[1], "book")) {
+        arg_index = 2;
+        output = .book;
     }
 
     // `--prepend=<file>` may be passed several times; each is copied verbatim ahead of the
@@ -97,6 +110,10 @@ pub fn main(init: std.process.Init) !void {
             try theme_paths.append(args[arg_index]);
         } else if (std.mem.startsWith(u8, a, "--theme=")) {
             try theme_paths.append(a["--theme=".len..]);
+        } else if (std.mem.startsWith(u8, a, "--zig=")) {
+            book_paths.zig = a["--zig=".len..];
+        } else if (std.mem.startsWith(u8, a, "--json=")) {
+            book_paths.json = a["--json=".len..];
         } else if (std.mem.eql(u8, a, "--minify")) {
             minify = true;
         } else if (std.mem.eql(u8, a, "--no-minify")) {
@@ -110,13 +127,18 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     }
 
-    try runCompile(io, allocator, manifest_paths.items, prepend_paths.items, theme_paths.items, minify, output);
+    try runCompile(io, allocator, manifest_paths.items, prepend_paths.items, theme_paths.items, minify, output, book_paths);
 }
 
-const Output = enum { css, groups };
+const Output = enum { css, groups, book };
+
+const BookPaths = struct {
+    zig: ?[]const u8 = null,
+    json: ?[]const u8 = null,
+};
 
 fn printUsage(io: std.Io) !void {
-    var stderr_buf: [768]u8 = undefined;
+    var stderr_buf: [1024]u8 = undefined;
     var stderr: std.Io.File.Writer = .init(.stderr(), io, &stderr_buf);
     try stderr.interface.writeAll("Usage:\n");
     try stderr.interface.writeAll("  jit [--theme=<theme.zon>] [--prepend=<file.css>] [--minify|--no-minify] <css_classes.txt>\n");
@@ -130,6 +152,10 @@ fn printUsage(io: std.Io) !void {
     try stderr.interface.writeAll("  jit resolve-classes [--theme=<theme.zon>] <css_classes.txt>\n");
     try stderr.interface.writeAll("    Emit the class-conflict groups as JSON ({class: [scope, [property…]]})\n");
     try stderr.interface.writeAll("    for run-time class merging without the resolver (PublrJS).\n");
+    try stderr.interface.writeAll("  jit book --zig=<out> --json=<out> <css_classes.txt>\n");
+    try stderr.interface.writeAll("    Name every declaration; the sheet under those names to stdout.\n");
+    try stderr.interface.writeAll("  jit decode --book=<book.json> <page.html>\n");
+    try stderr.interface.writeAll("    The page with its class names read back as Tailwind.\n");
     try stderr.interface.writeAll("  jit theme-from-css <input.css>\n");
     try stderr.interface.writeAll("    Convert CSS @theme blocks to theme.zon.\n");
     try stderr.interface.flush();
@@ -148,6 +174,7 @@ fn runCompile(
     theme_paths: []const []const u8,
     minify: bool,
     output: Output,
+    book_paths: BookPaths,
 ) !void {
     // Read every manifest, tokenize whitespace-separated, dedupe across all of
     // them. Buffers stay alive until the end of the function because `classes`
@@ -223,9 +250,12 @@ fn runCompile(
         return;
     }
 
-    const css = try jit.compile(allocator, merged_theme, classes.items, .{
-        .minify = minify,
-    });
+    const css = if (output == .book)
+        try writeBook(io, allocator, merged_theme, classes.items, prepend_paths, book_paths, minify)
+    else
+        try jit.compile(allocator, merged_theme, classes.items, .{
+            .minify = minify,
+        });
     defer allocator.free(css);
 
     for (prepend_paths) |p| {
@@ -235,6 +265,75 @@ fn runCompile(
         try stdout.interface.writeByte('\n');
     }
     try stdout.interface.writeAll(css);
+    try stdout.interface.flush();
+}
+
+/// The book over `classes`, written as Zig and JSON where asked; the
+/// sheet under its names is returned. No name is a class the prepended CSS selects.
+fn writeBook(
+    io: std.Io,
+    allocator: std.mem.Allocator,
+    theme: jit.Theme,
+    classes: []const []const u8,
+    prepend_paths: []const []const u8,
+    paths: BookPaths,
+    minify: bool,
+) ![]u8 {
+    var reserved: std.ArrayList([]const u8) = .empty;
+
+    for (prepend_paths) |path| {
+        const css = try std.Io.Dir.cwd().readFileAlloc(io, path, allocator, .limited(4 * 1024 * 1024));
+
+        try jit.book.selectedClasses(allocator, css, &reserved);
+    }
+
+    const book = try jit.book.build(allocator, allocator, theme, .{
+        .classes = classes,
+        .reserved = reserved.items,
+    });
+
+    if (paths.zig) |path| try writeOut(io, allocator, path, &book, .zig);
+    if (paths.json) |path| try writeOut(io, allocator, path, &book, .json);
+
+    return jit.compileBook(allocator, theme, &book, .{
+        .minify = minify,
+    });
+}
+
+fn writeOut(
+    io: std.Io,
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    book: *const jit.Book,
+    form: enum { zig, json },
+) !void {
+    var out: std.Io.Writer.Allocating = .init(allocator);
+
+    switch (form) {
+        .zig => try jit.book.writeZig(book, &out.writer),
+        .json => try jit.book.writeJson(book, &out.writer),
+    }
+
+    try std.Io.Dir.cwd().writeFile(io, .{
+        .sub_path = path,
+        .data = out.written(),
+    });
+}
+
+fn runDecode(io: std.Io, allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
+    if (args.len < 4 or !std.mem.startsWith(u8, args[2], "--book=")) {
+        try printUsage(io);
+        std.process.exit(1);
+    }
+
+    const json = try std.Io.Dir.cwd().readFileAlloc(io, args[2]["--book=".len..], allocator, .limited(64 * 1024 * 1024));
+    const book = try jit.book.fromJson(allocator, json);
+    const page = try std.Io.Dir.cwd().readFileAlloc(io, args[3], allocator, .limited(64 * 1024 * 1024));
+    const decoded = try jit.book.decode(&book, allocator, page);
+    var stdout_buf: [16 * 1024]u8 = undefined;
+    var stdout: std.Io.File.Writer = .init(.stdout(), io, &stdout_buf);
+
+    try stdout.interface.writeAll(decoded);
     try stdout.interface.flush();
 }
 

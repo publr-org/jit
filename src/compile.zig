@@ -29,6 +29,7 @@ const theme = @import("theme.zig");
 const utilities = @import("utilities.zig");
 const variants = @import("variants.zig");
 const sort = @import("sort.zig");
+const class_book = @import("book.zig");
 
 pub const CompileError = error{
     OutOfMemory,
@@ -106,7 +107,6 @@ pub fn compile(
 ) CompileError![]u8 {
     const nl: []const u8 = if (options.minify) "" else "\n";
     const sp: []const u8 = if (options.minify) "" else " ";
-    const ind2: []const u8 = if (options.minify) "" else "  ";
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
@@ -128,6 +128,227 @@ pub fn compile(
         try emitClassRule(allocator, t, class_name, &utility_block, options);
     }
     try utility_block.print("}}{s}", .{nl});
+
+    return finish(allocator, t, &utility_block, options);
+}
+
+/// The sheet for `book` (as `build` made it, with its rules): one rule per atom, `.k{…}`,
+/// in the book's cascade order, atoms under the same at-rules in one block. Debug sheets name
+/// each atom's first class in a comment.
+pub fn compileBook(
+    allocator: std.mem.Allocator,
+    t: theme.Theme,
+    book: *const class_book.Book,
+    options: Options,
+) CompileError![]u8 {
+    std.debug.assert(book.rules.len == book.atom_names.len);
+
+    const nl: []const u8 = if (options.minify) "" else "\n";
+    const sp: []const u8 = if (options.minify) "" else " ";
+    const ind: []const u8 = if (options.minify) "" else "  ";
+    var utility_block = std.array_list.Managed(u8).init(allocator);
+    defer utility_block.deinit();
+
+    try utility_block.print("@layer utilities{s}{{{s}", .{ sp, nl });
+
+    var open: []const []const u8 = &.{};
+
+    for (book.rules, 0..) |rule, id| {
+        if (!same_at_rules(open, rule.at_rules)) {
+            for (open) |_| try utility_block.print("{s}}}{s}", .{ ind, nl });
+            for (rule.at_rules) |at_rule| try utility_block.print("{s}{s}{s}{{{s}", .{ ind, at_rule, sp, nl });
+            open = rule.at_rules;
+        }
+
+        if (!options.minify) {
+            try utility_block.appendSlice("  /* ");
+            for (rule.class, 0..) |char, at| {
+                // A class never closes the comment it is named in.
+                if (char == '/' and at > 0 and rule.class[at - 1] == '*') {
+                    try utility_block.append(' ');
+                }
+                try utility_block.append(char);
+            }
+            try utility_block.appendSlice(" */\n");
+        }
+
+        try utility_block.appendSlice(ind);
+        try write_selector(&utility_block, book, rule.selector, book.atom_names[id]);
+        try utility_block.print("{s}{{{s}{s}:{s}{s}{s}}}{s}", .{
+            sp,
+            sp,
+            rule.property,
+            sp,
+            rule.value,
+            if (rule.important) " !important" else "",
+            nl,
+        });
+    }
+
+    for (open) |_| try utility_block.print("{s}}}{s}", .{ ind, nl });
+    try utility_block.print("}}{s}", .{nl});
+
+    return finish(allocator, t, &utility_block, options);
+}
+
+fn same_at_rules(a: []const []const u8, b: []const []const u8) bool {
+    if (a.len != b.len) return false;
+
+    for (a, b) |left, right| {
+        if (!std.mem.eql(u8, left, right)) return false;
+    }
+
+    return true;
+}
+
+/// `selector` with the atom's name in its slot and each marker (`\x02group/x\x03`) by its
+/// name.
+fn write_selector(
+    out: *std.array_list.Managed(u8),
+    book: *const class_book.Book,
+    selector: []const u8,
+    name: []const u8,
+) CompileError!void {
+    var at: usize = 0;
+
+    while (at < selector.len) {
+        if (std.mem.startsWith(u8, selector[at..], name_slot)) {
+            try out.append('.');
+            try out.appendSlice(name);
+            at += name_slot.len;
+            continue;
+        }
+
+        if (selector[at] == marker_open) {
+            const close = std.mem.indexOfScalarPos(u8, selector, at, marker_close) orelse selector.len;
+            const marker = selector[at + 1 .. close];
+
+            try out.appendSlice(book.name_of(marker) orelse marker);
+            at = close + 1;
+            continue;
+        }
+
+        try out.append(selector[at]);
+        at += 1;
+    }
+}
+
+/// Where an atom's name goes in its selector.
+pub const name_slot = ".\x00";
+/// A marker class in a selector (`group-hover:` points at it), named when the sheet is.
+pub const marker_open: u8 = 0x02;
+pub const marker_close: u8 = 0x03;
+
+/// One declaration of a class in one context: what a short name stands for.
+pub const Atom = struct {
+    /// The at-rules around it, outer first (`@media (min-width:48rem)`).
+    at_rules: []const []const u8,
+    /// Its selector, `name_slot` where the name goes, with what follows it
+    /// (`.\x00:hover`, `\x02group/x\x03:hover .\x00`, `.\x00 > :not(:last-child)`).
+    selector: []const u8,
+    important: bool,
+    property: []const u8,
+    value: []const u8,
+};
+
+/// What a class is made of.
+pub const ClassAtoms = union(enum) {
+    /// A marker (`group`, `group/x`, `peer`): no declarations, compound variants point at it.
+    marker,
+    atoms: []const Atom,
+};
+
+/// `class_name` as its atoms, owned by `arena`; null when no utility answers it.
+pub fn classAtoms(
+    gpa: std.mem.Allocator,
+    arena: std.mem.Allocator,
+    t: theme.Theme,
+    class_name: []const u8,
+) CompileError!?ClassAtoms {
+    const cands = candidate.parseCandidate(gpa, class_name) catch |err| switch (err) {
+        error.OutOfMemory => return CompileError.OutOfMemory,
+    };
+    defer candidate.freeCandidates(gpa, cands);
+
+    for (cands) |c| {
+        const resolved = utilities.resolveCandidate(gpa, t, c) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+        } orelse continue;
+        defer utilities.freeResolvedUtility(gpa, resolved);
+
+        if (resolved.declarations.len == 0) return .marker;
+
+        const cand_variants = switch (c) {
+            .static_c => |static_candidate| static_candidate.variants,
+            .functional => |functional| functional.variants,
+            .arbitrary => |arbitrary| arbitrary.variants,
+        };
+        const base = try gpa.dupe(u8, name_slot);
+        const slots: MarkerSlots = .{
+            .arena = arena,
+        };
+        const markers: variants.Markers = .{
+            .context = &slots,
+            .name = marker_slot,
+        };
+        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, markers) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+            error.UnknownVariant => return null,
+        };
+        defer variants.freeWrappedRule(gpa, wrapped);
+
+        const at_rules = try arena.alloc([]const u8, wrapped.at_rules.len);
+
+        for (wrapped.at_rules, at_rules) |at_rule, *text| {
+            text.* = try std.fmt.allocPrint(arena, "@{s} {s}", .{ at_rule.name, at_rule.condition });
+        }
+
+        const selector = try std.mem.concat(arena, u8, &.{
+            wrapped.selector,
+            resolved.selector_suffix orelse "",
+        });
+        const atoms = try arena.alloc(Atom, resolved.declarations.len);
+
+        for (resolved.declarations, atoms) |declaration, *atom| {
+            atom.* = .{
+                .at_rules = at_rules,
+                .selector = selector,
+                .important = resolved.important,
+                .property = try arena.dupe(u8, declaration.property),
+                .value = try arena.dupe(u8, declaration.value),
+            };
+        }
+
+        return .{
+            .atoms = atoms,
+        };
+    }
+
+    return null;
+}
+
+/// Compound variants name a marker by its class (`\x02group/x\x03`), held until the sheet
+/// names it.
+const MarkerSlots = struct {
+    arena: std.mem.Allocator,
+};
+
+fn marker_slot(context: *const anyopaque, class: []const u8) ?[]const u8 {
+    const slots: *const MarkerSlots = @ptrCast(@alignCast(context));
+
+    return std.fmt.allocPrint(slots.arena, "{c}{s}{c}", .{ marker_open, class, marker_close }) catch null;
+}
+
+/// `:root` with only the tokens the rules use, then the rules.
+fn finish(
+    allocator: std.mem.Allocator,
+    t: theme.Theme,
+    utility_block: *std.array_list.Managed(u8),
+    options: Options,
+) CompileError![]u8 {
+    const nl: []const u8 = if (options.minify) "" else "\n";
+    const sp: []const u8 = if (options.minify) "" else " ";
+    const ind2: []const u8 = if (options.minify) "" else "  ";
 
     // 3. Tree-shake the theme: collect var(--*) references in utility output,
     //    then transitively expand to include any theme tokens those tokens
@@ -264,7 +485,11 @@ fn emitClassRule(
             .functional => |f| f.variants,
             .arbitrary => |a| a.variants,
         };
-        const wrapped = variants.applyVariants(allocator, t, cand_variants, class_name) catch |err| switch (err) {
+        const base = variants.escapeClassSelector(allocator, class_name) catch |err| switch (err) {
+            error.OutOfMemory => return CompileError.OutOfMemory,
+            error.UnknownVariant => return,
+        };
+        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, null) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return, // skip silently — unsupported variant
         };
@@ -521,4 +746,40 @@ test "custom responsive breakpoints sort by width rather than their names" {
     defer tst.allocator.free(css);
     try tst.expect(std.mem.indexOf(u8, css, ".narrow\\:hidden").? < std.mem.indexOf(u8, css, ".wide\\:block").?);
     try tst.expect(std.mem.indexOf(u8, css, ".max-wide\\:hidden").? < std.mem.indexOf(u8, css, ".max-narrow\\:block").?);
+}
+
+test "compileBook writes one rule per declaration, shared by the classes holding it" {
+    var arena_state = std.heap.ArenaAllocator.init(tst.allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+    const book = try class_book.build(tst.allocator, arena, test_theme, .{
+        .classes = &.{ "flex", "w-12", "size-12", "group", "group-hover:flex", "md:flex", "hand-made" },
+    });
+    const css = try compileBook(tst.allocator, test_theme, &book, .{});
+    defer tst.allocator.free(css);
+    const group = book.name_of("group").?;
+    const width = book.atom_names[book.atoms_of(book.class_id("w-12").?)[0]];
+    var buffer: [128]u8 = undefined;
+
+    // `w-12` and `size-12` share one `width` rule.
+    try tst.expectEqual(@as(usize, 1), std.mem.count(u8, css, "width: calc(var(--spacing) * 12)"));
+    try tst.expect(std.mem.indexOf(u8, css, try std.fmt.bufPrint(&buffer, ".{s} {{ width", .{width})) != null);
+    try tst.expect(std.mem.indexOf(u8, css, try std.fmt.bufPrint(&buffer, ".{s}:hover .", .{group})) != null);
+    try tst.expect(std.mem.indexOf(u8, css, "/* group-hover:flex */") != null);
+    try tst.expect(std.mem.indexOf(u8, css, "@media") != null);
+    try tst.expect(std.mem.indexOf(u8, css, "hand-made") == null);
+    try tst.expect(std.mem.indexOf(u8, css, "--spacing") != null);
+}
+
+test "a named group marker is renamed where variants point at it" {
+    var arena_state = std.heap.ArenaAllocator.init(tst.allocator);
+    defer arena_state.deinit();
+    const book = try class_book.build(tst.allocator, arena_state.allocator(), test_theme, .{
+        .classes = &.{ "group/row", "group-hover/row:flex" },
+    });
+    const css = try compileBook(tst.allocator, test_theme, &book, .{});
+    defer tst.allocator.free(css);
+    var buffer: [64]u8 = undefined;
+
+    try tst.expect(std.mem.indexOf(u8, css, try std.fmt.bufPrint(&buffer, ".{s}:hover .", .{book.name_of("group/row").?})) != null);
 }

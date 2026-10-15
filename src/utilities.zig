@@ -6745,7 +6745,10 @@ fn resolvePxLonghand(
 }
 
 /// `outline-N` emits both width and style — without an explicit style the
-/// browser defaults to `none`, which makes the focus ring invisible.
+/// browser defaults to `none`, which makes the focus ring invisible. An
+/// arbitrary value is a width only when it is one (a length, or hinted so);
+/// `outline-[var(--x)]` and `outline-[color:…]` go on to the color path, as
+/// the border utilities do.
 fn resolveOutlineWidth(
     allocator: std.mem.Allocator,
     value: ?candidate.UtilityValue,
@@ -6756,7 +6759,10 @@ fn resolveOutlineWidth(
             if (!isInteger(n.value)) return null;
             break :blk try std.fmt.allocPrint(allocator, "{s}px", .{n.value});
         },
-        .arbitrary => |a| try allocator.dupe(u8, a.value),
+        .arbitrary => |a| blk: {
+            if (!isArbitraryBorderWidth(a)) return null;
+            break :blk try allocator.dupe(u8, a.value);
+        },
     };
     errdefer allocator.free(width_value);
 
@@ -9674,6 +9680,17 @@ test "static: shadow (bare) + shadow-none" {
     const r2 = (try parseAndResolve(tst.allocator, "shadow-none")).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("0 0 #0000", r2.declarations[0].value);
+}
+
+test "outline-[…]: lengths are widths, colors and variables are colors" {
+    const w = (try parseAndResolve(tst.allocator, "outline-[3px]")).?;
+    defer freeResolvedUtility(tst.allocator, w);
+    try tst.expectEqualStrings("outline-width", w.declarations[1].property);
+    for ([_][]const u8{ "outline-[var(--edge)]", "outline-[color:var(--edge)]", "outline-[#0d99ff]" }) |class| {
+        const c = (try parseAndResolve(tst.allocator, class)).?;
+        defer freeResolvedUtility(tst.allocator, c);
+        try tst.expectEqualStrings("outline-color", c.declarations[0].property);
+    }
 }
 
 test "static: outline (bare) + outline-none + outline-{style}" {

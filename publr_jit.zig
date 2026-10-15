@@ -7824,7 +7824,10 @@ fn resolvePxLonghand(
 }
 
 /// `outline-N` emits both width and style — without an explicit style the
-/// browser defaults to `none`, which makes the focus ring invisible.
+/// browser defaults to `none`, which makes the focus ring invisible. An
+/// arbitrary value is a width only when it is one (a length, or hinted so);
+/// `outline-[var(--x)]` and `outline-[color:…]` go on to the color path, as
+/// the border utilities do.
 fn resolveOutlineWidth(
     allocator: std.mem.Allocator,
     value: ?candidate.UtilityValue,
@@ -7835,7 +7838,10 @@ fn resolveOutlineWidth(
             if (!isInteger(n.value)) return null;
             break :blk try std.fmt.allocPrint(allocator, "{s}px", .{n.value});
         },
-        .arbitrary => |a| try allocator.dupe(u8, a.value),
+        .arbitrary => |a| blk: {
+            if (!isArbitraryBorderWidth(a)) return null;
+            break :blk try allocator.dupe(u8, a.value);
+        },
     };
     errdefer allocator.free(width_value);
 

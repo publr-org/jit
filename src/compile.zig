@@ -110,7 +110,9 @@ pub fn compile(
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
-    const sorted = sort.sortClassesWithTheme(allocator, joined, t) catch |err| switch (err) {
+    const sorted = sort.sortClasses(allocator, joined, .{
+        .theme = t,
+    }) catch |err| switch (err) {
         sort.SortError.OutOfMemory => return CompileError.OutOfMemory,
         sort.SortError.NotImplemented => return CompileError.UnsupportedFeature,
     };
@@ -291,7 +293,9 @@ pub fn classAtoms(
             .context = &slots,
             .name = marker_slot,
         };
-        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, markers) catch |err| switch (err) {
+        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, .{
+            .markers = markers,
+        }) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return null,
         };
@@ -489,7 +493,7 @@ fn emitClassRule(
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return,
         };
-        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, null) catch |err| switch (err) {
+        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, .{}) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return, // skip silently — unsupported variant
         };

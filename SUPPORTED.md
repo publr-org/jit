@@ -67,7 +67,7 @@ Public exports (`@import("publr_jit.zig").api`): `Theme`, `Token`, `default_them
 ### Typography
 - `text-{size}` — theme-driven (`--text-{size}`); emits `font-size` + optional `line-height`.
 - `text-{size}/{N|[arb]}` — modifier overrides line-height (e.g. `text-2xl/8` → `line-height: calc(var(--spacing) * 8)`).
-- `font-{family}` — theme-driven (`--font-{key}`).
+- `font-{family}` — theme-driven (`--font-{key}`). `font-[550]` (or `font-[weight:…]`) sets `font-weight`; any other arbitrary value sets `font-family`.
 - `text-{left,center,right,justify}` — text-align.
 - `text-{balance,pretty,wrap,nowrap}` — text-wrap.
 - `text-{clip,ellipsis}` — text-overflow.

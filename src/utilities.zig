@@ -77,7 +77,9 @@ pub fn resolveCandidate(
     var maybe = switch (cand) {
         .static_c => |s| try resolveStatic(allocator, t, s.root),
         .functional => |f| try resolveFunctional(allocator, t, f),
-        .arbitrary => |a| try resolveArbitraryProperty(allocator, a.property, a.value, a.modifier),
+        .arbitrary => |a| try resolveArbitraryProperty(allocator, a.property, a.value, .{
+            .modifier = a.modifier,
+        }),
     };
     if (maybe) |*r| {
         r.important = switch (cand) {
@@ -5618,7 +5620,7 @@ fn resolveFunctional(
 
     // ── size-N (gap kind #8) — width + height from spacing scale ───────────
     if (std.mem.eql(u8, root, "size") and !negative) {
-        return try resolveSpacingPair(allocator, t, f.value, &.{ "width", "height" });
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "width", "height" }, .{});
     }
 
     // ── col-span-N (gap kind #11) — grid-column ────────────────────────────
@@ -5642,7 +5644,10 @@ fn resolveFunctional(
     // ── inset-N (gap kind #10) — routes through the generalized spacing
     //    dispatch so `inset-auto`, `inset-[10px]`, etc. all work uniformly.
     if (std.mem.eql(u8, unsigned_root, "inset")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{"inset"}, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{"inset"}, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── space-x-N / space-y-N — child spacing via selector-modifying rule ──
@@ -5698,7 +5703,10 @@ fn resolveFunctional(
     // through so fractional forms like `w-1/2` resolve to a percentage.
     inline for (SPACING_DISPATCH) |entry| {
         if (std.mem.eql(u8, unsigned_root, entry.root)) {
-            return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, entry.props, negative);
+            return try resolveSpacingPair(allocator, t, f.value, entry.props, .{
+                .modifier = f.modifier,
+                .negative = negative,
+            });
         }
     }
 
@@ -5723,21 +5731,23 @@ fn resolveFunctional(
 
     // ── order-N / -order-N (CSS `order` longhand) ──────────────────────────
     if (std.mem.eql(u8, unsigned_root, "order")) {
-        return try resolveIntegerLonghand(allocator, f.value, "order", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "order", .{
+            .negative = negative,
+        });
     }
 
     // ── col-start-N, col-end-N ─────────────────────────────────────────────
     if (std.mem.eql(u8, root, "col-start") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column-start", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column-start", .{});
     }
     if (std.mem.eql(u8, root, "col-end") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column-end", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column-end", .{});
     }
     if (std.mem.eql(u8, root, "row-start") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row-start", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row-start", .{});
     }
     if (std.mem.eql(u8, root, "row-end") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row-end", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row-end", .{});
     }
 
     // ── Filter family: brightness, contrast, hue-rotate, saturate, sepia,
@@ -5746,51 +5756,67 @@ fn resolveFunctional(
     //    when needed. Default values (no value) for grayscale/invert/sepia
     //    are 100%; brightness/contrast/saturate require an explicit N.
     if (std.mem.eql(u8, root, "brightness") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "brightness", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "brightness", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "contrast") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "contrast", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "contrast", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "saturate") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "saturate", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "saturate", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, unsigned_root, "hue-rotate")) {
-        if (try resolveFilterFnSigned(allocator, t, f.value, "hue-rotate", "deg", null, negative)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "hue-rotate", "deg", .{
+            .negative = negative,
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "grayscale") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "grayscale", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "grayscale", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "invert") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "invert", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "invert", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "sepia") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "sepia", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "sepia", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
 
     // ── Backdrop-filter family (mirror of filter; emit backdrop-filter) ────
     if (std.mem.eql(u8, root, "backdrop-brightness") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "brightness", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "brightness", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-contrast") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "contrast", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "contrast", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-saturate") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "saturate", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "saturate", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, unsigned_root, "backdrop-hue-rotate")) {
-        if (try resolveBackdropFilterFnSigned(allocator, t, f.value, "hue-rotate", "deg", null, negative)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "hue-rotate", "deg", .{
+            .negative = negative,
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-grayscale") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "grayscale", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "grayscale", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-invert") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "invert", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "invert", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-sepia") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "sepia", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "sepia", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-opacity") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "opacity", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "opacity", "%", .{})) |r| return r;
     }
 
     // ── animate-{name|none|arbitrary} (theme `--animate-*`) ────────────────
@@ -5895,14 +5921,14 @@ fn resolveFunctional(
     // ── will-change-{arbitrary} ────────────────────────────────────────────
     if (std.mem.eql(u8, root, "will-change") and !negative) {
         if (f.value) |v| switch (v) {
-            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "will-change", a.value, null),
+            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "will-change", a.value, .{}),
             else => {},
         };
     }
     // ── contain-{arbitrary} ────────────────────────────────────────────────
     if (std.mem.eql(u8, root, "contain") and !negative) {
         if (f.value) |v| switch (v) {
-            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "contain", a.value, null),
+            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "contain", a.value, .{}),
             else => {},
         };
     }
@@ -5937,7 +5963,10 @@ fn resolveFunctional(
 
     // ── indent-{spacing} (text-indent, supports negative) ──────────────────
     if (std.mem.eql(u8, unsigned_root, "indent")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{"text-indent"}, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{"text-indent"}, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── tracking-N / -tracking-N (letter-spacing, supports negative) ───────
@@ -5979,7 +6008,7 @@ fn resolveFunctional(
             switch (v) {
                 .arbitrary => |a| {
                     if (f.modifier == null) {
-                        return try resolveArbitraryProperty(allocator, "flex", a.value, null);
+                        return try resolveArbitraryProperty(allocator, "flex", a.value, .{});
                     }
                 },
                 .named => |n| {
@@ -6020,19 +6049,23 @@ fn resolveFunctional(
 
     // ── shrink-N / grow-N (positive integer) ───────────────────────────────
     if (std.mem.eql(u8, root, "shrink") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "flex-shrink", false);
+        return try resolveIntegerLonghand(allocator, f.value, "flex-shrink", .{});
     }
     if (std.mem.eql(u8, root, "grow") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "flex-grow", false);
+        return try resolveIntegerLonghand(allocator, f.value, "flex-grow", .{});
     }
 
     // ── col-N / -col-N (grid-column shorthand integer) ─────────────────────
     if (std.mem.eql(u8, unsigned_root, "col")) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column", .{
+            .negative = negative,
+        });
     }
     // ── row-N / -row-N ─────────────────────────────────────────────────────
     if (std.mem.eql(u8, unsigned_root, "row")) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row", .{
+            .negative = negative,
+        });
     }
 
     // ── aspect-W/H, aspect-[arbitrary] ─────────────────────────────────────
@@ -6063,17 +6096,23 @@ fn resolveFunctional(
 
     // ── inset-x / inset-y / -inset-x / -inset-y axis pairs ─────────────────
     if (std.mem.eql(u8, unsigned_root, "inset-x")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{ "left", "right" }, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "left", "right" }, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
     if (std.mem.eql(u8, unsigned_root, "inset-y")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{ "top", "bottom" }, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "top", "bottom" }, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── mask-[arbitrary] / mask-(--var) passthrough ────────────────────────
     if (std.mem.eql(u8, root, "mask") and !negative) {
         if (f.value) |v| {
             if (v == .arbitrary) {
-                return try resolveArbitraryProperty(allocator, "mask-image", v.arbitrary.value, null);
+                return try resolveArbitraryProperty(allocator, "mask-image", v.arbitrary.value, .{});
             }
         }
     }
@@ -6218,12 +6257,17 @@ fn resolveFunctional(
     return null;
 }
 
+const ArbitraryPropertyOptions = struct {
+    modifier: ?candidate.Modifier = null,
+};
+
 fn resolveArbitraryProperty(
     allocator: std.mem.Allocator,
     property: []const u8,
     value: []const u8,
-    modifier: ?candidate.Modifier,
+    options: ArbitraryPropertyOptions,
 ) ResolveError!?ResolvedUtility {
+    const modifier = options.modifier;
     // When a modifier is present and the property is color-shaped, apply it
     // as opacity via `color-mix(in oklab, <value> <pct>, transparent)`.
     // Use `oklab` (not `srgb`) for arbitrary-property
@@ -6331,24 +6375,20 @@ fn negate(allocator: std.mem.Allocator, val: []const u8) ResolveError![]u8 {
     return std.fmt.allocPrint(allocator, "calc({s} * -1)", .{val});
 }
 
-/// Emit two declarations from the spacing scale (e.g. `size-N` → width + height).
+const SpacingOptions = struct {
+    modifier: ?candidate.Modifier = null,
+    negative: bool = false,
+};
+
 fn resolveSpacingPair(
     allocator: std.mem.Allocator,
     t: Theme,
     value: ?candidate.UtilityValue,
     properties: []const []const u8,
+    options: SpacingOptions,
 ) ResolveError!?ResolvedUtility {
-    return resolveSpacingPairSigned(allocator, t, value, null, properties, false);
-}
-
-fn resolveSpacingPairSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    modifier: ?candidate.Modifier,
-    properties: []const []const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
+    const modifier = options.modifier;
+    const negative = options.negative;
     const v = value orelse return null;
 
     // Fraction form: `w-1/2`, `h-2/3`, `inset-1/4`. When both value and
@@ -6606,7 +6646,9 @@ fn resolveSpaceAxis(
     property: []const u8,
     negative: bool,
 ) ResolveError!?ResolvedUtility {
-    var r = (try resolveSpacingPairSigned(allocator, t, value, null, &.{property}, negative)) orelse return null;
+    var r = (try resolveSpacingPair(allocator, t, value, &.{property}, .{
+        .negative = negative,
+    })) orelse return null;
     r.selector_suffix = try allocator.dupe(u8, " > :not(:last-child)");
     return r;
 }
@@ -6709,7 +6751,9 @@ fn resolveZIndex(
 ) ResolveError!?ResolvedUtility {
     // Same shape as every other integer longhand — including `[arbitrary]`
     // passthrough, so `z-[60]` works like `order-[…]` does.
-    return resolveIntegerLonghand(allocator, value, "z-index", negative);
+    return resolveIntegerLonghand(allocator, value, "z-index", .{
+        .negative = negative,
+    });
 }
 
 /// `<utility>-N` where N is in pixels (e.g., `outline-offset-2` → `2px`).
@@ -6784,12 +6828,17 @@ fn resolveOutlineWidth(
 /// Generic integer-valued single-property longhand (`order-N`, `col-start-N`,
 /// `grid-row-start-N`, etc.). Accepts named integer values plus `[arbitrary]`
 /// passthrough for callers that allow it.
+const IntegerOptions = struct {
+    negative: bool = false,
+};
+
 fn resolveIntegerLonghand(
     allocator: std.mem.Allocator,
     value: ?candidate.UtilityValue,
     property: []const u8,
-    negative: bool,
+    options: IntegerOptions,
 ) ResolveError!?ResolvedUtility {
+    const negative = options.negative;
     const v = value orelse return null;
     const css_value: []u8 = switch (v) {
         .named => |n| blk: {
@@ -6864,26 +6913,20 @@ fn resolveAspect(
 
 /// `<root>-N` → `filter: <fn_name>(N<unit>)`. Bare value (`grayscale`, `invert`,
 /// `sepia`) uses `default_value` if non-null. Returns null otherwise.
+const FilterOptions = struct {
+    default_value: ?[]const u8 = null,
+    negative: bool = false,
+};
+
 fn resolveFilterFn(
     allocator: std.mem.Allocator,
     t: Theme,
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, false, "filter");
-}
-fn resolveFilterFnSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    fn_name: []const u8,
-    unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, negative, "filter");
+    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, "filter", options);
 }
 fn resolveBackdropFilterFn(
     allocator: std.mem.Allocator,
@@ -6891,20 +6934,9 @@ fn resolveBackdropFilterFn(
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, false, "backdrop-filter");
-}
-fn resolveBackdropFilterFnSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    fn_name: []const u8,
-    unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, negative, "backdrop-filter");
+    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, "backdrop-filter", options);
 }
 
 fn resolveFilterFnImpl(
@@ -6913,21 +6945,20 @@ fn resolveFilterFnImpl(
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
     css_property: []const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
     _ = t;
     const inner: []u8 = if (value) |v| switch (v) {
         .arbitrary => |a| try allocator.dupe(u8, a.value),
         .named => |n| blk: {
             if (!isInteger(n.value)) return null;
-            break :blk if (negative)
+            break :blk if (options.negative)
                 try std.fmt.allocPrint(allocator, "-{s}{s}", .{ n.value, unit })
             else
                 try std.fmt.allocPrint(allocator, "{s}{s}", .{ n.value, unit });
         },
-    } else if (default_value) |d| try allocator.dupe(u8, d) else return null;
+    } else if (options.default_value) |d| try allocator.dupe(u8, d) else return null;
     errdefer allocator.free(inner);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
@@ -7934,7 +7965,26 @@ fn resolveFontFamily(
     value: ?candidate.UtilityValue,
 ) ResolveError!?ResolvedUtility {
     const v = value orelse return null;
-    if (v != .named) return null;
+    if (v == .arbitrary) {
+        // `font-[550]` / `font-[weight:var(--w)]` set the weight (variable fonts take any
+        // number); `font-[family-name:…]` and anything else name a family.
+        const a = v.arbitrary;
+        const is_weight = if (a.data_type) |dt|
+            std.mem.eql(u8, dt, "weight") or std.mem.eql(u8, dt, "number")
+        else
+            a.value.len > 0 and for (a.value) |c| {
+                if (!std.ascii.isDigit(c)) break false;
+            } else true;
+        const decls = try allocator.alloc(Declaration, 1);
+        errdefer allocator.free(decls);
+        decls[0] = .{
+            .property = if (is_weight) "font-weight" else "font-family",
+            .value = try allocator.dupe(u8, a.value),
+        };
+        return .{
+            .declarations = decls,
+        };
+    }
     const family_name = v.named.value;
 
     // Theme lookup `--font-<name>`.
@@ -8895,15 +8945,16 @@ const test_theme = theme.Theme{
     },
 };
 
-fn parseAndResolve(allocator: std.mem.Allocator, input: []const u8) !?ResolvedUtility {
-    return parseAndResolveWithTheme(allocator, test_theme, input);
-}
+const ParseOptions = struct {
+    theme: Theme = test_theme,
+};
 
-fn parseAndResolveWithTheme(
+fn parseAndResolve(
     allocator: std.mem.Allocator,
-    active_theme: Theme,
     input: []const u8,
+    options: ParseOptions,
 ) !?ResolvedUtility {
+    const active_theme = options.theme;
     const cands = try candidate.parseCandidate(allocator, input);
     defer candidate.freeCandidates(allocator, cands);
     for (cands) |c| {
@@ -8913,7 +8964,7 @@ fn parseAndResolveWithTheme(
 }
 
 test "static: text-balance" {
-    const r = (try parseAndResolve(tst.allocator, "text-balance")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-balance", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("text-wrap", r.declarations[0].property);
@@ -8921,32 +8972,32 @@ test "static: text-balance" {
 }
 
 test "static: text-clip / text-ellipsis" {
-    const r1 = (try parseAndResolve(tst.allocator, "text-clip")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "text-clip", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("text-overflow", r1.declarations[0].property);
     try tst.expectEqualStrings("clip", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "text-ellipsis")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "text-ellipsis", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("ellipsis", r2.declarations[0].value);
 }
 
 test "static: overflow-scroll + axis variants" {
-    const r1 = (try parseAndResolve(tst.allocator, "overflow-scroll")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "overflow-scroll", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("overflow", r1.declarations[0].property);
     try tst.expectEqualStrings("scroll", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "overflow-x-hidden")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "overflow-x-hidden", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("overflow-x", r2.declarations[0].property);
     try tst.expectEqualStrings("hidden", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "overflow-y-auto")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "overflow-y-auto", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("overflow-y", r3.declarations[0].property);
     try tst.expectEqualStrings("auto", r3.declarations[0].value);
 }
 
 test "static: truncate emits 3 declarations" {
-    const r = (try parseAndResolve(tst.allocator, "truncate")).?;
+    const r = (try parseAndResolve(tst.allocator, "truncate", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 3), r.declarations.len);
     try tst.expectEqualStrings("overflow", r.declarations[0].property);
@@ -8958,37 +9009,37 @@ test "static: truncate emits 3 declarations" {
 }
 
 test "static: peer / group resolve to empty decls (marker classes)" {
-    const r1 = (try parseAndResolve(tst.allocator, "peer")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "peer", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqual(@as(usize, 0), r1.declarations.len);
-    const r2 = (try parseAndResolve(tst.allocator, "group")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "group", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqual(@as(usize, 0), r2.declarations.len);
 }
 
 test "important flag propagates from candidate (trailing form)" {
     // `underline!` — important after the root.
-    const r = (try parseAndResolve(tst.allocator, "underline!")).?;
+    const r = (try parseAndResolve(tst.allocator, "underline!", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(r.important);
 }
 
 test "important flag propagates from candidate (leading form)" {
     // `!underline` — legacy leading-bang form.
-    const r = (try parseAndResolve(tst.allocator, "!underline")).?;
+    const r = (try parseAndResolve(tst.allocator, "!underline", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(r.important);
 }
 
 test "important flag propagates on functional utilities" {
-    const r = (try parseAndResolve(tst.allocator, "size-12!")).?;
+    const r = (try parseAndResolve(tst.allocator, "size-12!", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(r.important);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
 }
 
 test "important flag propagates on arbitrary properties" {
-    const r = (try parseAndResolve(tst.allocator, "[color:red]!")).?;
+    const r = (try parseAndResolve(tst.allocator, "[color:red]!", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(r.important);
     try tst.expectEqualStrings("color", r.declarations[0].property);
@@ -8996,7 +9047,7 @@ test "important flag propagates on arbitrary properties" {
 }
 
 test "important flag absent when not marked" {
-    const r = (try parseAndResolve(tst.allocator, "underline")).?;
+    const r = (try parseAndResolve(tst.allocator, "underline", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(!r.important);
 }
@@ -9004,23 +9055,23 @@ test "important flag absent when not marked" {
 // ── Border radius ────────────────────────────────────────────────────────────
 
 test "rounded: bare → var(--radius)" {
-    const r = (try parseAndResolve(tst.allocator, "rounded")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("border-radius", r.declarations[0].property);
     try tst.expectEqualStrings("var(--radius)", r.declarations[0].value);
 }
 
 test "rounded: -none → 0; -full → calc(infinity * 1px)" {
-    const r1 = (try parseAndResolve(tst.allocator, "rounded-none")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "rounded-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("0", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "rounded-full")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "rounded-full", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("calc(infinity * 1px)", r2.declarations[0].value);
 }
 
 test "rounded: theme key (md, lg, 2xl)" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-md")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-md", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("border-radius", r.declarations[0].property);
@@ -9028,13 +9079,13 @@ test "rounded: theme key (md, lg, 2xl)" {
 }
 
 test "rounded: arbitrary value" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-[7px]")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-[7px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("7px", r.declarations[0].value);
 }
 
 test "rounded: side variant (rounded-t-md sets two longhands)" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-t-md")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-t-md", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("border-top-left-radius", r.declarations[0].property);
@@ -9044,7 +9095,7 @@ test "rounded: side variant (rounded-t-md sets two longhands)" {
 }
 
 test "rounded: corner variant (rounded-tl-lg sets one longhand)" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-tl-lg")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-tl-lg", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("border-top-left-radius", r.declarations[0].property);
@@ -9052,7 +9103,7 @@ test "rounded: corner variant (rounded-tl-lg sets one longhand)" {
 }
 
 test "rounded: logical side (rounded-s-md → start-start + end-start)" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-s-md")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-s-md", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("border-start-start-radius", r.declarations[0].property);
@@ -9060,7 +9111,7 @@ test "rounded: logical side (rounded-s-md → start-start + end-start)" {
 }
 
 test "rounded: side variant + none" {
-    const r = (try parseAndResolve(tst.allocator, "rounded-b-none")).?;
+    const r = (try parseAndResolve(tst.allocator, "rounded-b-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("0", r.declarations[0].value);
@@ -9068,13 +9119,13 @@ test "rounded: side variant + none" {
 }
 
 test "rounded: unknown key returns null" {
-    try tst.expect((try parseAndResolve(tst.allocator, "rounded-totally-invalid")) == null);
+    try tst.expect((try parseAndResolve(tst.allocator, "rounded-totally-invalid", .{})) == null);
 }
 
 // ── Modifier on arbitrary properties ────────────────────────────────────────
 
 test "arbitrary property + opacity modifier: [color:red]/50 → color-mix" {
-    const r = (try parseAndResolve(tst.allocator, "[color:red]/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "[color:red]/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("color", r.declarations[0].property);
     try tst.expectEqualStrings(
@@ -9084,7 +9135,7 @@ test "arbitrary property + opacity modifier: [color:red]/50 → color-mix" {
 }
 
 test "arbitrary property + arbitrary opacity: [color:red]/[var(--my-op)]" {
-    const r = (try parseAndResolve(tst.allocator, "[color:red]/[var(--my-op)]")).?;
+    const r = (try parseAndResolve(tst.allocator, "[color:red]/[var(--my-op)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, red var(--my-op), transparent)",
@@ -9093,7 +9144,7 @@ test "arbitrary property + arbitrary opacity: [color:red]/[var(--my-op)]" {
 }
 
 test "arbitrary color-property with var() value + opacity modifier" {
-    const r = (try parseAndResolve(tst.allocator, "[color:var(--my-color)]/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "[color:var(--my-color)]/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, var(--my-color) 50%, transparent)",
@@ -9103,14 +9154,14 @@ test "arbitrary color-property with var() value + opacity modifier" {
 
 test "arbitrary non-color property + modifier: modifier ignored, value verbatim" {
     // `[margin:10px]/50` — `/50` has no meaning on margin; emit `margin: 10px`.
-    const r = (try parseAndResolve(tst.allocator, "[margin:10px]/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "[margin:10px]/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("margin", r.declarations[0].property);
     try tst.expectEqualStrings("10px", r.declarations[0].value);
 }
 
 test "arbitrary property without modifier still works (regression check)" {
-    const r = (try parseAndResolve(tst.allocator, "[--my-prop:42]")).?;
+    const r = (try parseAndResolve(tst.allocator, "[--my-prop:42]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--my-prop", r.declarations[0].property);
     try tst.expectEqualStrings("42", r.declarations[0].value);
@@ -9121,7 +9172,7 @@ test "arbitrary property without modifier still works (regression check)" {
 test "color: text-current/50 → color-mix(currentColor)" {
     // The functional-color path through resolveColorProperty already handles
     // the `current` keyword and applies the modifier; verify it works.
-    const r = (try parseAndResolve(tst.allocator, "text-current/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-current/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("color", r.declarations[0].property);
     try tst.expectEqualStrings(
@@ -9131,7 +9182,7 @@ test "color: text-current/50 → color-mix(currentColor)" {
 }
 
 test "color: text-transparent (no modifier emits literal)" {
-    const r = (try parseAndResolve(tst.allocator, "text-transparent")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-transparent", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("transparent", r.declarations[0].value);
 }
@@ -9139,7 +9190,7 @@ test "color: text-transparent (no modifier emits literal)" {
 // ── Text size with line-height modifier ─────────────────────────────────────
 
 test "text-{size}: emits font-size + theme default line-height" {
-    const r = (try parseAndResolve(tst.allocator, "text-2xl")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-2xl", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("font-size", r.declarations[0].property);
@@ -9150,7 +9201,7 @@ test "text-{size}: emits font-size + theme default line-height" {
 
 test "text-{size}/N: modifier overrides line-height with spacing calc" {
     // text-2xl/8 → font-size from --text-2xl, line-height = calc(var(--spacing) * 8)
-    const r = (try parseAndResolve(tst.allocator, "text-2xl/8")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-2xl/8", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("var(--text-2xl)", r.declarations[0].value);
@@ -9159,27 +9210,27 @@ test "text-{size}/N: modifier overrides line-height with spacing calc" {
 }
 
 test "text-{size}/[arb]: arbitrary modifier emits verbatim" {
-    const r = (try parseAndResolve(tst.allocator, "text-2xl/[1.5]")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-2xl/[1.5]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("1.5", r.declarations[1].value);
 }
 
 test "text-{size}/N with fractional spacing modifier" {
-    const r = (try parseAndResolve(tst.allocator, "text-base/0.5")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-base/0.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("calc(var(--spacing) * 0.5)", r.declarations[1].value);
 }
 
 test "text-{size} without theme line-height: only font-size emitted" {
     // text-base in our test_theme has no --text-base--line-height token.
-    const r = (try parseAndResolve(tst.allocator, "text-base")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-base", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("font-size", r.declarations[0].property);
 }
 
 test "text-[length]: arbitrary CSS length emits font-size" {
-    const r = (try parseAndResolve(tst.allocator, "text-[0.8125rem]")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-[0.8125rem]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("font-size", r.declarations[0].property);
@@ -9187,14 +9238,14 @@ test "text-[length]: arbitrary CSS length emits font-size" {
 }
 
 test "text-[length:var]: explicit length hint emits font-size" {
-    const r = (try parseAndResolve(tst.allocator, "text-[length:var(--picker-font-size)]")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-[length:var(--picker-font-size)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("font-size", r.declarations[0].property);
     try tst.expectEqualStrings("var(--picker-font-size)", r.declarations[0].value);
 }
 
 test "text-[color]: arbitrary color still emits color" {
-    const r = (try parseAndResolve(tst.allocator, "text-[#abc]")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-[#abc]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("color", r.declarations[0].property);
     try tst.expectEqualStrings("#abc", r.declarations[0].value);
@@ -9203,7 +9254,7 @@ test "text-[color]: arbitrary color still emits color" {
 // ── Gradient direction extras ───────────────────────────────────────────────
 
 test "bg-linear-{angle}: numeric → <N>deg" {
-    const r = (try parseAndResolve(tst.allocator, "bg-linear-45")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-linear-45", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-position", r.declarations[0].property);
     try tst.expectEqualStrings("45deg", r.declarations[0].value);
@@ -9212,39 +9263,39 @@ test "bg-linear-{angle}: numeric → <N>deg" {
 }
 
 test "bg-linear-[arbitrary]: passes value verbatim" {
-    const r = (try parseAndResolve(tst.allocator, "bg-linear-[in_oklch_45deg]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-linear-[in_oklch_45deg]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("in oklch 45deg", r.declarations[0].value);
 }
 
 test "bg-conic: bare emits conic-gradient base" {
-    const r = (try parseAndResolve(tst.allocator, "bg-conic")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-conic", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-position", r.declarations[0].property);
     try tst.expect(std.mem.indexOf(u8, r.declarations[1].value, "conic-gradient") != null);
 }
 
 test "bg-conic-{angle}: emits 'from <N>deg in oklab'" {
-    const r = (try parseAndResolve(tst.allocator, "bg-conic-90")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-conic-90", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("from 90deg in oklab", r.declarations[0].value);
     try tst.expect(std.mem.indexOf(u8, r.declarations[1].value, "conic-gradient") != null);
 }
 
 test "bg-conic-[arbitrary]: passes verbatim" {
-    const r = (try parseAndResolve(tst.allocator, "bg-conic-[from_180deg_at_25%_25%]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-conic-[from_180deg_at_25%_25%]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("from 180deg at 25% 25%", r.declarations[0].value);
 }
 
 test "bg-radial: bare emits radial-gradient base" {
-    const r = (try parseAndResolve(tst.allocator, "bg-radial")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-radial", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expect(std.mem.indexOf(u8, r.declarations[1].value, "radial-gradient") != null);
 }
 
 test "bg-radial-[arbitrary]: passes verbatim" {
-    const r = (try parseAndResolve(tst.allocator, "bg-radial-[ellipse_at_top]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-radial-[ellipse_at_top]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("ellipse at top", r.declarations[0].value);
     try tst.expect(std.mem.indexOf(u8, r.declarations[1].value, "radial-gradient") != null);
@@ -9252,50 +9303,50 @@ test "bg-radial-[arbitrary]: passes verbatim" {
 
 test "bg-radial-{named} (non-arbitrary) returns null" {
     // Named radial shapes such as `bg-radial-circle` aren't supported; use arbitrary values.
-    try tst.expect((try parseAndResolve(tst.allocator, "bg-radial-circle")) == null);
+    try tst.expect((try parseAndResolve(tst.allocator, "bg-radial-circle", .{})) == null);
 }
 
 // ── Grid row utilities + arbitrary col-span ─────────────────────────────────
 
 test "row-span-N → grid-row" {
-    const r = (try parseAndResolve(tst.allocator, "row-span-3")).?;
+    const r = (try parseAndResolve(tst.allocator, "row-span-3", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("grid-row", r.declarations[0].property);
     try tst.expectEqualStrings("span 3 / span 3", r.declarations[0].value);
 }
 
 test "col-span-[arbitrary]" {
-    const r = (try parseAndResolve(tst.allocator, "col-span-[5]")).?;
+    const r = (try parseAndResolve(tst.allocator, "col-span-[5]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("grid-column", r.declarations[0].property);
     try tst.expectEqualStrings("span 5 / span 5", r.declarations[0].value);
 }
 
 test "grid-rows-N → grid-template-rows repeat" {
-    const r = (try parseAndResolve(tst.allocator, "grid-rows-4")).?;
+    const r = (try parseAndResolve(tst.allocator, "grid-rows-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("grid-template-rows", r.declarations[0].property);
     try tst.expectEqualStrings("repeat(4, minmax(0, 1fr))", r.declarations[0].value);
 }
 
 test "grid-rows-subgrid → grid-template-rows: subgrid" {
-    const r = (try parseAndResolve(tst.allocator, "grid-rows-subgrid")).?;
+    const r = (try parseAndResolve(tst.allocator, "grid-rows-subgrid", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("subgrid", r.declarations[0].value);
 }
 
 test "grid-cols-none → grid-template-columns: none" {
-    const r = (try parseAndResolve(tst.allocator, "grid-cols-none")).?;
+    const r = (try parseAndResolve(tst.allocator, "grid-cols-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("none", r.declarations[0].value);
 }
 
 test "row-auto / row-span-full statics" {
-    const r1 = (try parseAndResolve(tst.allocator, "row-auto")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "row-auto", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("grid-row", r1.declarations[0].property);
     try tst.expectEqualStrings("auto", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "row-span-full")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "row-span-full", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("1 / -1", r2.declarations[0].value);
 }
@@ -9303,7 +9354,7 @@ test "row-auto / row-span-full statics" {
 // ── Spacing dispatch: padding / margin / gap / width / height ──────────────
 
 test "padding: p-N → padding (single)" {
-    const r = (try parseAndResolve(tst.allocator, "p-4")).?;
+    const r = (try parseAndResolve(tst.allocator, "p-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("padding", r.declarations[0].property);
@@ -9311,7 +9362,7 @@ test "padding: p-N → padding (single)" {
 }
 
 test "padding: px-N expands to padding-left + padding-right" {
-    const r = (try parseAndResolve(tst.allocator, "px-3")).?;
+    const r = (try parseAndResolve(tst.allocator, "px-3", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("padding-left", r.declarations[0].property);
@@ -9321,36 +9372,36 @@ test "padding: px-N expands to padding-left + padding-right" {
 }
 
 test "padding: pt-N → padding-top only" {
-    const r = (try parseAndResolve(tst.allocator, "pt-2")).?;
+    const r = (try parseAndResolve(tst.allocator, "pt-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("padding-top", r.declarations[0].property);
 }
 
 test "padding: logical sides ps-/pe-" {
-    const r1 = (try parseAndResolve(tst.allocator, "ps-2")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "ps-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("padding-inline-start", r1.declarations[0].property);
-    const r2 = (try parseAndResolve(tst.allocator, "pe-1.5")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "pe-1.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("padding-inline-end", r2.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 1.5)", r2.declarations[0].value);
 }
 
 test "margin: m-N + negative -m-N + auto" {
-    const r1 = (try parseAndResolve(tst.allocator, "m-4")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "m-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("margin", r1.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 4)", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "-m-4")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "-m-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("calc(calc(var(--spacing) * 4) * -1)", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "m-auto")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "m-auto", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("auto", r3.declarations[0].value);
 }
 
 test "margin: mx-auto sets both sides to auto" {
-    const r = (try parseAndResolve(tst.allocator, "mx-auto")).?;
+    const r = (try parseAndResolve(tst.allocator, "mx-auto", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("margin-left", r.declarations[0].property);
@@ -9360,65 +9411,65 @@ test "margin: mx-auto sets both sides to auto" {
 }
 
 test "gap: gap-N + gap-x-N + gap-y-N" {
-    const r1 = (try parseAndResolve(tst.allocator, "gap-4")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "gap-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("gap", r1.declarations[0].property);
-    const r2 = (try parseAndResolve(tst.allocator, "gap-x-2")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "gap-x-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("column-gap", r2.declarations[0].property);
-    const r3 = (try parseAndResolve(tst.allocator, "gap-y-0.5")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "gap-y-0.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("row-gap", r3.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 0.5)", r3.declarations[0].value);
 }
 
 test "width: w-N, w-full (static), w-auto, w-px, w-screen (static)" {
-    const r1 = (try parseAndResolve(tst.allocator, "w-32")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "w-32", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("width", r1.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 32)", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "w-auto")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "w-auto", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("auto", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "w-px")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "w-px", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("1px", r3.declarations[0].value);
-    const r4 = (try parseAndResolve(tst.allocator, "w-screen")).?;
+    const r4 = (try parseAndResolve(tst.allocator, "w-screen", .{})).?;
     defer freeResolvedUtility(tst.allocator, r4);
     try tst.expectEqualStrings("100vw", r4.declarations[0].value);
 }
 
 test "spacing: arbitrary values [10px] / [var(--w)]" {
-    const r1 = (try parseAndResolve(tst.allocator, "p-[10px]")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "p-[10px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("10px", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "w-[var(--my-w)]")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "w-[var(--my-w)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("var(--my-w)", r2.declarations[0].value);
     // Negative arbitrary on margin.
-    const r3 = (try parseAndResolve(tst.allocator, "-mt-[10px]")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "-mt-[10px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("calc(10px * -1)", r3.declarations[0].value);
 }
 
 test "spacing: top/right/bottom/left as standalone roots" {
-    const r1 = (try parseAndResolve(tst.allocator, "top-4")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "top-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("top", r1.declarations[0].property);
-    const r2 = (try parseAndResolve(tst.allocator, "-bottom-2")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "-bottom-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("bottom", r2.declarations[0].property);
     try tst.expectEqualStrings("calc(calc(var(--spacing) * 2) * -1)", r2.declarations[0].value);
 }
 
 test "spacing: width keywords (min/max/fit)" {
-    const r1 = (try parseAndResolve(tst.allocator, "w-min")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "w-min", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("min-content", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "w-max")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "w-max", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("max-content", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "w-fit")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "w-fit", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("fit-content", r3.declarations[0].value);
 }
@@ -9426,41 +9477,41 @@ test "spacing: width keywords (min/max/fit)" {
 // ── Fractions (modifier-as-denominator) ─────────────────────────────────────
 
 test "fraction: w-1/2 → calc(1/2 * 100%)" {
-    const r = (try parseAndResolve(tst.allocator, "w-1/2")).?;
+    const r = (try parseAndResolve(tst.allocator, "w-1/2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("width", r.declarations[0].property);
     try tst.expectEqualStrings("calc(1/2 * 100%)", r.declarations[0].value);
 }
 
 test "fraction: w-2/3 → calc(2/3 * 100%)" {
-    const r = (try parseAndResolve(tst.allocator, "w-2/3")).?;
+    const r = (try parseAndResolve(tst.allocator, "w-2/3", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("calc(2/3 * 100%)", r.declarations[0].value);
 }
 
 test "fraction: h-1/4 → calc(1/4 * 100%) on height" {
-    const r = (try parseAndResolve(tst.allocator, "h-1/4")).?;
+    const r = (try parseAndResolve(tst.allocator, "h-1/4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("height", r.declarations[0].property);
     try tst.expectEqualStrings("calc(1/4 * 100%)", r.declarations[0].value);
 }
 
 test "fraction: inset-1/2 → calc(1/2 * 100%) on inset" {
-    const r = (try parseAndResolve(tst.allocator, "inset-1/2")).?;
+    const r = (try parseAndResolve(tst.allocator, "inset-1/2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("inset", r.declarations[0].property);
     try tst.expectEqualStrings("calc(1/2 * 100%)", r.declarations[0].value);
 }
 
 test "fraction: -mt-1/2 negative fraction" {
-    const r = (try parseAndResolve(tst.allocator, "-mt-1/2")).?;
+    const r = (try parseAndResolve(tst.allocator, "-mt-1/2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("margin-top", r.declarations[0].property);
     try tst.expectEqualStrings("calc(calc(1/2 * 100%) * -1)", r.declarations[0].value);
 }
 
 test "fraction: w-3/4 (multi-digit numerator works)" {
-    const r = (try parseAndResolve(tst.allocator, "w-11/12")).?;
+    const r = (try parseAndResolve(tst.allocator, "w-11/12", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("calc(11/12 * 100%)", r.declarations[0].value);
 }
@@ -9468,7 +9519,7 @@ test "fraction: w-3/4 (multi-digit numerator works)" {
 // ── space-x-N / space-y-N — selector-modifying utility ──────────────────────
 
 test "space-x-N emits margin-right with selector_suffix" {
-    const r = (try parseAndResolve(tst.allocator, "space-x-4")).?;
+    const r = (try parseAndResolve(tst.allocator, "space-x-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("margin-right", r.declarations[0].property);
@@ -9478,7 +9529,7 @@ test "space-x-N emits margin-right with selector_suffix" {
 }
 
 test "space-y-N emits margin-bottom with selector_suffix" {
-    const r = (try parseAndResolve(tst.allocator, "space-y-2")).?;
+    const r = (try parseAndResolve(tst.allocator, "space-y-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("margin-bottom", r.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 2)", r.declarations[0].value);
@@ -9486,14 +9537,14 @@ test "space-y-N emits margin-bottom with selector_suffix" {
 }
 
 test "space-x-N: arbitrary value works" {
-    const r = (try parseAndResolve(tst.allocator, "space-x-[10px]")).?;
+    const r = (try parseAndResolve(tst.allocator, "space-x-[10px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("10px", r.declarations[0].value);
     try tst.expect(r.selector_suffix != null);
 }
 
 test "space-x-reverse: marker class (no decls)" {
-    const r = (try parseAndResolve(tst.allocator, "space-x-reverse")).?;
+    const r = (try parseAndResolve(tst.allocator, "space-x-reverse", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 0), r.declarations.len);
 }
@@ -9501,7 +9552,7 @@ test "space-x-reverse: marker class (no decls)" {
 // ── Border width ────────────────────────────────────────────────────────────
 
 test "border: bare → border-width: 1px + style" {
-    const r = (try parseAndResolve(tst.allocator, "border")).?;
+    const r = (try parseAndResolve(tst.allocator, "border", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("border-style", r.declarations[0].property);
@@ -9510,7 +9561,7 @@ test "border: bare → border-width: 1px + style" {
 }
 
 test "border-N: integer value → border-width: Npx" {
-    const r = (try parseAndResolve(tst.allocator, "border-2")).?;
+    const r = (try parseAndResolve(tst.allocator, "border-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("border-width", r.declarations[0].property);
@@ -9518,29 +9569,29 @@ test "border-N: integer value → border-width: Npx" {
 }
 
 test "border-{side}-N: emits side-specific width" {
-    const r1 = (try parseAndResolve(tst.allocator, "border-t-2")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "border-t-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("border-top-width", r1.declarations[0].property);
     try tst.expectEqualStrings("2px", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "border-l-4")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "border-l-4", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("border-left-width", r2.declarations[0].property);
 }
 
 test "border-x-N / border-y-N: axis pair" {
-    const r1 = (try parseAndResolve(tst.allocator, "border-x-2")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "border-x-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqual(@as(usize, 2), r1.declarations.len);
     try tst.expectEqualStrings("border-left-width", r1.declarations[0].property);
     try tst.expectEqualStrings("border-right-width", r1.declarations[1].property);
-    const r2 = (try parseAndResolve(tst.allocator, "border-y-1")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "border-y-1", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("border-top-width", r2.declarations[0].property);
     try tst.expectEqualStrings("border-bottom-width", r2.declarations[1].property);
 }
 
 test "border-{side}: bare side static" {
-    const r = (try parseAndResolve(tst.allocator, "border-t")).?;
+    const r = (try parseAndResolve(tst.allocator, "border-t", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("border-top-width", r.declarations[1].property);
@@ -9548,19 +9599,19 @@ test "border-{side}: bare side static" {
 }
 
 test "border-[arbitrary]: arbitrary width" {
-    const r = (try parseAndResolve(tst.allocator, "border-[3.5px]")).?;
+    const r = (try parseAndResolve(tst.allocator, "border-[3.5px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("border-width", r.declarations[0].property);
     try tst.expectEqualStrings("3.5px", r.declarations[0].value);
 }
 
 test "border arbitrary type hints disambiguate width and color" {
-    const width = (try parseAndResolve(tst.allocator, "border-t-[length:var(--edge)]")).?;
+    const width = (try parseAndResolve(tst.allocator, "border-t-[length:var(--edge)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, width);
     try tst.expectEqualStrings("border-top-width", width.declarations[0].property);
     try tst.expectEqualStrings("var(--edge)", width.declarations[0].value);
 
-    const color = (try parseAndResolve(tst.allocator, "border-t-[color:#abcdef]")).?;
+    const color = (try parseAndResolve(tst.allocator, "border-t-[color:#abcdef]", .{})).?;
     defer freeResolvedUtility(tst.allocator, color);
     try tst.expectEqualStrings("border-top-color", color.declarations[0].property);
     try tst.expectEqualStrings("#abcdef", color.declarations[0].value);
@@ -9575,7 +9626,9 @@ test "border side colors resolve runtime theme tokens" {
             },
         },
     };
-    const right = (try parseAndResolveWithTheme(tst.allocator, runtime_theme, "border-r-brand")).?;
+    const right = (try parseAndResolve(tst.allocator, "border-r-brand", .{
+        .theme = runtime_theme,
+    })).?;
     defer freeResolvedUtility(tst.allocator, right);
     try tst.expectEqualStrings("border-right-color", right.declarations[0].property);
     try tst.expectEqualStrings("var(--color-brand)", right.declarations[0].value);
@@ -9584,7 +9637,7 @@ test "border side colors resolve runtime theme tokens" {
 test "border-{color}: color path still works (regression)" {
     // Color values shouldn't be caught by border-width — they fall through
     // to the color path which emits border-color.
-    const r = (try parseAndResolve(tst.allocator, "border-red-500")).?;
+    const r = (try parseAndResolve(tst.allocator, "border-red-500", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("border-color", r.declarations[0].property);
     try tst.expectEqualStrings("var(--color-red-500)", r.declarations[0].value);
@@ -9593,7 +9646,7 @@ test "border-{color}: color path still works (regression)" {
 // ── Transition / duration / delay / ease ────────────────────────────────────
 
 test "static: transition (bare) emits property + duration + timing" {
-    const r = (try parseAndResolve(tst.allocator, "transition")).?;
+    const r = (try parseAndResolve(tst.allocator, "transition", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 3), r.declarations.len);
     try tst.expectEqualStrings("transition-property", r.declarations[0].property);
@@ -9602,53 +9655,53 @@ test "static: transition (bare) emits property + duration + timing" {
 }
 
 test "static: transition-{all,colors,opacity,shadow,transform,none}" {
-    const r1 = (try parseAndResolve(tst.allocator, "transition-all")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "transition-all", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("all", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "transition-opacity")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "transition-opacity", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("opacity", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "transition-none")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "transition-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqual(@as(usize, 1), r3.declarations.len);
     try tst.expectEqualStrings("none", r3.declarations[0].value);
 }
 
 test "duration-N → transition-duration: Nms" {
-    const r = (try parseAndResolve(tst.allocator, "duration-300")).?;
+    const r = (try parseAndResolve(tst.allocator, "duration-300", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("transition-duration", r.declarations[0].property);
     try tst.expectEqualStrings("300ms", r.declarations[0].value);
 }
 
 test "delay-N → transition-delay: Nms" {
-    const r = (try parseAndResolve(tst.allocator, "delay-150")).?;
+    const r = (try parseAndResolve(tst.allocator, "delay-150", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("transition-delay", r.declarations[0].property);
     try tst.expectEqualStrings("150ms", r.declarations[0].value);
 }
 
 test "duration-[arb] / delay-[arb] arbitrary values" {
-    const r1 = (try parseAndResolve(tst.allocator, "duration-[2s]")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "duration-[2s]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("2s", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "delay-[var(--my-delay)]")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "delay-[var(--my-delay)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("var(--my-delay)", r2.declarations[0].value);
 }
 
 test "static: ease-{linear,in,out,in-out,initial}" {
-    const r1 = (try parseAndResolve(tst.allocator, "ease-linear")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "ease-linear", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("transition-timing-function", r1.declarations[0].property);
     try tst.expectEqualStrings("linear", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "ease-in-out")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "ease-in-out", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expect(std.mem.indexOf(u8, r2.declarations[0].value, "cubic-bezier") != null);
 }
 
 test "ease-[arbitrary]" {
-    const r = (try parseAndResolve(tst.allocator, "ease-[cubic-bezier(0.5,0,0.5,1)]")).?;
+    const r = (try parseAndResolve(tst.allocator, "ease-[cubic-bezier(0.5,0,0.5,1)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("cubic-bezier(0.5,0,0.5,1)", r.declarations[0].value);
 }
@@ -9656,14 +9709,14 @@ test "ease-[arbitrary]" {
 // ── Shadow / outline base statics + cursor / select / object-fit ────────────
 
 test "shadow-{color}: sets --tw-shadow-color" {
-    const r = (try parseAndResolve(tst.allocator, "shadow-red-500")).?;
+    const r = (try parseAndResolve(tst.allocator, "shadow-red-500", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-shadow-color", r.declarations[0].property);
     try tst.expectEqualStrings("var(--color-red-500)", r.declarations[0].value);
 }
 
 test "shadow-{color}/{opacity}: applies color-mix" {
-    const r = (try parseAndResolve(tst.allocator, "shadow-red-500/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "shadow-red-500/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, var(--color-red-500) 50%, transparent)",
@@ -9672,37 +9725,37 @@ test "shadow-{color}/{opacity}: applies color-mix" {
 }
 
 test "static: shadow (bare) + shadow-none" {
-    const r1 = (try parseAndResolve(tst.allocator, "shadow")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "shadow", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqual(@as(usize, 2), r1.declarations.len);
     try tst.expectEqualStrings("--tw-shadow", r1.declarations[0].property);
     try tst.expectEqualStrings("box-shadow", r1.declarations[1].property);
-    const r2 = (try parseAndResolve(tst.allocator, "shadow-none")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "shadow-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("0 0 #0000", r2.declarations[0].value);
 }
 
 test "outline-[…]: lengths are widths, colors and variables are colors" {
-    const w = (try parseAndResolve(tst.allocator, "outline-[3px]")).?;
+    const w = (try parseAndResolve(tst.allocator, "outline-[3px]", .{})).?;
     defer freeResolvedUtility(tst.allocator, w);
     try tst.expectEqualStrings("outline-width", w.declarations[1].property);
     for ([_][]const u8{ "outline-[var(--edge)]", "outline-[color:var(--edge)]", "outline-[#0d99ff]" }) |class| {
-        const c = (try parseAndResolve(tst.allocator, class)).?;
+        const c = (try parseAndResolve(tst.allocator, class, .{})).?;
         defer freeResolvedUtility(tst.allocator, c);
         try tst.expectEqualStrings("outline-color", c.declarations[0].property);
     }
 }
 
 test "static: outline (bare) + outline-none + outline-{style}" {
-    const r1 = (try parseAndResolve(tst.allocator, "outline")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "outline", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqual(@as(usize, 2), r1.declarations.len);
     try tst.expectEqualStrings("outline-style", r1.declarations[0].property);
     try tst.expectEqualStrings("outline-width", r1.declarations[1].property);
-    const r2 = (try parseAndResolve(tst.allocator, "outline-none")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "outline-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("none", r2.declarations[0].value);
-    const r3 = (try parseAndResolve(tst.allocator, "outline-dashed")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "outline-dashed", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("dashed", r3.declarations[0].value);
 }
@@ -9713,7 +9766,7 @@ test "static: cursor variants (full set)" {
         "cursor-help",    "cursor-not-allowed", "cursor-grab",    "cursor-grabbing",
         "cursor-zoom-in", "cursor-zoom-out",    "cursor-text",
     }) |c| {
-        const r = (try parseAndResolve(tst.allocator, c)).?;
+        const r = (try parseAndResolve(tst.allocator, c, .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings("cursor", r.declarations[0].property);
     }
@@ -9721,46 +9774,46 @@ test "static: cursor variants (full set)" {
 
 test "static: select-{none,text,all,auto}" {
     for ([_][]const u8{ "select-none", "select-text", "select-all", "select-auto" }) |c| {
-        const r = (try parseAndResolve(tst.allocator, c)).?;
+        const r = (try parseAndResolve(tst.allocator, c, .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings("user-select", r.declarations[0].property);
     }
 }
 
 test "static: object-fit + object-position" {
-    const r1 = (try parseAndResolve(tst.allocator, "object-cover")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "object-cover", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("object-fit", r1.declarations[0].property);
     try tst.expectEqualStrings("cover", r1.declarations[0].value);
-    const r2 = (try parseAndResolve(tst.allocator, "object-top-right")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "object-top-right", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("object-position", r2.declarations[0].property);
     try tst.expectEqualStrings("top right", r2.declarations[0].value);
 }
 
 test "static: pointer-events + resize" {
-    const r1 = (try parseAndResolve(tst.allocator, "pointer-events-none")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "pointer-events-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("pointer-events", r1.declarations[0].property);
-    const r2 = (try parseAndResolve(tst.allocator, "resize-y")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "resize-y", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("vertical", r2.declarations[0].value);
 }
 
 test "border style statics (solid/dashed/dotted/double/none)" {
-    const r1 = (try parseAndResolve(tst.allocator, "border-solid")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "border-solid", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("solid", r1.declarations[1].value);
-    const r2 = (try parseAndResolve(tst.allocator, "border-dashed")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "border-dashed", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("dashed", r2.declarations[1].value);
-    const r3 = (try parseAndResolve(tst.allocator, "border-none")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "border-none", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqualStrings("none", r3.declarations[1].value);
 }
 
 test "static: antialiased emits two declarations" {
-    const r = (try parseAndResolve(tst.allocator, "antialiased")).?;
+    const r = (try parseAndResolve(tst.allocator, "antialiased", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("-webkit-font-smoothing", r.declarations[0].property);
@@ -9768,7 +9821,7 @@ test "static: antialiased emits two declarations" {
 }
 
 test "functional: size-N emits width + height" {
-    const r = (try parseAndResolve(tst.allocator, "size-12")).?;
+    const r = (try parseAndResolve(tst.allocator, "size-12", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("width", r.declarations[0].property);
@@ -9778,27 +9831,27 @@ test "functional: size-N emits width + height" {
 }
 
 test "functional: col-span-N" {
-    const r = (try parseAndResolve(tst.allocator, "col-span-2")).?;
+    const r = (try parseAndResolve(tst.allocator, "col-span-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("grid-column", r.declarations[0].property);
     try tst.expectEqualStrings("span 2 / span 2", r.declarations[0].value);
 }
 
 test "functional: grid-cols-subgrid" {
-    const r = (try parseAndResolve(tst.allocator, "grid-cols-subgrid")).?;
+    const r = (try parseAndResolve(tst.allocator, "grid-cols-subgrid", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("grid-template-columns", r.declarations[0].property);
     try tst.expectEqualStrings("subgrid", r.declarations[0].value);
 }
 
 test "functional: grid-cols-N" {
-    const r = (try parseAndResolve(tst.allocator, "grid-cols-3")).?;
+    const r = (try parseAndResolve(tst.allocator, "grid-cols-3", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("repeat(3, minmax(0, 1fr))", r.declarations[0].value);
 }
 
 test "functional: inset-N" {
-    const r = (try parseAndResolve(tst.allocator, "inset-2")).?;
+    const r = (try parseAndResolve(tst.allocator, "inset-2", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("inset", r.declarations[0].property);
     try tst.expectEqualStrings("calc(var(--spacing) * 2)", r.declarations[0].value);
@@ -9806,15 +9859,15 @@ test "functional: inset-N" {
 
 test "functional: fractional spacing (half-step scale)" {
     // inset-0.5 → calc(var(--spacing) * 0.5)
-    const r1 = (try parseAndResolve(tst.allocator, "inset-0.5")).?;
+    const r1 = (try parseAndResolve(tst.allocator, "inset-0.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r1);
     try tst.expectEqualStrings("calc(var(--spacing) * 0.5)", r1.declarations[0].value);
     // inset-2.5
-    const r2 = (try parseAndResolve(tst.allocator, "inset-2.5")).?;
+    const r2 = (try parseAndResolve(tst.allocator, "inset-2.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r2);
     try tst.expectEqualStrings("calc(var(--spacing) * 2.5)", r2.declarations[0].value);
     // size-1.5 → both width + height with the fractional value
-    const r3 = (try parseAndResolve(tst.allocator, "size-1.5")).?;
+    const r3 = (try parseAndResolve(tst.allocator, "size-1.5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r3);
     try tst.expectEqual(@as(usize, 2), r3.declarations.len);
     try tst.expectEqualStrings("calc(var(--spacing) * 1.5)", r3.declarations[0].value);
@@ -9823,9 +9876,9 @@ test "functional: fractional spacing (half-step scale)" {
 
 test "functional: malformed fractional spacing rejected" {
     // Leading dot, trailing dot, multi-dot, non-numeric all return null.
-    try tst.expect((try parseAndResolve(tst.allocator, "inset-.5")) == null);
-    try tst.expect((try parseAndResolve(tst.allocator, "inset-5.")) == null);
-    try tst.expect((try parseAndResolve(tst.allocator, "inset-1.5.5")) == null);
+    try tst.expect((try parseAndResolve(tst.allocator, "inset-.5", .{})) == null);
+    try tst.expect((try parseAndResolve(tst.allocator, "inset-5.", .{})) == null);
+    try tst.expect((try parseAndResolve(tst.allocator, "inset-1.5.5", .{})) == null);
 }
 
 test "isSpacingNumber covers integers and half-steps, rejects edges" {
@@ -9845,46 +9898,60 @@ test "isSpacingNumber covers integers and half-steps, rejects edges" {
 }
 
 test "functional: -z-N (negative)" {
-    const r = (try parseAndResolve(tst.allocator, "-z-10")).?;
+    const r = (try parseAndResolve(tst.allocator, "-z-10", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("z-index", r.declarations[0].property);
     try tst.expectEqualStrings("-10", r.declarations[0].value);
 }
 
 test "functional: z-N (positive)" {
-    const r = (try parseAndResolve(tst.allocator, "z-50")).?;
+    const r = (try parseAndResolve(tst.allocator, "z-50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("50", r.declarations[0].value);
 }
 
 test "functional: z-[N] (arbitrary passthrough)" {
-    const r = (try parseAndResolve(tst.allocator, "z-[60]")).?;
+    const r = (try parseAndResolve(tst.allocator, "z-[60]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("z-index", r.declarations[0].property);
     try tst.expectEqualStrings("60", r.declarations[0].value);
 }
 
 test "functional: -z-[N] (negative arbitrary negates via calc)" {
-    const r = (try parseAndResolve(tst.allocator, "-z-[5]")).?;
+    const r = (try parseAndResolve(tst.allocator, "-z-[5]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("z-index", r.declarations[0].property);
     try tst.expectEqualStrings("calc(5 * -1)", r.declarations[0].value);
 }
 
 test "functional: font-sans (theme lookup)" {
-    const r = (try parseAndResolve(tst.allocator, "font-sans")).?;
+    const r = (try parseAndResolve(tst.allocator, "font-sans", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("font-family", r.declarations[0].property);
     try tst.expectEqualStrings("var(--font-sans)", r.declarations[0].value);
 }
 
+test "font-[number]: arbitrary weight emits font-weight" {
+    const r = (try parseAndResolve(tst.allocator, "font-[550]", .{})).?;
+    defer freeResolvedUtility(tst.allocator, r);
+    try tst.expectEqualStrings("font-weight", r.declarations[0].property);
+    try tst.expectEqualStrings("550", r.declarations[0].value);
+}
+
+test "font-[family]: arbitrary family emits font-family" {
+    const r = (try parseAndResolve(tst.allocator, "font-[family-name:var(--f)]", .{})).?;
+    defer freeResolvedUtility(tst.allocator, r);
+    try tst.expectEqualStrings("font-family", r.declarations[0].property);
+    try tst.expectEqualStrings("var(--f)", r.declarations[0].value);
+}
+
 test "functional: font-{unknown} returns null" {
-    const r = try parseAndResolve(tst.allocator, "font-unknown");
+    const r = try parseAndResolve(tst.allocator, "font-unknown", .{});
     try tst.expect(r == null);
 }
 
 test "functional: bg-linear-to-b" {
-    const r = (try parseAndResolve(tst.allocator, "bg-linear-to-b")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-linear-to-b", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 2), r.declarations.len);
     try tst.expectEqualStrings("--tw-gradient-position", r.declarations[0].property);
@@ -9894,42 +9961,42 @@ test "functional: bg-linear-to-b" {
 }
 
 test "functional: from-{color} (theme lookup)" {
-    const r = (try parseAndResolve(tst.allocator, "from-white")).?;
+    const r = (try parseAndResolve(tst.allocator, "from-white", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-from", r.declarations[0].property);
     try tst.expectEqualStrings("var(--color-white)", r.declarations[0].value);
 }
 
 test "functional: to-{percent}" {
-    const r = (try parseAndResolve(tst.allocator, "to-50%")).?;
+    const r = (try parseAndResolve(tst.allocator, "to-50%", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-to-position", r.declarations[0].property);
     try tst.expectEqualStrings("50%", r.declarations[0].value);
 }
 
 test "functional: from-[arbitrary]" {
-    const r = (try parseAndResolve(tst.allocator, "from-[-25%]")).?;
+    const r = (try parseAndResolve(tst.allocator, "from-[-25%]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-from", r.declarations[0].property);
     try tst.expectEqualStrings("-25%", r.declarations[0].value);
 }
 
 test "arbitrary property" {
-    const r = (try parseAndResolve(tst.allocator, "[--my-prop:42]")).?;
+    const r = (try parseAndResolve(tst.allocator, "[--my-prop:42]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--my-prop", r.declarations[0].property);
     try tst.expectEqualStrings("42", r.declarations[0].value);
 }
 
 test "unknown utility returns null" {
-    const r = try parseAndResolve(tst.allocator, "totally-made-up");
+    const r = try parseAndResolve(tst.allocator, "totally-made-up", .{});
     try tst.expect(r == null);
 }
 
 // ── Color utilities ────────────────────────────────────────────────────────
 
 test "color: bg-{theme-color}" {
-    const r = (try parseAndResolve(tst.allocator, "bg-red-500")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-red-500", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqual(@as(usize, 1), r.declarations.len);
     try tst.expectEqualStrings("background-color", r.declarations[0].property);
@@ -9937,7 +10004,7 @@ test "color: bg-{theme-color}" {
 }
 
 test "color: bg-{color}/{opacity} → color-mix" {
-    const r = (try parseAndResolve(tst.allocator, "bg-red-500/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-red-500/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("background-color", r.declarations[0].property);
     try tst.expectEqualStrings(
@@ -9947,7 +10014,7 @@ test "color: bg-{color}/{opacity} → color-mix" {
 }
 
 test "color: bg-{color}/[0.4] → numeric arbitrary coerced to %" {
-    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[0.4]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[0.4]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, var(--color-red-500) 40%, transparent)",
@@ -9956,7 +10023,7 @@ test "color: bg-{color}/[0.4] → numeric arbitrary coerced to %" {
 }
 
 test "color: bg-{color}/[27%] → arbitrary with % preserved verbatim" {
-    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[27%]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[27%]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, var(--color-red-500) 27%, transparent)",
@@ -10023,14 +10090,14 @@ test "modifierAsOpacity: numberStringTimes100 edge cases" {
 }
 
 test "color: text-{theme-color}" {
-    const r = (try parseAndResolve(tst.allocator, "text-gray-800")).?;
+    const r = (try parseAndResolve(tst.allocator, "text-gray-800", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("color", r.declarations[0].property);
     try tst.expectEqualStrings("var(--color-gray-800)", r.declarations[0].value);
 }
 
 test "color: border-{color}/{opacity}" {
-    const r = (try parseAndResolve(tst.allocator, "border-white/5")).?;
+    const r = (try parseAndResolve(tst.allocator, "border-white/5", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("border-color", r.declarations[0].property);
     try tst.expectEqualStrings(
@@ -10040,7 +10107,7 @@ test "color: border-{color}/{opacity}" {
 }
 
 test "color: ring → --tw-ring-color" {
-    const r = (try parseAndResolve(tst.allocator, "ring-red-500")).?;
+    const r = (try parseAndResolve(tst.allocator, "ring-red-500", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-ring-color", r.declarations[0].property);
     try tst.expectEqualStrings("var(--color-red-500)", r.declarations[0].value);
@@ -10048,38 +10115,38 @@ test "color: ring → --tw-ring-color" {
 
 test "color: special keywords (transparent, current, inherit)" {
     {
-        const r = (try parseAndResolve(tst.allocator, "bg-transparent")).?;
+        const r = (try parseAndResolve(tst.allocator, "bg-transparent", .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings("transparent", r.declarations[0].value);
     }
     {
-        const r = (try parseAndResolve(tst.allocator, "bg-current")).?;
+        const r = (try parseAndResolve(tst.allocator, "bg-current", .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings("currentColor", r.declarations[0].value);
     }
     {
-        const r = (try parseAndResolve(tst.allocator, "bg-inherit")).?;
+        const r = (try parseAndResolve(tst.allocator, "bg-inherit", .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings("inherit", r.declarations[0].value);
     }
 }
 
 test "color: arbitrary [#abc]" {
-    const r = (try parseAndResolve(tst.allocator, "bg-[#abc]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-[#abc]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("background-color", r.declarations[0].property);
     try tst.expectEqualStrings("#abc", r.declarations[0].value);
 }
 
 test "color: parens-arbitrary (--my-var)" {
-    const r = (try parseAndResolve(tst.allocator, "bg-(--my-var)")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-(--my-var)", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("background-color", r.declarations[0].property);
     try tst.expectEqualStrings("var(--my-var)", r.declarations[0].value);
 }
 
 test "color: arbitrary opacity modifier" {
-    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[27%]")).?;
+    const r = (try parseAndResolve(tst.allocator, "bg-red-500/[27%]", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings(
         "color-mix(in oklab, var(--color-red-500) 27%, transparent)",
@@ -10088,7 +10155,7 @@ test "color: arbitrary opacity modifier" {
 }
 
 test "color: bg-{unknown} returns null (falls through)" {
-    const r = try parseAndResolve(tst.allocator, "bg-totallyunknown");
+    const r = try parseAndResolve(tst.allocator, "bg-totallyunknown", .{});
     try tst.expect(r == null);
 }
 
@@ -10124,7 +10191,7 @@ test "color: decoration / outline / accent / caret / fill / stroke" {
         },
     };
     inline for (cases) |c| {
-        const r = (try parseAndResolve(tst.allocator, c.input)).?;
+        const r = (try parseAndResolve(tst.allocator, c.input, .{})).?;
         defer freeResolvedUtility(tst.allocator, r);
         try tst.expectEqualStrings(c.property, r.declarations[0].property);
         try tst.expectEqualStrings("var(--color-red-500)", r.declarations[0].value);
@@ -10132,7 +10199,7 @@ test "color: decoration / outline / accent / caret / fill / stroke" {
 }
 
 test "gradient: from-{color}/{opacity}" {
-    const r = (try parseAndResolve(tst.allocator, "from-red-500/50")).?;
+    const r = (try parseAndResolve(tst.allocator, "from-red-500/50", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-from", r.declarations[0].property);
     try tst.expectEqualStrings(
@@ -10142,43 +10209,43 @@ test "gradient: from-{color}/{opacity}" {
 }
 
 test "gradient: to-transparent special keyword" {
-    const r = (try parseAndResolve(tst.allocator, "to-transparent")).?;
+    const r = (try parseAndResolve(tst.allocator, "to-transparent", .{})).?;
     defer freeResolvedUtility(tst.allocator, r);
     try tst.expectEqualStrings("--tw-gradient-to", r.declarations[0].property);
     try tst.expectEqualStrings("transparent", r.declarations[0].value);
 }
 
 test "bg arbitrary values: an image, a size, a position, else a color" {
-    const image = (try parseAndResolve(tst.allocator, "bg-[url(/_cloud/a_b.svg)]")).?;
+    const image = (try parseAndResolve(tst.allocator, "bg-[url(/_cloud/a_b.svg)]", .{})).?;
     defer freeResolvedUtility(tst.allocator, image);
     try tst.expectEqualStrings("background-image", image.declarations[0].property);
     try tst.expectEqualStrings("url(/_cloud/a_b.svg)", image.declarations[0].value);
 
-    const size = (try parseAndResolve(tst.allocator, "bg-[length:600px_auto]")).?;
+    const size = (try parseAndResolve(tst.allocator, "bg-[length:600px_auto]", .{})).?;
     defer freeResolvedUtility(tst.allocator, size);
     try tst.expectEqualStrings("background-size", size.declarations[0].property);
     try tst.expectEqualStrings("600px auto", size.declarations[0].value);
 
-    const position = (try parseAndResolve(tst.allocator, "bg-[position:center_top]")).?;
+    const position = (try parseAndResolve(tst.allocator, "bg-[position:center_top]", .{})).?;
     defer freeResolvedUtility(tst.allocator, position);
     try tst.expectEqualStrings("background-position", position.declarations[0].property);
 
-    const color = (try parseAndResolve(tst.allocator, "bg-[#f5f7f9]")).?;
+    const color = (try parseAndResolve(tst.allocator, "bg-[#f5f7f9]", .{})).?;
     defer freeResolvedUtility(tst.allocator, color);
     try tst.expectEqualStrings("background-color", color.declarations[0].property);
 }
 
 test "viewport heights: min-h-dvh, h-svh, max-h-lvh" {
-    const dynamic = (try parseAndResolve(tst.allocator, "min-h-dvh")).?;
+    const dynamic = (try parseAndResolve(tst.allocator, "min-h-dvh", .{})).?;
     defer freeResolvedUtility(tst.allocator, dynamic);
     try tst.expectEqualStrings("min-height", dynamic.declarations[0].property);
     try tst.expectEqualStrings("100dvh", dynamic.declarations[0].value);
 
-    const small = (try parseAndResolve(tst.allocator, "h-svh")).?;
+    const small = (try parseAndResolve(tst.allocator, "h-svh", .{})).?;
     defer freeResolvedUtility(tst.allocator, small);
     try tst.expectEqualStrings("100svh", small.declarations[0].value);
 
-    const large = (try parseAndResolve(tst.allocator, "max-h-lvh")).?;
+    const large = (try parseAndResolve(tst.allocator, "max-h-lvh", .{})).?;
     defer freeResolvedUtility(tst.allocator, large);
     try tst.expectEqualStrings("100lvh", large.declarations[0].value);
 }

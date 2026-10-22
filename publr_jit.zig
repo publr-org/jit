@@ -1156,7 +1156,9 @@ pub fn resolveCandidate(
     var maybe = switch (cand) {
         .static_c => |s| try resolveStatic(allocator, t, s.root),
         .functional => |f| try resolveFunctional(allocator, t, f),
-        .arbitrary => |a| try resolveArbitraryProperty(allocator, a.property, a.value, a.modifier),
+        .arbitrary => |a| try resolveArbitraryProperty(allocator, a.property, a.value, .{
+            .modifier = a.modifier,
+        }),
     };
     if (maybe) |*r| {
         r.important = switch (cand) {
@@ -6697,7 +6699,7 @@ fn resolveFunctional(
 
     // ── size-N (gap kind #8) — width + height from spacing scale ───────────
     if (std.mem.eql(u8, root, "size") and !negative) {
-        return try resolveSpacingPair(allocator, t, f.value, &.{ "width", "height" });
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "width", "height" }, .{});
     }
 
     // ── col-span-N (gap kind #11) — grid-column ────────────────────────────
@@ -6721,7 +6723,10 @@ fn resolveFunctional(
     // ── inset-N (gap kind #10) — routes through the generalized spacing
     //    dispatch so `inset-auto`, `inset-[10px]`, etc. all work uniformly.
     if (std.mem.eql(u8, unsigned_root, "inset")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{"inset"}, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{"inset"}, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── space-x-N / space-y-N — child spacing via selector-modifying rule ──
@@ -6777,7 +6782,10 @@ fn resolveFunctional(
     // through so fractional forms like `w-1/2` resolve to a percentage.
     inline for (SPACING_DISPATCH) |entry| {
         if (std.mem.eql(u8, unsigned_root, entry.root)) {
-            return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, entry.props, negative);
+            return try resolveSpacingPair(allocator, t, f.value, entry.props, .{
+                .modifier = f.modifier,
+                .negative = negative,
+            });
         }
     }
 
@@ -6802,21 +6810,23 @@ fn resolveFunctional(
 
     // ── order-N / -order-N (CSS `order` longhand) ──────────────────────────
     if (std.mem.eql(u8, unsigned_root, "order")) {
-        return try resolveIntegerLonghand(allocator, f.value, "order", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "order", .{
+            .negative = negative,
+        });
     }
 
     // ── col-start-N, col-end-N ─────────────────────────────────────────────
     if (std.mem.eql(u8, root, "col-start") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column-start", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column-start", .{});
     }
     if (std.mem.eql(u8, root, "col-end") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column-end", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column-end", .{});
     }
     if (std.mem.eql(u8, root, "row-start") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row-start", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row-start", .{});
     }
     if (std.mem.eql(u8, root, "row-end") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row-end", false);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row-end", .{});
     }
 
     // ── Filter family: brightness, contrast, hue-rotate, saturate, sepia,
@@ -6825,51 +6835,67 @@ fn resolveFunctional(
     //    when needed. Default values (no value) for grayscale/invert/sepia
     //    are 100%; brightness/contrast/saturate require an explicit N.
     if (std.mem.eql(u8, root, "brightness") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "brightness", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "brightness", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "contrast") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "contrast", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "contrast", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "saturate") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "saturate", "%", null)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "saturate", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, unsigned_root, "hue-rotate")) {
-        if (try resolveFilterFnSigned(allocator, t, f.value, "hue-rotate", "deg", null, negative)) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "hue-rotate", "deg", .{
+            .negative = negative,
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "grayscale") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "grayscale", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "grayscale", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "invert") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "invert", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "invert", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "sepia") and !negative) {
-        if (try resolveFilterFn(allocator, t, f.value, "sepia", "%", "100%")) |r| return r;
+        if (try resolveFilterFn(allocator, t, f.value, "sepia", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
 
     // ── Backdrop-filter family (mirror of filter; emit backdrop-filter) ────
     if (std.mem.eql(u8, root, "backdrop-brightness") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "brightness", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "brightness", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-contrast") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "contrast", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "contrast", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-saturate") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "saturate", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "saturate", "%", .{})) |r| return r;
     }
     if (std.mem.eql(u8, unsigned_root, "backdrop-hue-rotate")) {
-        if (try resolveBackdropFilterFnSigned(allocator, t, f.value, "hue-rotate", "deg", null, negative)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "hue-rotate", "deg", .{
+            .negative = negative,
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-grayscale") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "grayscale", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "grayscale", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-invert") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "invert", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "invert", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-sepia") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "sepia", "%", "100%")) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "sepia", "%", .{
+            .default_value = "100%",
+        })) |r| return r;
     }
     if (std.mem.eql(u8, root, "backdrop-opacity") and !negative) {
-        if (try resolveBackdropFilterFn(allocator, t, f.value, "opacity", "%", null)) |r| return r;
+        if (try resolveBackdropFilterFn(allocator, t, f.value, "opacity", "%", .{})) |r| return r;
     }
 
     // ── animate-{name|none|arbitrary} (theme `--animate-*`) ────────────────
@@ -6974,14 +7000,14 @@ fn resolveFunctional(
     // ── will-change-{arbitrary} ────────────────────────────────────────────
     if (std.mem.eql(u8, root, "will-change") and !negative) {
         if (f.value) |v| switch (v) {
-            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "will-change", a.value, null),
+            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "will-change", a.value, .{}),
             else => {},
         };
     }
     // ── contain-{arbitrary} ────────────────────────────────────────────────
     if (std.mem.eql(u8, root, "contain") and !negative) {
         if (f.value) |v| switch (v) {
-            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "contain", a.value, null),
+            .arbitrary => |a| return try resolveArbitraryProperty(allocator, "contain", a.value, .{}),
             else => {},
         };
     }
@@ -7016,7 +7042,10 @@ fn resolveFunctional(
 
     // ── indent-{spacing} (text-indent, supports negative) ──────────────────
     if (std.mem.eql(u8, unsigned_root, "indent")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{"text-indent"}, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{"text-indent"}, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── tracking-N / -tracking-N (letter-spacing, supports negative) ───────
@@ -7058,7 +7087,7 @@ fn resolveFunctional(
             switch (v) {
                 .arbitrary => |a| {
                     if (f.modifier == null) {
-                        return try resolveArbitraryProperty(allocator, "flex", a.value, null);
+                        return try resolveArbitraryProperty(allocator, "flex", a.value, .{});
                     }
                 },
                 .named => |n| {
@@ -7099,19 +7128,23 @@ fn resolveFunctional(
 
     // ── shrink-N / grow-N (positive integer) ───────────────────────────────
     if (std.mem.eql(u8, root, "shrink") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "flex-shrink", false);
+        return try resolveIntegerLonghand(allocator, f.value, "flex-shrink", .{});
     }
     if (std.mem.eql(u8, root, "grow") and !negative) {
-        return try resolveIntegerLonghand(allocator, f.value, "flex-grow", false);
+        return try resolveIntegerLonghand(allocator, f.value, "flex-grow", .{});
     }
 
     // ── col-N / -col-N (grid-column shorthand integer) ─────────────────────
     if (std.mem.eql(u8, unsigned_root, "col")) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-column", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-column", .{
+            .negative = negative,
+        });
     }
     // ── row-N / -row-N ─────────────────────────────────────────────────────
     if (std.mem.eql(u8, unsigned_root, "row")) {
-        return try resolveIntegerLonghand(allocator, f.value, "grid-row", negative);
+        return try resolveIntegerLonghand(allocator, f.value, "grid-row", .{
+            .negative = negative,
+        });
     }
 
     // ── aspect-W/H, aspect-[arbitrary] ─────────────────────────────────────
@@ -7142,17 +7175,23 @@ fn resolveFunctional(
 
     // ── inset-x / inset-y / -inset-x / -inset-y axis pairs ─────────────────
     if (std.mem.eql(u8, unsigned_root, "inset-x")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{ "left", "right" }, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "left", "right" }, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
     if (std.mem.eql(u8, unsigned_root, "inset-y")) {
-        return try resolveSpacingPairSigned(allocator, t, f.value, f.modifier, &.{ "top", "bottom" }, negative);
+        return try resolveSpacingPair(allocator, t, f.value, &.{ "top", "bottom" }, .{
+            .modifier = f.modifier,
+            .negative = negative,
+        });
     }
 
     // ── mask-[arbitrary] / mask-(--var) passthrough ────────────────────────
     if (std.mem.eql(u8, root, "mask") and !negative) {
         if (f.value) |v| {
             if (v == .arbitrary) {
-                return try resolveArbitraryProperty(allocator, "mask-image", v.arbitrary.value, null);
+                return try resolveArbitraryProperty(allocator, "mask-image", v.arbitrary.value, .{});
             }
         }
     }
@@ -7297,12 +7336,17 @@ fn resolveFunctional(
     return null;
 }
 
+const ArbitraryPropertyOptions = struct {
+    modifier: ?candidate.Modifier = null,
+};
+
 fn resolveArbitraryProperty(
     allocator: std.mem.Allocator,
     property: []const u8,
     value: []const u8,
-    modifier: ?candidate.Modifier,
+    options: ArbitraryPropertyOptions,
 ) ResolveError!?ResolvedUtility {
+    const modifier = options.modifier;
     // When a modifier is present and the property is color-shaped, apply it
     // as opacity via `color-mix(in oklab, <value> <pct>, transparent)`.
     // Use `oklab` (not `srgb`) for arbitrary-property
@@ -7410,24 +7454,20 @@ fn negate(allocator: std.mem.Allocator, val: []const u8) ResolveError![]u8 {
     return std.fmt.allocPrint(allocator, "calc({s} * -1)", .{val});
 }
 
-/// Emit two declarations from the spacing scale (e.g. `size-N` → width + height).
+const SpacingOptions = struct {
+    modifier: ?candidate.Modifier = null,
+    negative: bool = false,
+};
+
 fn resolveSpacingPair(
     allocator: std.mem.Allocator,
     t: Theme,
     value: ?candidate.UtilityValue,
     properties: []const []const u8,
+    options: SpacingOptions,
 ) ResolveError!?ResolvedUtility {
-    return resolveSpacingPairSigned(allocator, t, value, null, properties, false);
-}
-
-fn resolveSpacingPairSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    modifier: ?candidate.Modifier,
-    properties: []const []const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
+    const modifier = options.modifier;
+    const negative = options.negative;
     const v = value orelse return null;
 
     // Fraction form: `w-1/2`, `h-2/3`, `inset-1/4`. When both value and
@@ -7685,7 +7725,9 @@ fn resolveSpaceAxis(
     property: []const u8,
     negative: bool,
 ) ResolveError!?ResolvedUtility {
-    var r = (try resolveSpacingPairSigned(allocator, t, value, null, &.{property}, negative)) orelse return null;
+    var r = (try resolveSpacingPair(allocator, t, value, &.{property}, .{
+        .negative = negative,
+    })) orelse return null;
     r.selector_suffix = try allocator.dupe(u8, " > :not(:last-child)");
     return r;
 }
@@ -7788,7 +7830,9 @@ fn resolveZIndex(
 ) ResolveError!?ResolvedUtility {
     // Same shape as every other integer longhand — including `[arbitrary]`
     // passthrough, so `z-[60]` works like `order-[…]` does.
-    return resolveIntegerLonghand(allocator, value, "z-index", negative);
+    return resolveIntegerLonghand(allocator, value, "z-index", .{
+        .negative = negative,
+    });
 }
 
 /// `<utility>-N` where N is in pixels (e.g., `outline-offset-2` → `2px`).
@@ -7863,12 +7907,17 @@ fn resolveOutlineWidth(
 /// Generic integer-valued single-property longhand (`order-N`, `col-start-N`,
 /// `grid-row-start-N`, etc.). Accepts named integer values plus `[arbitrary]`
 /// passthrough for callers that allow it.
+const IntegerOptions = struct {
+    negative: bool = false,
+};
+
 fn resolveIntegerLonghand(
     allocator: std.mem.Allocator,
     value: ?candidate.UtilityValue,
     property: []const u8,
-    negative: bool,
+    options: IntegerOptions,
 ) ResolveError!?ResolvedUtility {
+    const negative = options.negative;
     const v = value orelse return null;
     const css_value: []u8 = switch (v) {
         .named => |n| blk: {
@@ -7943,26 +7992,20 @@ fn resolveAspect(
 
 /// `<root>-N` → `filter: <fn_name>(N<unit>)`. Bare value (`grayscale`, `invert`,
 /// `sepia`) uses `default_value` if non-null. Returns null otherwise.
+const FilterOptions = struct {
+    default_value: ?[]const u8 = null,
+    negative: bool = false,
+};
+
 fn resolveFilterFn(
     allocator: std.mem.Allocator,
     t: Theme,
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, false, "filter");
-}
-fn resolveFilterFnSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    fn_name: []const u8,
-    unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, negative, "filter");
+    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, "filter", options);
 }
 fn resolveBackdropFilterFn(
     allocator: std.mem.Allocator,
@@ -7970,20 +8013,9 @@ fn resolveBackdropFilterFn(
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, false, "backdrop-filter");
-}
-fn resolveBackdropFilterFnSigned(
-    allocator: std.mem.Allocator,
-    t: Theme,
-    value: ?candidate.UtilityValue,
-    fn_name: []const u8,
-    unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
-) ResolveError!?ResolvedUtility {
-    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, default_value, negative, "backdrop-filter");
+    return try resolveFilterFnImpl(allocator, t, value, fn_name, unit, "backdrop-filter", options);
 }
 
 fn resolveFilterFnImpl(
@@ -7992,21 +8024,20 @@ fn resolveFilterFnImpl(
     value: ?candidate.UtilityValue,
     fn_name: []const u8,
     unit: []const u8,
-    default_value: ?[]const u8,
-    negative: bool,
     css_property: []const u8,
+    options: FilterOptions,
 ) ResolveError!?ResolvedUtility {
     _ = t;
     const inner: []u8 = if (value) |v| switch (v) {
         .arbitrary => |a| try allocator.dupe(u8, a.value),
         .named => |n| blk: {
             if (!isInteger(n.value)) return null;
-            break :blk if (negative)
+            break :blk if (options.negative)
                 try std.fmt.allocPrint(allocator, "-{s}{s}", .{ n.value, unit })
             else
                 try std.fmt.allocPrint(allocator, "{s}{s}", .{ n.value, unit });
         },
-    } else if (default_value) |d| try allocator.dupe(u8, d) else return null;
+    } else if (options.default_value) |d| try allocator.dupe(u8, d) else return null;
     errdefer allocator.free(inner);
     const decls = try allocator.alloc(Declaration, 1);
     errdefer allocator.free(decls);
@@ -9013,7 +9044,26 @@ fn resolveFontFamily(
     value: ?candidate.UtilityValue,
 ) ResolveError!?ResolvedUtility {
     const v = value orelse return null;
-    if (v != .named) return null;
+    if (v == .arbitrary) {
+        // `font-[550]` / `font-[weight:var(--w)]` set the weight (variable fonts take any
+        // number); `font-[family-name:…]` and anything else name a family.
+        const a = v.arbitrary;
+        const is_weight = if (a.data_type) |dt|
+            std.mem.eql(u8, dt, "weight") or std.mem.eql(u8, dt, "number")
+        else
+            a.value.len > 0 and for (a.value) |c| {
+                if (!std.ascii.isDigit(c)) break false;
+            } else true;
+        const decls = try allocator.alloc(Declaration, 1);
+        errdefer allocator.free(decls);
+        decls[0] = .{
+            .property = if (is_weight) "font-weight" else "font-family",
+            .value = try allocator.dupe(u8, a.value),
+        };
+        return .{
+            .declarations = decls,
+        };
+    }
     const family_name = v.named.value;
 
     // Theme lookup `--font-<name>`.
@@ -9974,15 +10024,16 @@ const test_theme = theme.Theme{
     },
 };
 
-fn parseAndResolve(allocator: std.mem.Allocator, input: []const u8) !?ResolvedUtility {
-    return parseAndResolveWithTheme(allocator, test_theme, input);
-}
+const ParseOptions = struct {
+    theme: Theme = test_theme,
+};
 
-fn parseAndResolveWithTheme(
+fn parseAndResolve(
     allocator: std.mem.Allocator,
-    active_theme: Theme,
     input: []const u8,
+    options: ParseOptions,
 ) !?ResolvedUtility {
+    const active_theme = options.theme;
     const cands = try candidate.parseCandidate(allocator, input);
     defer candidate.freeCandidates(allocator, cands);
     for (cands) |c| {
@@ -10087,7 +10138,7 @@ pub fn applyVariants(
 ) VariantError!WrappedRule {
     const selector = try escapeClassSelector(allocator, base_class);
 
-    return applyVariantsTo(allocator, t, variants, selector, null);
+    return applyVariantsTo(allocator, t, variants, selector, .{});
 }
 
 /// The class a `group-*` or `peer-*` variant points at (`group`, `group/button`, `peer`),
@@ -10097,16 +10148,22 @@ pub const Markers = struct {
     name: *const fn (context: *const anyopaque, class: []const u8) ?[]const u8,
 };
 
+pub const ApplyOptions = struct {
+    /// Renames the classes compound variants point at.
+    markers: ?Markers = null,
+};
+
 /// Apply parsed variants to `base_selector` (owned by `allocator`, taken over), the
 /// selector the rule is written for: `.k`, or `:is(.k,.b1)` for a class that stacks name
-/// too. `markers` renames the classes compound variants point at.
+/// too.
 pub fn applyVariantsTo(
     allocator: std.mem.Allocator,
     t: Theme,
     variants: []const Variant,
     base_selector: []u8,
-    markers: ?Markers,
+    options: ApplyOptions,
 ) VariantError!WrappedRule {
+    const markers = options.markers;
     var selector = base_selector;
     errdefer allocator.free(selector);
 
@@ -11061,7 +11118,7 @@ fn parseAndApply(allocator: std.mem.Allocator, input: []const u8) !struct {
 pub const sort_mod = struct {
 /// Deterministic class sorting.
 ///
-/// Replaces the task-03 stub. Implements `sortClasses(allocator, input, theme_css)`
+/// Replaces the task-03 stub. Implements `sortClasses(allocator, input, options)`
 /// which the test runner calls per fixture.
 ///
 /// Algorithm (Phase 1, faithful enough for the 10 sort fixtures):
@@ -11074,8 +11131,7 @@ pub const sort_mod = struct {
 ///   3. Stable-sort by key.
 ///   4. Join with spaces.
 ///
-/// The legacy `theme_css` argument remains accepted by `sortClasses`; compilation
-/// calls `sortClassesWithTheme` with its resolved tokens so custom breakpoints and
+/// Compilation passes its resolved theme in `options.theme` so custom breakpoints and
 /// overrides participate in cascade ordering.
 const std = @import("std");
 const candidate = amalgam.candidate_mod;
@@ -11087,22 +11143,18 @@ pub const SortError = error{
     OutOfMemory,
 };
 
+pub const Options = struct {
+    theme: theme.Theme = .{
+        .tokens = &.{},
+    },
+};
+
 pub fn sortClasses(
     allocator: std.mem.Allocator,
     input: []const u8,
-    theme_css: []const u8,
+    options: Options,
 ) SortError![]u8 {
-    _ = theme_css; // Legacy sorting API; compilation uses the resolved token theme below.
-    return sortClassesWithTheme(allocator, input, .{
-        .tokens = &.{},
-    });
-}
-
-pub fn sortClassesWithTheme(
-    allocator: std.mem.Allocator,
-    input: []const u8,
-    t: theme.Theme,
-) SortError![]u8 {
+    const t = options.theme;
 
     // Split input on whitespace.
     var classes = std.array_list.Managed([]const u8).init(allocator);
@@ -12605,7 +12657,9 @@ fn cascade_order(gpa: std.mem.Allocator, t: Theme, classes: []const []const u8) 
         try joined.appendSlice(gpa, class);
     }
 
-    const sorted = sort.sortClassesWithTheme(gpa, joined.items, t) catch |err| switch (err) {
+    const sorted = sort.sortClasses(gpa, joined.items, .{
+        .theme = t,
+    }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         error.NotImplemented => return error.NotImplemented,
     };
@@ -13365,7 +13419,9 @@ pub fn compile(
     // 1. Sort classes (cascade-correct ordering).
     const joined = try joinClasses(allocator, classes);
     defer allocator.free(joined);
-    const sorted = sort.sortClassesWithTheme(allocator, joined, t) catch |err| switch (err) {
+    const sorted = sort.sortClasses(allocator, joined, .{
+        .theme = t,
+    }) catch |err| switch (err) {
         sort.SortError.OutOfMemory => return CompileError.OutOfMemory,
         sort.SortError.NotImplemented => return CompileError.UnsupportedFeature,
     };
@@ -13546,7 +13602,9 @@ pub fn classAtoms(
             .context = &slots,
             .name = marker_slot,
         };
-        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, markers) catch |err| switch (err) {
+        const wrapped = variants.applyVariantsTo(gpa, t, cand_variants, base, .{
+            .markers = markers,
+        }) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return null,
         };
@@ -13744,7 +13802,7 @@ fn emitClassRule(
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return,
         };
-        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, null) catch |err| switch (err) {
+        const wrapped = variants.applyVariantsTo(allocator, t, cand_variants, base, .{}) catch |err| switch (err) {
             error.OutOfMemory => return CompileError.OutOfMemory,
             error.UnknownVariant => return, // skip silently — unsupported variant
         };

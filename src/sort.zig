@@ -1,6 +1,6 @@
 /// Deterministic class sorting.
 ///
-/// Replaces the task-03 stub. Implements `sortClasses(allocator, input, theme_css)`
+/// Replaces the task-03 stub. Implements `sortClasses(allocator, input, options)`
 /// which the test runner calls per fixture.
 ///
 /// Algorithm (Phase 1, faithful enough for the 10 sort fixtures):
@@ -13,8 +13,7 @@
 ///   3. Stable-sort by key.
 ///   4. Join with spaces.
 ///
-/// The legacy `theme_css` argument remains accepted by `sortClasses`; compilation
-/// calls `sortClassesWithTheme` with its resolved tokens so custom breakpoints and
+/// Compilation passes its resolved theme in `options.theme` so custom breakpoints and
 /// overrides participate in cascade ordering.
 const std = @import("std");
 const candidate = @import("candidate.zig");
@@ -26,22 +25,18 @@ pub const SortError = error{
     OutOfMemory,
 };
 
+pub const Options = struct {
+    theme: theme.Theme = .{
+        .tokens = &.{},
+    },
+};
+
 pub fn sortClasses(
     allocator: std.mem.Allocator,
     input: []const u8,
-    theme_css: []const u8,
+    options: Options,
 ) SortError![]u8 {
-    _ = theme_css; // Legacy sorting API; compilation uses the resolved token theme below.
-    return sortClassesWithTheme(allocator, input, .{
-        .tokens = &.{},
-    });
-}
-
-pub fn sortClassesWithTheme(
-    allocator: std.mem.Allocator,
-    input: []const u8,
-    t: theme.Theme,
-) SortError![]u8 {
+    const t = options.theme;
 
     // Split input on whitespace.
     var classes = std.array_list.Managed([]const u8).init(allocator);
@@ -794,25 +789,25 @@ fn alphaScore(s: []const u8) u32 {
 const tst = std.testing;
 
 test "sortClasses: padding shorthand, x, y" {
-    const out = try sortClasses(tst.allocator, "py-3 p-1 px-3", "");
+    const out = try sortClasses(tst.allocator, "py-3 p-1 px-3", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("p-1 px-3 py-3", out);
 }
 
 test "sortClasses: variant count ordering" {
-    const out = try sortClasses(tst.allocator, "px-3 focus:hover:p-3 hover:p-1 py-3", "");
+    const out = try sortClasses(tst.allocator, "px-3 focus:hover:p-3 hover:p-1 py-3", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("px-3 py-3 hover:p-1 focus:hover:p-3", out);
 }
 
 test "sortClasses: important sorts to end of group" {
-    const out = try sortClasses(tst.allocator, "px-3 py-4! p-1", "");
+    const out = try sortClasses(tst.allocator, "px-3 py-4! p-1", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("p-1 px-3 py-4!", out);
 }
 
 test "sortClasses: unknown classes preserve input order, sort to front" {
-    const out = try sortClasses(tst.allocator, "b p-1 a", "");
+    const out = try sortClasses(tst.allocator, "b p-1 a", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("b a p-1", out);
 }
@@ -821,7 +816,7 @@ test "sortClasses: bg sorts before p, alphabetical within bg" {
     const out = try sortClasses(
         tst.allocator,
         "a-class px-3 p-1 b-class py-3 bg-red-500 bg-blue-500",
-        "",
+        .{},
     );
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("a-class b-class bg-blue-500 bg-red-500 p-1 px-3 py-3", out);
@@ -831,7 +826,7 @@ test "sortClasses: arbitrary properties preserve input order" {
     const out = try sortClasses(
         tst.allocator,
         "[--bg:#111] [--bg_hover:#000] [--fg:#fff]",
-        "",
+        .{},
     );
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("[--bg:#111] [--bg_hover:#000] [--fg:#fff]", out);
@@ -842,7 +837,7 @@ test "sortClasses: responsive display override sorts after base display" {
     // must come after `hidden` in the emitted CSS or display:none wins at
     // every viewport width. table-* utilities are compilable statics, so they
     // sort by bucket (or the late catchall) — never to the front.
-    const out = try sortClasses(tst.allocator, "md:table-cell w-[180px] hidden", "");
+    const out = try sortClasses(tst.allocator, "md:table-cell w-[180px] hidden", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("hidden w-[180px] md:table-cell", out);
 }
@@ -851,13 +846,13 @@ test "sortClasses: compilable static utility without a bucket sorts late, not fr
     // `sr-only` resolves as a static utility but has no property-bucket
     // entry: it lands in the late catchall, while a truly custom class keeps
     // the front-by-convention slot.
-    const out = try sortClasses(tst.allocator, "md:sr-only custom-class sr-only p-1", "");
+    const out = try sortClasses(tst.allocator, "md:sr-only custom-class sr-only p-1", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("custom-class p-1 sr-only md:sr-only", out);
 }
 
 test "sortClasses: hover:b focus:p-1 a" {
-    const out = try sortClasses(tst.allocator, "hover:b focus:p-1 a", "");
+    const out = try sortClasses(tst.allocator, "hover:b focus:p-1 a", .{});
     defer tst.allocator.free(out);
     try tst.expectEqualStrings("hover:b a focus:p-1", out);
 }

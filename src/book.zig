@@ -482,7 +482,9 @@ fn cascade_order(gpa: std.mem.Allocator, t: Theme, classes: []const []const u8) 
         try joined.appendSlice(gpa, class);
     }
 
-    const sorted = sort.sortClassesWithTheme(gpa, joined.items, t) catch |err| switch (err) {
+    const sorted = sort.sortClasses(gpa, joined.items, .{
+        .theme = t,
+    }) catch |err| switch (err) {
         error.OutOfMemory => return error.OutOfMemory,
         error.NotImplemented => return error.NotImplemented,
     };
@@ -1283,4 +1285,3 @@ test "a shorthand covers its sides" {
     try std.testing.expect(shorthand_covers("inset", "top"));
     try std.testing.expect(!shorthand_covers("flex", "flex-direction"));
 }
-

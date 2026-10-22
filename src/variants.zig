@@ -65,7 +65,7 @@ pub fn applyVariants(
 ) VariantError!WrappedRule {
     const selector = try escapeClassSelector(allocator, base_class);
 
-    return applyVariantsTo(allocator, t, variants, selector, null);
+    return applyVariantsTo(allocator, t, variants, selector, .{});
 }
 
 /// The class a `group-*` or `peer-*` variant points at (`group`, `group/button`, `peer`),
@@ -75,16 +75,22 @@ pub const Markers = struct {
     name: *const fn (context: *const anyopaque, class: []const u8) ?[]const u8,
 };
 
+pub const ApplyOptions = struct {
+    /// Renames the classes compound variants point at.
+    markers: ?Markers = null,
+};
+
 /// Apply parsed variants to `base_selector` (owned by `allocator`, taken over), the
 /// selector the rule is written for: `.k`, or `:is(.k,.b1)` for a class that stacks name
-/// too. `markers` renames the classes compound variants point at.
+/// too.
 pub fn applyVariantsTo(
     allocator: std.mem.Allocator,
     t: Theme,
     variants: []const Variant,
     base_selector: []u8,
-    markers: ?Markers,
+    options: ApplyOptions,
 ) VariantError!WrappedRule {
+    const markers = options.markers;
     var selector = base_selector;
     errdefer allocator.free(selector);
 

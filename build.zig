@@ -48,6 +48,22 @@ pub fn build(b: *std.Build) void {
         test_step.dependOn(&b.addRunArtifact(unit).step);
     }
 
+    // Publr's tidy, holding jit to the workspace's options rule (STYLE.md) alone so far.
+    const tidy = b.addExecutable(.{
+        .name = "tidy",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../publr/scripts/tidy.zig"),
+            .target = b.graph.host,
+            .optimize = .Debug,
+        }),
+    });
+    const run_tidy = b.addRunArtifact(tidy);
+    run_tidy.addArgs(&.{ "--only=options", "build.zig", "src" });
+    run_tidy.setCwd(b.path("."));
+    run_tidy.has_side_effects = true;
+    b.step("tidy", "Check the workspace's options rule").dependOn(&run_tidy.step);
+    test_step.dependOn(&run_tidy.step);
+
     // The checked-in single-file distribution must match canonical src/ and
     // expose the same public compile API used by downstream consumers.
     const check_amalgamation = b.addSystemCommand(&.{ "sh", "scripts/amalgamate-jit.sh", "--check" });

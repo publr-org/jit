@@ -208,24 +208,27 @@ fn runCompile(
     // extendThemeRuntime, so the rightmost flag wins. Typical usage:
     //   --theme=ds-tokens.zon   (semantic alias palette — design system)
     //   --theme=brand.zon       (per-consumer brand overrides)
-    var loaded_zons: std.array_list.Managed([:0]u8) = .init(allocator);
-    defer {
-        for (loaded_zons.items) |b| allocator.free(b);
-        loaded_zons.deinit();
-    }
+    // Parsed themes (and their sources) live in one arena, freed together.
+    var themes_arena: std.heap.ArenaAllocator = .init(allocator);
+    defer themes_arena.deinit();
     var loaded_themes: std.array_list.Managed(jit.Theme) = .init(allocator);
-    defer {
-        for (loaded_themes.items) |ut| std.zon.parse.free(allocator, ut);
-        loaded_themes.deinit();
-    }
+    defer loaded_themes.deinit();
 
     for (theme_paths) |p| {
-        const plain = try std.Io.Dir.cwd().readFileAlloc(io, p, allocator, .limited(4 * 1024 * 1024));
-        defer allocator.free(plain);
+        const arena = themes_arena.allocator();
         // std.zon.parse needs a sentinel-terminated slice.
-        const bytes = try allocator.dupeZ(u8, plain);
-        try loaded_zons.append(bytes);
-        const t = try std.zon.parse.fromSliceAlloc(jit.Theme, allocator, bytes, null, .{});
+        const plain = try std.Io.Dir.cwd().readFileAlloc(io, p, arena, .limited(4 * 1024 * 1024));
+        const bytes = try arena.dupeSentinel(u8, plain, 0);
+        var diagnostics: std.zon.parse.Diagnostics = undefined;
+        const t = std.zon.parse.fromSlice(jit.Theme, .{
+            .gpa = allocator,
+            .arena = arena,
+            .source = bytes,
+            .diagnostics = &diagnostics,
+        }) catch |err| switch (err) {
+            error.ParseZon => diagnostics.fatal(p),
+            error.OutOfMemory => return error.OutOfMemory,
+        };
         try loaded_themes.append(t);
     }
 
